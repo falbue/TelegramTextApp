@@ -1,0 +1,5 @@
+test.db
+__pycache__/
+local.json
+test.py
+scripts.py
