@@ -34,13 +34,16 @@ def menu_layout(call=None, message=None):
     return {"name":menu_name, "page":menu_page, "data":get_data}
 
 
-def create_buttons(data, page, prefix, list_page=10, menu=None):
+def create_buttons(data, page, prefix="", list_page=10, menu=None):
     buttons = []
     start_index = int(page) * list_page
     end_index = start_index + list_page
     paginated_data = list(data.items())[start_index:end_index]
     
     for callback, text in paginated_data:
+        if len(callback.split(":")) > 1:
+            prefix = callback.split(":")[1]
+            callback = callback.split(":")[0]
         button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{prefix}')
         buttons.append(button)
     
@@ -93,13 +96,21 @@ def open_menu(call=None, message=None):
     keyboard = InlineKeyboardMarkup(row_width=kb_width)
 
     if locale["menus"][menu_data['name']].get('buttons') is not None: # добавление кнопок
-        buttons = create_buttons(locale["menus"][menu_data['name']]['buttons'], menu_data['page'], menu_data['data'])
+        buttons = create_buttons(locale["menus"][menu_data['name']]['buttons'], menu_data['page'])
         if menu_data['name'] == "main" and user[4] == "admin": # добавление админки
             buttons.append(InlineKeyboardButton((locale["general_buttons"]['admin']), callback_data=f'admin'))
         keyboard.add(*buttons)
 
+    if locale["menus"][menu_data['name']].get('create_buttons') is not None:
+        function_name = (locale["menus"][menu_data['name']]['create_buttons'])
+        function = globals()[function_name]
+        create = function(call, message, menu_data["data"])
+        buttons = create_buttons(create, menu_data['page'], menu_data['data'])
+        keyboard.add(*buttons)
+
+
     if locale["menus"][menu_data['name']].get('return') is not None: # кнопка возврата
-        btn_return = InlineKeyboardButton((locale["general_buttons"]['return']), callback_data=f'{locale["menus"][menu_data["name"]]["return"]}-0:{menu_data["data"]}')
+        btn_return = InlineKeyboardButton((locale["general_buttons"]['return']), callback_data=f'{locale["menus"][menu_data["name"]]["return"]}-0:')
         keyboard.add(btn_return)
     return_data["keyboard"] = keyboard
 

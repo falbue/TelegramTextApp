@@ -19,6 +19,8 @@ def SQL_request(request, params=(), all_data=None):  # Выполнение SQL-
         connect.commit()
         connect.close()
 
+
+
 def create_TTA():
     SQL_request("""CREATE TABLE IF NOT EXISTS TTA (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

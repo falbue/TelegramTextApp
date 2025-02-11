@@ -1,20 +1,15 @@
 import telebot
 import threading
-
-from TTA_scripts import *
 import TTA_menus
 
 VERSION="0.0.1"
 
-
-def start(): # создание бота
-    global bot
-    config = get_settings()
-    bot = telebot.TeleBot(config["api"])
-    return config
-
-config = start()
-
+class TTA:
+    def __init__(self, API, path_sctipt, path_menus):
+        super(TTA, self).__init__()
+        self.api = API
+        self.path_sctipt = path_sctipt
+        self.path_menus = path_menus
 
 @bot.message_handler()
 def text_handler(message): # обработка полученного текста
