@@ -1,5 +1,4 @@
 test.db
 __pycache__/
-local.json
-test.py
+menus.json
 scripts.py

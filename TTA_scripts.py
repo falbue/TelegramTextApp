@@ -5,22 +5,24 @@ import sqlite3
 import os
 import re
 import inspect
-from TTA_use_db import *
+import TTA_use_db
+from TTA_use_db import SQL_request
 
-def get_settings():
-    path = "local.json"
-    with open(path, 'r', encoding='utf-8') as file:
-        locale = json.load(file)
-    return locale["settings"]
+def get_config(menu_path):
+    global DB_PATH, SAVE_FOLDER
+    with open(menu_path, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
 
-config = get_settings()
-DB_NAME = f'{config["database"]}.db'
-DB_PATH = config["database_path"]
-if DB_PATH == "": DB_PATH = DB_NAME
-SAVE_FOLDER = config["save_folder"]
-use_db_settings(DB_PATH)
-if not os.path.exists(DB_PATH):
-    create_TTA()
+    tta_config =  settings["settings"]
+    DB_NAME = f'{tta_config["database"]}.db'
+    DB_PATH = tta_config["database_path"]
+    if DB_PATH == "": DB_PATH = DB_NAME
+    SAVE_FOLDER = tta_config["save_folder"]
+    TTA_use_db.use_db_settings(DB_PATH)
+    if not os.path.exists(DB_PATH):
+        TTA_use_db.create_TTA()
+
+    return settings
 
 
 def now_time():  # Получение текущего времени по МСК

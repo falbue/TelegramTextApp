@@ -3,21 +3,15 @@ from telebot import types
 import TTA_scripts
 import json
 
-import sys
-from importlib.util import spec_from_file_location, module_from_spec
-sys.path.append("scripts.py")
-module = module_from_spec(spec_from_file_location("scripts", "scripts.py"))
-module.__spec__.loader.exec_module(module)
-globals().update(vars(module))
-
-def get_locale():
-    path = "local.json"
-    with open(path, 'r', encoding='utf-8') as file:
-        locale = json.load(file)
-
-    return locale
-
-locale = get_locale()
+def get_locale(menus, script_path):
+    global locale
+    locale = menus
+    import sys
+    from importlib.util import spec_from_file_location, module_from_spec
+    sys.path.append("scripts.py")
+    module = module_from_spec(spec_from_file_location("scripts", script_path))
+    module.__spec__.loader.exec_module(module)
+    globals().update(vars(module))
 
 def menu_layout(call=None, message=None):
     if call:
@@ -26,12 +20,13 @@ def menu_layout(call=None, message=None):
         menu_name = menu_base[0].split("-")[0]
         menu_page = menu_base[0].split("-")[1]
     elif message:
-        menu_name = (message.text).replace("/", "")
+        command = (message.text).replace("/", "")
+        menu_name = locale["commands"][command]["menu"]
         get_data = ""
         menu_page = "0"
-    if menu_name == "start":
-        menu_name = 'main'
-    return {"name":menu_name, "page":menu_page, "data":get_data}
+        if command == "start":
+            TTA_scripts.registration(message, call)
+    return {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message}
 
 
 def create_buttons(data, page, prefix="", list_page=10, menu=None):
@@ -67,9 +62,6 @@ def open_menu(call=None, message=None):
     find_menu = locale["menus"].get(menu_data['name'])
     if find_menu is None: menu_data['name'] = "none_menu"
 
-    if menu_data['name'] == "main":
-            TTA_scripts.registration(message, call)
-
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
     if user_id: user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
@@ -81,7 +73,7 @@ def open_menu(call=None, message=None):
     if locale["menus"][menu_data['name']].get('function') is not None: # выполнение указанной функции
         function_name = (locale["menus"][menu_data['name']]['function'])
         function = globals()[function_name]
-        function_data = function(call, message, menu_data["data"])
+        function_data = function(menu_data)
 
     if locale["menus"][menu_data['name']].get('text') is not None:
         text = locale["menus"][menu_data['name']]['text']
