@@ -78,9 +78,10 @@ def open_menu(call=None, message=None):
     if locale["menus"][menu_data['name']].get('text') is not None:
         text = locale["menus"][menu_data['name']]['text']
     else:
-        text = function_data
+        text = function_data.get("text")
+        if text is None: text = "Укажите текст настройках меню!"
     text = TTA_scripts.data_formated(text, formatting_data)
-    text = TTA_scripts.markdown(text, True)
+    text = TTA_scripts.markdown(text)
     return_data["text"] = text
 
     if locale["menus"][menu_data['name']].get('width') is not None: # настройка ширины клавиатуры
@@ -89,15 +90,6 @@ def open_menu(call=None, message=None):
 
     if locale["menus"][menu_data['name']].get('buttons') is not None: # добавление кнопок
         buttons = create_buttons(locale["menus"][menu_data['name']]['buttons'], menu_data['page'])
-        if menu_data['name'] == "main" and user[4] == "admin": # добавление админки
-            buttons.append(InlineKeyboardButton((locale["general_buttons"]['admin']), callback_data=f'admin'))
-        keyboard.add(*buttons)
-
-    if locale["menus"][menu_data['name']].get('create_buttons') is not None:
-        function_name = (locale["menus"][menu_data['name']]['create_buttons'])
-        function = globals()[function_name]
-        create = function(call, message, menu_data["data"])
-        buttons = create_buttons(create, menu_data['page'], menu_data['data'])
         keyboard.add(*buttons)
 
 
