@@ -60,7 +60,7 @@ def create_buttons(data, page=0, prefix="", list_page=20, menu=None):
     return buttons, nav_buttons
 
 
-def open_menu(call=None, message=None):
+def open_menu(call=None, message=None, loading=False):
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
     menu_data = menu_layout(call, message, user_id)
@@ -76,6 +76,11 @@ def open_menu(call=None, message=None):
     kb_width=2
     return_data = {}
     formatting = {}
+
+    if locale["menus"][menu_data['name']].get('loading') is not None and loading == False:
+        return_data["text"] = TTA_scripts.markdown(locale["menus"][menu_data['name']]['loading'])
+        return_data['loading'] = True
+        return return_data
 
     if locale["menus"][menu_data['name']].get('function') is not None: # выполнение указанной функции
         function_name = (locale["menus"][menu_data['name']]['function'])

@@ -44,6 +44,9 @@ def start(api, menus, debug=False):
     
         else:
             menu_data = TTA_menus.open_menu(call=call)
+            if menu_data.get("loading"):
+                bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
+                menu_data = TTA_menus.open_menu(call=call, loading=True)
             if menu_data.get("handler"):
                 bot.register_next_step_handler(call.message, step_handler, menu_id, call, get_data, menu_data["handler"]["function"], menu_data["handler"]["open_menu"])
     
