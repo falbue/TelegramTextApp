@@ -6,7 +6,7 @@ import inspect
 
 VERSION="0.1.1"
 
-def start(api, menus, debug=False):
+def start(api, menus, debug=False, tta_experience=False):
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
@@ -27,6 +27,8 @@ def start(api, menus, debug=False):
     
         menu_data = TTA_menus.open_menu(message=message) 
         bot.send_message(message.chat.id, menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+        if tta_experience == True:
+            bot.delete_message(user_id, message.message_id)
         if menu_data.get("send_menu"):
             send_menu(menu_data)
     
@@ -35,6 +37,8 @@ def start(api, menus, debug=False):
     def callback_query(call):  # работа с вызовами inline кнопок
         user_id, menu_id = TTA_scripts.update_user(call)
         bot.clear_step_handler_by_chat_id(chat_id=user_id)
+        if debug == True:
+            print(f"{user_id}: {call.data}")
             
         if call.data == "none": return
     

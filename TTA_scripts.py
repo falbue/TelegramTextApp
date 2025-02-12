@@ -87,7 +87,6 @@ def update_user(call):
     menu_id = call.message.message_id
     user = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
     SQL_request("UPDATE TTA SET username = ? WHERE telegram_id = ?", (username, user_id))
-    print(f"{user_id}: {call.data}")
     return user_id, menu_id
 
 def registration(message, call):
