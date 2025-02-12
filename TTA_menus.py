@@ -42,7 +42,10 @@ def create_buttons(data, page=0, prefix="", list_page=20, menu=None):
         if len(callback.split(":")) > 1:
             data_button = callback.split(":")[1]
             callback = callback.split(":")[0]
-        button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
+        if callback == "url":
+            button = types.InlineKeyboardButton(text, url=data_button)
+        else:
+            button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
         buttons.append(button)
     
     if len(data) > list_page:
