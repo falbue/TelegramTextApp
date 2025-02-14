@@ -3,8 +3,9 @@ from telebot import types
 import TTA_scripts
 import json
 
-def get_locale(menus, script_path):
-    global locale
+def get_locale(menus, script_path, formating_text):
+    global locale, format_text
+    format_text = formating_text
     locale = menus
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
@@ -33,8 +34,14 @@ def menu_layout(call=None, message=None, user_id=None):
     return {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
 
 
-def create_buttons(data, page=0, prefix="", list_page=20, menu=None):
-    page = int(page)
+def create_buttons(menu, menu_data, list_page=20):
+    buttons_data = menu.get('buttons')
+    data = menu
+    if buttons_data:
+        data = buttons_data
+    prefix= menu_data['data']
+    page = int(menu_data["page"])
+
     buttons = []
     nav_buttons = []
     start_index = int(page) * list_page
@@ -45,6 +52,9 @@ def create_buttons(data, page=0, prefix="", list_page=20, menu=None):
         if len(data.split(":")) > 1:
             callback = data.split(":")[0]
             data_button = data.replace(f"{callback}:", "")
+            if format_text:
+                function_format = globals()[format_text]
+                data_button = function_format(menu_data, data_button)
         if callback == "url":
             button = types.InlineKeyboardButton(text, url=data_button)
         elif callback == "app":
@@ -93,10 +103,14 @@ def open_menu(call=None, message=None, loading=False):
 
     if locale["menus"][menu_data['name']].get('text') is not None:
         text = locale["menus"][menu_data['name']]['text']
+        if format_text:
+            function_format = globals()[format_text]
+            text = function_format(menu_data, text)
         text = TTA_scripts.markdown(text)
     else:
         text = function_data
         if text is None: text = "Укажите текст настройках меню!"
+
     text = TTA_scripts.data_formated(text, formatting_data)
     return_data["text"] = text
 
@@ -105,7 +119,7 @@ def open_menu(call=None, message=None, loading=False):
     keyboard = InlineKeyboardMarkup(row_width=kb_width)
 
     if locale["menus"][menu_data['name']].get('buttons') is not None: # добавление кнопок
-        buttons, nav_buttons = create_buttons(locale["menus"][menu_data['name']]['buttons'], menu_data['page'], menu=menu_data["name"], prefix=menu_data['data'])
+        buttons, nav_buttons = create_buttons(locale["menus"][menu_data['name']], menu_data)
         keyboard.add(*buttons)
         keyboard.add(*nav_buttons)
 
@@ -113,7 +127,7 @@ def open_menu(call=None, message=None, loading=False):
         function_name = locale["menus"][menu_data['name']]['create_buttons']
         function = globals()[function_name]
         function_data = function(menu_data)
-        buttons, nav_buttons = create_buttons(function_data, page=menu_data['page'], menu=menu_data["name"], prefix=menu_data['data'])
+        buttons, nav_buttons = create_buttons(function_data, menu_data)
         keyboard.add(*buttons)
         keyboard.add(*nav_buttons)
 
