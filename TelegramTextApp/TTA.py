@@ -1,7 +1,7 @@
 import telebot
 import threading
-import TTA_menus
-import TTA_scripts
+from TelegramTextApp import TTA_menus
+from TelegramTextApp import TTA_scripts
 import inspect
 from telebot import apihelper
 
