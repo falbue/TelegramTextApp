@@ -23,6 +23,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста
         user_id = message.chat.id
+        if debug == True:
+            print(f"{user_id}: command - {message.text}")
         if message.text[0] == "/":
             menu_data = TTA_menus.open_menu(message=message) 
             old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))[0]
