@@ -5,8 +5,8 @@ import sqlite3
 import os
 import re
 import inspect
-from TelegramTextApp import TTA_use_db
-from TelegramTextApp.TTA_use_db import SQL_request
+import TTA_use_db
+from TTA_use_db import SQL_request
 
 def create_file_menus(menu_path):
     if not os.path.isfile(menu_path):
