@@ -1,6 +1,6 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from telebot import types
-import TTA_scripts
+from TelegramTextApp import TTA_scripts
 import json
 
 def get_locale(menus, script_path, formating_text):

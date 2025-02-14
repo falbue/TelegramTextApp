@@ -1,13 +1,14 @@
 import telebot
 import threading
-import TTA_menus
-import TTA_scripts
+from TelegramTextApp import TTA_menus
+from TelegramTextApp import TTA_scripts
 import inspect
 from telebot import apihelper
 
 VERSION="0.2.1"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
+    TTA_scripts.create_file_menus(menus)
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename

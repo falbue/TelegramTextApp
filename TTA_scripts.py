@@ -5,8 +5,43 @@ import sqlite3
 import os
 import re
 import inspect
-import TTA_use_db
-from TTA_use_db import SQL_request
+from TelegramTextApp import TTA_use_db
+from TelegramTextApp.TTA_use_db import SQL_request
+
+def create_file_menus(menu_path):
+    if not os.path.isfile(menu_path):
+        data = {
+            "menus": {
+                "none_menu": {
+                    "text": "Это меню ещё не создано",
+                    "buttons": {},
+                    "return": "main"
+                },
+                "update_tta": {
+                    "text": "Бот был обновлён до новой версии!",
+                    "buttons": {},
+                    "return": "main"
+                },
+                "main": {
+                    "text": "Привет я запущен на [TTA](https://github.com/falpin/TelegramTextApp)"
+                }
+            },
+            "commands": {
+                "start": {
+                    "menu": "main",
+                    "text": "Перезапуск бота"
+                }
+            },
+            "general_buttons": {
+                "return": "< Назад",
+                "admin": "Администратор",
+                "notification": "Прочитано"
+            }
+        }
+        
+        with open(menu_path, 'w', encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+        print("Файл Для работы с меню бота создан!")
 
 def get_config(menu_path, DB_PATH="database.db", save_folder="SAVE_FOLDER"):
     global SAVE_FOLDER
