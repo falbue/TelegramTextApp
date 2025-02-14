@@ -15,23 +15,26 @@ def get_locale(menus, script_path, formating_text):
     globals().update(vars(module))
 
 def menu_layout(call=None, message=None, user_id=None):
-    if call:
-        menu_base = (call.data).split(":")
-        get_data = menu_base[1]
-        if get_data == "": get_data = None
-        menu_name = menu_base[0].split("-")[0]
-        menu_page = menu_base[0].split("-")[1]
-    elif message:
-        command = (message.text).replace("/", "")
-        menu_name = locale["commands"][command]["menu"]
-        get_data = None
-        if len(menu_name.split(":")) > 1: 
-            get_data = menu_name.split(":")[1]
-            menu_name = menu_name.split(":")[0]
-        menu_page = "0"
-        if command == "start":
-            TTA_scripts.registration(message, call)
-    return {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
+    try:
+        if call:
+            menu_base = (call.data).split(":")
+            get_data = menu_base[1]
+            if get_data == "": get_data = None
+            menu_name = menu_base[0].split("-")[0]
+            menu_page = menu_base[0].split("-")[1]
+        elif message:
+            command = (message.text).replace("/", "")
+            menu_name = locale["commands"][command]["menu"]
+            get_data = None
+            if len(menu_name.split(":")) > 1: 
+                get_data = menu_name.split(":")[1]
+                menu_name = menu_name.split(":")[0]
+            menu_page = "0"
+            if command == "start":
+                TTA_scripts.registration(message, call)
+        return {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
+    except:
+        return {"name":"update_tta", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
 
 
 def create_buttons(buttons_data, menu_data, keyboard, list_page):
@@ -88,6 +91,9 @@ def open_menu(call=None, message=None, loading=False):
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
     menu_data = menu_layout(call, message, user_id)
+    user = SQL_request("SELECT * FROM users WHERE id = ?", (user_id,))
+    if user is None:
+        registration(menu_data)
     formatting_data = None
     function_data = {}
     list_page = 20
