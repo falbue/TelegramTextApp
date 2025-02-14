@@ -5,7 +5,7 @@ from TelegramTextApp import TTA_scripts
 import inspect
 from telebot import apihelper
 
-VERSION="0.2.2"
+VERSION="0.2.2-test"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(menus)
