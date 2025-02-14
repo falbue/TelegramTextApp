@@ -41,12 +41,14 @@ def create_buttons(data, page=0, prefix="", list_page=20, menu=None):
     end_index = start_index + list_page
     paginated_data = list(data.items())[start_index:end_index]
     
-    for callback, text in paginated_data:
-        if len(callback.split(":")) > 1:
-            data_button = callback.split(":")[1]
-            callback = callback.split(":")[0]
+    for data, text in paginated_data:
+        if len(data.split(":")) > 1:
+            callback = data.split(":")[0]
+            data_button = data.replace(f"{callback}:", "")
         if callback == "url":
             button = types.InlineKeyboardButton(text, url=data_button)
+        elif callback == "app":
+            button = types.InlineKeyboardButton(text, web_app=types.WebAppInfo(url=data_button))
         else:
             button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
         buttons.append(button)
