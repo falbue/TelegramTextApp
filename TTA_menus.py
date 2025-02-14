@@ -93,11 +93,11 @@ def open_menu(call=None, message=None, loading=False):
 
     if locale["menus"][menu_data['name']].get('text') is not None:
         text = locale["menus"][menu_data['name']]['text']
+        text = TTA_scripts.markdown(text)
     else:
         text = function_data
         if text is None: text = "Укажите текст настройках меню!"
     text = TTA_scripts.data_formated(text, formatting_data)
-    text = TTA_scripts.markdown(text)
     return_data["text"] = text
 
     if locale["menus"][menu_data['name']].get('width') is not None: # настройка ширины клавиатуры
