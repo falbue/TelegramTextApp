@@ -5,7 +5,7 @@ import TTA_scripts
 import inspect
 from telebot import apihelper
 
-VERSION="0.1.2"
+VERSION="0.2.0"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     current_frame = inspect.currentframe()

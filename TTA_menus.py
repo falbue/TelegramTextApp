@@ -34,11 +34,8 @@ def menu_layout(call=None, message=None, user_id=None):
     return {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
 
 
-def create_buttons(menu, menu_data, list_page=20):
-    buttons_data = menu.get('buttons')
-    data = menu
-    if buttons_data:
-        data = buttons_data
+def create_buttons(buttons_data, menu_data, keyboard, list_page):
+    data = buttons_data
     prefix= menu_data['data']
     page = int(menu_data["page"])
 
@@ -49,6 +46,8 @@ def create_buttons(menu, menu_data, list_page=20):
     paginated_data = list(data.items())[start_index:end_index]
     
     for data, text in paginated_data:
+        slash  = text
+        text = text.replace("\\","")
         if len(data.split(":")) > 1:
             callback = data.split(":")[0]
             data_button = data.replace(f"{callback}:", "")
@@ -61,7 +60,17 @@ def create_buttons(menu, menu_data, list_page=20):
             button = types.InlineKeyboardButton(text, web_app=types.WebAppInfo(url=data_button))
         else:
             button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
-        buttons.append(button)
+
+        if slash[0] == "\\":
+            if buttons:
+                keyboard.add(*buttons)
+                buttons = []
+                buttons.append(button)
+        else:
+            buttons.append(button)
+    if buttons:
+        keyboard.add(*buttons)
+
     
     if len(paginated_data) > list_page:
         nav_buttons = []
@@ -70,8 +79,9 @@ def create_buttons(menu, menu_data, list_page=20):
         nav_buttons.append(types.InlineKeyboardButton(f"• {page+1} •", callback_data=f'none'))
         if end_index < len(data):
             nav_buttons.append(types.InlineKeyboardButton('➡️', callback_data=f'{menu}-{page+1}:{prefix}'))
+        keyboard.add(*nav_buttons)
     
-    return buttons, nav_buttons
+    return keyboard
 
 
 def open_menu(call=None, message=None, loading=False):
@@ -80,6 +90,7 @@ def open_menu(call=None, message=None, loading=False):
     menu_data = menu_layout(call, message, user_id)
     formatting_data = None
     function_data = {}
+    list_page = 20
 
 
     find_menu = locale["menus"].get(menu_data['name'])
@@ -118,18 +129,17 @@ def open_menu(call=None, message=None, loading=False):
         kb_width = int((locale["menus"][menu_data['name']]['width']))
     keyboard = InlineKeyboardMarkup(row_width=kb_width)
 
+    if locale["menus"][menu_data['name']].get('list_page') is not None: # настройка ширины клавиатуры
+        list_page = int((locale["menus"][menu_data['name']]['list_page']))
+
     if locale["menus"][menu_data['name']].get('buttons') is not None: # добавление кнопок
-        buttons, nav_buttons = create_buttons(locale["menus"][menu_data['name']], menu_data)
-        keyboard.add(*buttons)
-        keyboard.add(*nav_buttons)
+        keyboard = create_buttons(locale["menus"][menu_data['name']]["buttons"], menu_data, keyboard, list_page)
 
     if locale["menus"][menu_data['name']].get('create_buttons') is not None: # добавление кнопок
         function_name = locale["menus"][menu_data['name']]['create_buttons']
         function = globals()[function_name]
         function_data = function(menu_data)
-        buttons, nav_buttons = create_buttons(function_data, menu_data)
-        keyboard.add(*buttons)
-        keyboard.add(*nav_buttons)
+        keyboard = create_buttons(function_data, menu_data, keyboard, list_page)
 
 
 
