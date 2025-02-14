@@ -53,7 +53,7 @@ def create_buttons(data, page=0, prefix="", list_page=20, menu=None):
             button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
         buttons.append(button)
     
-    if len(data) > list_page:
+    if len(paginated_data) > list_page:
         nav_buttons = []
         if int(page) > 0:
             nav_buttons.append(types.InlineKeyboardButton('⬅️', callback_data=f'{menu}-{page-1}:{prefix}'))
