@@ -3,15 +3,16 @@ import threading
 import TTA_menus
 import TTA_scripts
 import inspect
+from telebot import apihelper
 
-VERSION="0.1.1"
+VERSION="0.1.2"
 
-def start(api, menus, debug=False, tta_experience=False):
+def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
     config = TTA_scripts.get_config(menus)
-    TTA_menus.get_locale(config, caller_filename)
+    TTA_menus.get_locale(config, caller_filename, formating_text)
     bot = telebot.TeleBot(api)
     commands = []
     for command in config["commands"]:
@@ -62,8 +63,11 @@ def start(api, menus, debug=False, tta_experience=False):
                 menu_data = TTA_menus.open_menu(call=call, loading=True)
             if menu_data.get("handler"):
                 bot.register_next_step_handler(call.message, step_handler, menu_id, call, get_data, menu_data["handler"]["function"], menu_data["handler"]["open_menu"])
-    
-        bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+        
+        try:
+            bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+        except apihelper.ApiTelegramException as e:
+            if "message is not modified" in str(e): pass
     
     
     def start_polling():
