@@ -1,1 +1,1 @@
-import TTA
+from TelegramTextApp import TTA
