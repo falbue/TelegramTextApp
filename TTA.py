@@ -17,25 +17,34 @@ def start(api, menus, debug=False, tta_experience=False):
     for command in config["commands"]:
         commands.append(telebot.types.BotCommand(command, config["commands"][command]["text"]))
     bot.set_my_commands(commands)
+
+
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста
         user_id = message.chat.id
         if message.text[0] == "/":
-            menu_name = (message.text).replace("/", "")
-            if menu_name == 'start':
-                menu_name = "main"
-    
-        menu_data = TTA_menus.open_menu(message=message) 
-        bot.send_message(message.chat.id, menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+            menu_data = TTA_menus.open_menu(message=message) 
+            old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))[0]
+            if old_menu:
+                bot.delete_message(user_id, int(old_menu))
+            if menu_data.get("loading"):
+                new_message = bot.send_message(message.chat.id, menu_data["text"], parse_mode="MarkdownV2")
+                TTA_scripts.update_user(message=new_message)
+                menu_data = TTA_menus.open_menu(message=message, loading=True)
+                bot.edit_message_text(chat_id=user_id, message_id=new_message.message_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+            else:
+                new_message = bot.send_message(message.chat.id, menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+                TTA_scripts.update_user(message=new_message)
+            if menu_data.get("send_menu"):
+                send_menu(menu_data)
+                
         if tta_experience == True:
-            bot.delete_message(user_id, message.message_id)
-        if menu_data.get("send_menu"):
-            send_menu(menu_data)
+                bot.delete_message(user_id, message.message_id)
     
     
     @bot.callback_query_handler(func=lambda call: True)
     def callback_query(call):  # работа с вызовами inline кнопок
-        user_id, menu_id = TTA_scripts.update_user(call)
+        user_id, menu_id = TTA_scripts.update_user(call=call)
         bot.clear_step_handler_by_chat_id(chat_id=user_id)
         if debug == True:
             print(f"{user_id}: {call.data}")

@@ -81,12 +81,22 @@ def data_formated(text, data=None): # форматирование текста
         )
     return text
 
-def update_user(call):
-    user_id = call.message.chat.id
-    username = call.from_user.username
-    menu_id = call.message.message_id
-    user = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
-    SQL_request("UPDATE TTA SET username = ? WHERE telegram_id = ?", (username, user_id))
+def update_user(message=None, call=None):
+    if message is not None: 
+        user_id = message.chat.id
+        menu_id = message.message_id
+    elif call is not None: 
+        user_id = call.message.chat.id
+        menu_id = call.message.message_id
+
+    date, time = now_time()
+    date = f"{date} {time}"
+
+    if call:
+        username = call.from_user.username
+        SQL_request("UPDATE TTA SET username = ? WHERE telegram_id = ?", (username, user_id))
+    
+    SQL_request("UPDATE TTA SET menu_id = ?, use_time = ? WHERE telegram_id = ?", (menu_id, date, user_id))
     return user_id, menu_id
 
 def registration(message, call):

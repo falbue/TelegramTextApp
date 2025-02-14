@@ -24,6 +24,9 @@ def menu_layout(call=None, message=None, user_id=None):
         command = (message.text).replace("/", "")
         menu_name = locale["commands"][command]["menu"]
         get_data = None
+        if len(menu_name.split(":")) > 1: 
+            get_data = menu_name.split(":")[1]
+            menu_name = menu_name.split(":")[0]
         menu_page = "0"
         if command == "start":
             TTA_scripts.registration(message, call)

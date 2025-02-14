@@ -25,7 +25,9 @@ def create_TTA():
     SQL_request("""CREATE TABLE IF NOT EXISTS TTA (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         telegram_id TEXT,
+        menu_id TEXT,
         username TEXT,
+        use_time TEXT,
         time_registration TEXT,
         role TEXT DEFAULT "user"
     )""")
