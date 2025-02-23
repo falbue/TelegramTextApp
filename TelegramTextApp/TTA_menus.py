@@ -91,9 +91,9 @@ def open_menu(call=None, message=None, loading=False):
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
     menu_data = menu_layout(call, message, user_id)
-    user = SQL_request("SELECT * FROM users WHERE id = ?", (user_id,))
+    user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE id = ?", (user_id,))
     if user is None:
-        registration(menu_data)
+        TTA_scripts.registration(message, call)
     formatting_data = None
     function_data = {}
     list_page = 20
