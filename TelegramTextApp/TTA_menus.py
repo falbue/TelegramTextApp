@@ -24,7 +24,9 @@ def menu_layout(call=None, message=None, user_id=None):
             menu_page = menu_base[0].split("-")[1]
         elif message:
             command = (message.text).replace("/", "")
-            menu_name = locale["commands"][command]["menu"]
+            menu_name = None
+            if locale["commands"].get(command):
+                menu_name = locale["commands"][command]["menu"]
             get_data = None
             if len(menu_name.split(":")) > 1: 
                 get_data = menu_name.split(":")[1]
