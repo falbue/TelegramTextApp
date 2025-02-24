@@ -5,7 +5,7 @@ from TelegramTextApp import TTA_scripts
 import inspect
 from telebot import apihelper
 
-VERSION="0.2.4"
+VERSION="0.2.5"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(menus)
@@ -24,13 +24,15 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста
         user_id = message.chat.id
-        if debug == True:
-            print(f"{user_id}: command - {message.text}")
         if message.text[0] == "/":
+            if debug == True:
+                print(f"{user_id}: command - {message.text}")
             menu_data = TTA_menus.open_menu(message=message) 
             old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))[0]
-            if old_menu:
-                bot.delete_message(user_id, int(old_menu))
+            if old_menu and tta_experience == True:
+                try:
+                    bot.delete_message(user_id, int(old_menu)
+                except: pass
             if menu_data.get("loading"):
                 new_message = bot.send_message(message.chat.id, menu_data["text"], parse_mode="MarkdownV2")
                 TTA_scripts.update_user(message=new_message)
