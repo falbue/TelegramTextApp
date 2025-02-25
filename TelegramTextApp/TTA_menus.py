@@ -24,7 +24,7 @@ def menu_layout(call=None, message=None, user_id=None):
             menu_page = menu_base[0].split("-")[1]
         elif message:
             command = (message.text).replace("/", "")
-            menu_name = None
+            menu_name = "error_command"
             if locale["commands"].get(command):
                 menu_name = locale["commands"][command]["menu"]
             get_data = None
@@ -36,7 +36,7 @@ def menu_layout(call=None, message=None, user_id=None):
                 TTA_scripts.registration(message, call)
         return {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
     except:
-        return {"name":"update_tta", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
+        return {"name":"error_command", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
 
 
 def create_buttons(buttons_data, menu_data, keyboard, list_page):
@@ -102,7 +102,7 @@ def open_menu(call=None, message=None, loading=False):
 
 
     find_menu = locale["menus"].get(menu_data['name'])
-    if find_menu is None: menu_data['name'] = "none_menu"
+    if find_menu is None: menu_data['name'] = "error"
 
     if user_id: user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
 

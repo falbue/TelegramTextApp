@@ -85,5 +85,6 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
                 print(f"Перезапуск...")
     if debug == False: start_polling()
     else:
-        print(f"Режим разработчика\nВерсия TTA: {VERSION}") 
+        print(f"Режим разработчика\nВерсия TTA: {VERSION}")
+        print(f"бот запущен...")
         bot.polling()

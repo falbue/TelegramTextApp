@@ -12,26 +12,24 @@ def create_file_menus(menu_path):
     if not os.path.isfile(menu_path):
         data = {
             "menus": {
-                "none_menu": {
+                "error": {
                     "text": "Это меню ещё не создано",
                     "buttons": {},
                     "return": "main"
                 },
-                "update_tta": {
-                    "text": "Бот был обновлён до новой версии!",
-                    "buttons": {},
-                    "return": "main"
-                },
+
                 "main": {
                     "text": "Привет я запущен на [TTA](https://github.com/falpin/TelegramTextApp)"
                 }
             },
+
             "commands": {
                 "start": {
                     "menu": "main",
                     "text": "Перезапуск бота"
                 }
             },
+            
             "general_buttons": {
                 "return": "< Назад",
                 "admin": "Администратор",

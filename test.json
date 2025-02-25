@@ -1,19 +1,22 @@
 {
     "menus": {
-        "none_menu": {
+        "error": {
             "text": "Это меню ещё не создано",
             "buttons": {},
             "return": "main"
         },
-        "update_tta": {
-            "text": "Бот был обновлён до новой версии!",
+
+        "error_command": {
+            "text": "Команда не найдена",
             "buttons": {},
             "return": "main"
         },
+
         "main": {
             "text": "Привет я запущен на [TTA](https://github.com/falpin/TelegramTextApp)"
         }
     },
+
     "commands": {
         "start": {
             "menu": "main",
