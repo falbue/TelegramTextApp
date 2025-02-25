@@ -5,6 +5,7 @@ from TelegramTextApp import TTA_scripts
 import inspect
 from telebot import apihelper
 
+
 VERSION="0.2.5.1"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
@@ -13,6 +14,14 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
     commands_locale = TTA_menus.settings_menu(menus, caller_filename, formating_text)
+
+    import sys
+    from importlib.util import spec_from_file_location, module_from_spec
+    sys.path.append("scripts.py")
+    module = module_from_spec(spec_from_file_location("scripts", caller_filename))
+    module.__spec__.loader.exec_module(module)
+    globals().update(vars(module))
+
     TTA_scripts.get_config()
     bot = telebot.TeleBot(api)
     commands = []
@@ -20,6 +29,25 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         commands.append(telebot.types.BotCommand(command, commands_locale["commands"][command]["text"]))
     bot.set_my_commands(commands)
 
+
+    def step_handler(message, menu_id, call, function_name, menu):
+        user_id = call.message.chat.id
+        if tta_experience == True:
+            bot.delete_message(user_id, message.message_id)
+        function = globals()[function_name]
+        function_data = function(message, menu_id, call, menu)
+
+        menu_data = TTA_menus.open_menu(call=call, menu=menu)
+        if menu_data.get("loading"):
+            bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
+            menu_data = TTA_menus.open_menu(call=call, loading=True)
+        if menu_data.get("handler"):
+            bot.register_next_step_handler(call.message, step_handler, menu_id, call, menu_data["handler"]["function"], menu_data["handler"]["menu"])
+        
+        try:
+            bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+        except Exception as e:
+            pass
 
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста
@@ -67,7 +95,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
                 bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
                 menu_data = TTA_menus.open_menu(call=call, loading=True)
             if menu_data.get("handler"):
-                bot.register_next_step_handler(call.message, step_handler, menu_id, call, get_data, menu_data["handler"]["function"], menu_data["handler"]["open_menu"])
+                bot.register_next_step_handler(call.message, step_handler, menu_id, call, menu_data["handler"]["function"], menu_data["handler"]["menu"])
         
         try:
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")

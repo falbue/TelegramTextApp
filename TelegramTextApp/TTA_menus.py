@@ -25,7 +25,7 @@ def get_locale():
         locale = json.load(file)
         return locale
 
-def menu_layout(call=None, message=None, user_id=None):
+def menu_layout(call=None, message=None, user_id=None, menu=None):
     locale = get_locale()
 
     try:
@@ -47,7 +47,11 @@ def menu_layout(call=None, message=None, user_id=None):
             menu_page = "0"
             if command == "start":
                 TTA_scripts.registration(message, call)
-        return {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
+
+        menu_data = {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
+        if menu:
+            menu_data = {"name":menu, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
+        return menu_data
     except:
         return {"name":"error_command", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
 
@@ -112,18 +116,17 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page):
     return keyboard
 
 
-def open_menu(call=None, message=None, loading=False):
+def open_menu(call=None, message=None, loading=False, menu=None):
     locale = get_locale()
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
-    menu_data = menu_layout(call, message, user_id)
+    menu_data = menu_layout(call, message, user_id, menu)
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE id = ?", (user_id,))
     if user is None:
         TTA_scripts.registration(message, call)
     formatting_data = None
     function_data = {}
     list_page = 20
-
 
     find_menu = locale["menus"].get(menu_data['name'])
     if find_menu is None: menu_data['name'] = "error"
@@ -173,6 +176,10 @@ def open_menu(call=None, message=None, loading=False):
         function = globals()[function_name]
         function_data = function(menu_data)
         keyboard = create_buttons(function_data, menu_data, keyboard, list_page)
+
+    if locale["menus"][menu_data['name']].get('return') is not None: # кнопка возврата
+        btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{locale["menus"][menu_data["name"]]["return"]}-0:')
+        keyboard.add(btn_return)
 
     return_data["keyboard"] = keyboard
 

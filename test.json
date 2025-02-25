@@ -2,19 +2,34 @@
     "menus": {
         "error": {
             "text": "Это меню ещё не создано",
-            "return":"main"
+            "buttons":{"return":"main"}
         },
 
         "error_command": {
             "text": "Команда не найдена",
-            "return": "main"
+            "buttons":{"return":"main"}
         },
 
         "main": {
             "text": "Главное меню",
             "buttons":{
-                "profile":"Профиль"
+                "profile":"Профиль",
+                "input":"Ввод"
             }
+        },
+
+        "input": {
+            "text": "Введите текст",
+            "return":"main",
+            "handler": {
+                "function":"input_text",
+                "menu":"test"
+            }
+        },
+
+        "test":{
+            "text":"Вы ввели {input_text}",
+            "return":"input"
         },
 
         "profile":{
