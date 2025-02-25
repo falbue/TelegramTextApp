@@ -60,11 +60,12 @@ def menu_layout(call=None, message=None, user_id=None, menu=None, handler=None):
         return {"name":"error_command", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
 
 
-def create_buttons(buttons_data, menu_data, keyboard, list_page):
+def create_buttons(buttons_data, menu_data, keyboard, list_page, role=None):
     locale = get_locale()
     data = buttons_data
     prefix= menu_data['data']
     page = int(menu_data["page"])
+    btn_role = 'user'
 
     buttons = []
     nav_buttons = []
@@ -84,19 +85,26 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page):
                 function_format = globals()[format_text]
                 data_button = function_format(menu_data, data_button)
 
-        var_buttons = locale["var_buttons"].get(callback)
-        if var_buttons:
-            return_btn = text
-            text = locale["var_buttons"][callback]
-            callback = return_btn
+        var_button = locale["var_buttons"].get(callback)
+        if var_button:
+            callback_button = text
+            if isinstance(var_button, dict):
+                text = var_button["text"]
+                btn_role = var_button["role"]
+            else:
+                text = locale["var_buttons"][callback]
+            callback = callback_button
 
-        if callback == "url":
-            button = types.InlineKeyboardButton(text, url=data_button)
-        elif callback == "app":
-            button = types.InlineKeyboardButton(text, web_app=types.WebAppInfo(url=data_button))
+        if btn_role == "user" or btn_role == role:
+            if callback == "url":
+                button = types.InlineKeyboardButton(text, url=data_button)
+            elif callback == "app":
+                button = types.InlineKeyboardButton(text, web_app=types.WebAppInfo(url=data_button))
+            else:
+                button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
         else:
-            button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
-
+            continue
+    
         if slash[0] == "\\":
             if buttons:
                 keyboard.add(*buttons)
@@ -125,18 +133,17 @@ def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
     menu_data = menu_layout(call, message, user_id, menu, handler)
-    user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE id = ?", (user_id,))
+    user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
         TTA_scripts.registration(message, call)
+        role = None
+    role = user[6]
     formatting_data = None
     function_data = {}
     list_page = 20
 
     find_menu = locale["menus"].get(menu_data['name'])
     if find_menu is None: menu_data['name'] = "error"
-
-
-    if user_id: user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
 
     kb_width=2
     return_data = {}
@@ -173,13 +180,13 @@ def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
         list_page = int((locale["menus"][menu_data['name']]['list_page']))
 
     if locale["menus"][menu_data['name']].get('buttons') is not None: # добавление кнопок
-        keyboard = create_buttons(locale["menus"][menu_data['name']]["buttons"], menu_data, keyboard, list_page)
+        keyboard = create_buttons(locale["menus"][menu_data['name']]["buttons"], menu_data, keyboard, list_page, role=role)
 
     if locale["menus"][menu_data['name']].get('create_buttons') is not None: # добавление кнопок
         function_name = locale["menus"][menu_data['name']]['create_buttons']
         function = globals()[function_name]
         function_data = function(menu_data)
-        keyboard = create_buttons(function_data, menu_data, keyboard, list_page)
+        keyboard = create_buttons(function_data, menu_data, keyboard, list_page, role=role)
 
     if locale["menus"][menu_data['name']].get('return') is not None: # кнопка возврата
         btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{locale["menus"][menu_data["name"]]["return"]}-0:')
