@@ -25,7 +25,7 @@ def get_locale():
         locale = json.load(file)
         return locale
 
-def menu_layout(call=None, message=None, user_id=None, menu=None):
+def menu_layout(call=None, message=None, user_id=None, menu=None, handler=None):
     locale = get_locale()
 
     try:
@@ -47,6 +47,9 @@ def menu_layout(call=None, message=None, user_id=None, menu=None):
             menu_page = "0"
             if command == "start":
                 TTA_scripts.registration(message, call)
+
+        if handler:
+            get_data = f"{get_data}:{handler}"        
 
         menu_data = {"name":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
         if menu:
@@ -117,11 +120,11 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page):
     return keyboard
 
 
-def open_menu(call=None, message=None, loading=False, menu=None):
+def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
     locale = get_locale()
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
-    menu_data = menu_layout(call, message, user_id, menu)
+    menu_data = menu_layout(call, message, user_id, menu, handler)
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE id = ?", (user_id,))
     if user is None:
         TTA_scripts.registration(message, call)

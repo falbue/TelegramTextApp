@@ -37,7 +37,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         function = globals()[function_name]
         function_data = function(message, menu_id, call, menu)
 
-        menu_data = TTA_menus.open_menu(call=call, menu=menu)
+        menu_data = TTA_menus.open_menu(call=call, menu=menu, handler=message.text)
         if menu_data.get("loading"):
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
             menu_data = TTA_menus.open_menu(call=call, loading=True)
