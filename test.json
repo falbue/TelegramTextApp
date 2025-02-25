@@ -14,7 +14,8 @@
             "text": "Главное меню",
             "buttons":{
                 "profile:admin-10:20":"Профиль",
-                "input":"Ввод"
+                "input":"Ввод",
+                "admin":"хуй"
             }
         },
 
@@ -28,7 +29,7 @@
         },
 
         "test":{
-            "text":"Вы ввели {input_text}",
+            "text":"Вы ввели `{input_text}`",
             "return":"input"
         },
 
@@ -48,7 +49,10 @@
     },
     "var_buttons": {
         "return": "< Назад",
-        "admin": "Администратор",
+        "admin": {
+            "text":"Администратор",
+            "role":"admin"
+        },
         "notification": "Прочитано"
     }
 }
