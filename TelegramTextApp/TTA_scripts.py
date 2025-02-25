@@ -29,7 +29,7 @@ def create_file_menus(menu_path):
                     "text": "Перезапуск бота"
                 }
             },
-            
+
             "general_buttons": {
                 "return": "< Назад",
                 "admin": "Администратор",
@@ -41,16 +41,11 @@ def create_file_menus(menu_path):
             json.dump(data, file, ensure_ascii=False, indent=4)
         print("Файл Для работы с меню бота создан!")
 
-def get_config(menu_path, DB_PATH="database.db", save_folder="SAVE_FOLDER"):
+def get_config(DB_PATH="database.db", save_folder="SAVE_FOLDER"):
     global SAVE_FOLDER
     SAVE_FOLDER = save_folder
-    with open(menu_path, 'r', encoding='utf-8') as file:
-        settings = json.load(file)
-
     TTA_use_db.use_db_settings(DB_PATH)
     TTA_use_db.create_TTA()
-
-    return settings
 
 
 def now_time():  # Получение текущего времени по МСК

@@ -12,12 +12,12 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
-    config = TTA_scripts.get_config(menus)
-    TTA_menus.get_locale(config, caller_filename, formating_text)
+    commands_locale = TTA_menus.get_locale(menus, caller_filename, formating_text)
+    TTA_scripts.get_config()
     bot = telebot.TeleBot(api)
     commands = []
-    for command in config["commands"]:
-        commands.append(telebot.types.BotCommand(command, config["commands"][command]["text"]))
+    for command in commands_locale["commands"]:
+        commands.append(telebot.types.BotCommand(command, commands_locale["commands"][command]["text"]))
     bot.set_my_commands(commands)
 
 

@@ -3,16 +3,22 @@ from telebot import types
 from TelegramTextApp import TTA_scripts
 import json
 
+LOCALE_PATH = None
+
 def get_locale(menus, script_path, formating_text):
-    global locale, format_text
+    global LOCALE_PATH, format_text
+    LOCALE_PATH = menus
     format_text = formating_text
-    locale = menus
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
     sys.path.append("scripts.py")
     module = module_from_spec(spec_from_file_location("scripts", script_path))
     module.__spec__.loader.exec_module(module)
     globals().update(vars(module))
+
+    with open(LOCALE_PATH, 'r', encoding='utf-8') as file:
+        commands = json.load(file)
+    return commands
 
 def menu_layout(call=None, message=None, user_id=None):
     try:
@@ -90,6 +96,9 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page):
 
 
 def open_menu(call=None, message=None, loading=False):
+    with open(LOCALE_PATH, 'r', encoding='utf-8') as file:
+        locale = json.load(file)
+
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
     menu_data = menu_layout(call, message, user_id)

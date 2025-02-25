@@ -2,13 +2,11 @@
     "menus": {
         "error": {
             "text": "Это меню ещё не создано",
-            "buttons": {},
             "return": "main"
         },
 
         "error_command": {
             "text": "Команда не найдена",
-            "buttons": {},
             "return": "main"
         },
 
