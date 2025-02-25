@@ -13,7 +13,7 @@
         "main": {
             "text": "Главное меню",
             "buttons":{
-                "profile":"Профиль",
+                "profile:admin-10:20":"Профиль",
                 "input":"Ввод"
             }
         },

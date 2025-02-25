@@ -31,10 +31,10 @@ def menu_layout(call=None, message=None, user_id=None, menu=None):
     try:
         if call:
             menu_base = (call.data).split(":")
-            get_data = menu_base[1]
-            if get_data == "": get_data = None
             menu_name = menu_base[0].split("-")[0]
             menu_page = menu_base[0].split("-")[1]
+            get_data = (call.data).replace(f"{menu_base[0]}:", "")
+            if get_data == "": get_data = None
         elif message:
             command = (message.text).replace("/", "")
             menu_name = "error_command"
@@ -42,8 +42,8 @@ def menu_layout(call=None, message=None, user_id=None, menu=None):
                 menu_name = locale["commands"][command]["menu"]
             get_data = None
             if len(menu_name.split(":")) > 1: 
-                get_data = menu_name.split(":")[1]
                 menu_name = menu_name.split(":")[0]
+                get_data = (call.data).replace(f"{menu_name}:", "")
             menu_page = "0"
             if command == "start":
                 TTA_scripts.registration(message, call)
@@ -52,7 +52,8 @@ def menu_layout(call=None, message=None, user_id=None, menu=None):
         if menu:
             menu_data = {"name":menu, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
         return menu_data
-    except:
+    except Exception as e:
+        print(e)
         return {"name":"error_command", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
 
 
