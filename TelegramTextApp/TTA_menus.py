@@ -5,7 +5,7 @@ import json
 
 LOCALE_PATH = None
 
-def get_locale(menus, script_path, formating_text):
+def settings_menu(menus, script_path, formating_text):
     global LOCALE_PATH, format_text
     LOCALE_PATH = menus
     format_text = formating_text
@@ -20,7 +20,14 @@ def get_locale(menus, script_path, formating_text):
         commands = json.load(file)
     return commands
 
+def get_locale():
+    with open(LOCALE_PATH, 'r', encoding='utf-8') as file:
+        locale = json.load(file)
+        return locale
+
 def menu_layout(call=None, message=None, user_id=None):
+    locale = get_locale()
+
     try:
         if call:
             menu_base = (call.data).split(":")
@@ -46,6 +53,7 @@ def menu_layout(call=None, message=None, user_id=None):
 
 
 def create_buttons(buttons_data, menu_data, keyboard, list_page):
+    locale = get_locale()
     data = buttons_data
     prefix= menu_data['data']
     page = int(menu_data["page"])
@@ -58,6 +66,8 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page):
     
     for data, text in paginated_data:
         slash  = text
+        callback = data
+        data_button = ""
         text = text.replace("\\","")
         if len(data.split(":")) > 1:
             callback = data.split(":")[0]
@@ -65,6 +75,13 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page):
             if format_text:
                 function_format = globals()[format_text]
                 data_button = function_format(menu_data, data_button)
+
+        var_buttons = locale["var_buttons"].get(callback)
+        if var_buttons:
+            return_btn = text
+            text = locale["var_buttons"][callback]
+            callback = return_btn
+
         if callback == "url":
             button = types.InlineKeyboardButton(text, url=data_button)
         elif callback == "app":
@@ -96,9 +113,7 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page):
 
 
 def open_menu(call=None, message=None, loading=False):
-    with open(LOCALE_PATH, 'r', encoding='utf-8') as file:
-        locale = json.load(file)
-
+    locale = get_locale()
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
     menu_data = menu_layout(call, message, user_id)
@@ -112,6 +127,7 @@ def open_menu(call=None, message=None, loading=False):
 
     find_menu = locale["menus"].get(menu_data['name'])
     if find_menu is None: menu_data['name'] = "error"
+
 
     if user_id: user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
 
@@ -158,11 +174,6 @@ def open_menu(call=None, message=None, loading=False):
         function_data = function(menu_data)
         keyboard = create_buttons(function_data, menu_data, keyboard, list_page)
 
-
-
-    if locale["menus"][menu_data['name']].get('return') is not None: # кнопка возврата
-        btn_return = InlineKeyboardButton((locale["general_buttons"]['return']), callback_data=f'{locale["menus"][menu_data["name"]]["return"]}-0:')
-        keyboard.add(btn_return)
     return_data["keyboard"] = keyboard
 
     if locale["menus"][menu_data['name']].get('handler') is not None: # ожидание ввода

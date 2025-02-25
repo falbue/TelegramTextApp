@@ -2,7 +2,7 @@
     "menus": {
         "error": {
             "text": "Это меню ещё не создано",
-            "return": "main"
+            "return":"main"
         },
 
         "error_command": {
@@ -11,7 +11,17 @@
         },
 
         "main": {
-            "text": "Привет я запущен на [TTA](https://github.com/falpin/TelegramTextApp)"
+            "text": "Главное меню",
+            "buttons":{
+                "profile":"Профиль"
+            }
+        },
+
+        "profile":{
+            "text":"Профиль",
+            "buttons":{
+                "return":"main"
+            }
         }
     },
 
@@ -21,7 +31,7 @@
             "text": "Перезапуск бота"
         }
     },
-    "general_buttons": {
+    "var_buttons": {
         "return": "< Назад",
         "admin": "Администратор",
         "notification": "Прочитано"
