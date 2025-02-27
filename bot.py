@@ -21,4 +21,4 @@ def formating_text(tta_data, text):
 
 if __name__ == "__main__":
     from TelegramTextApp import TTA
-    TTA.start(config.API, "test.json", debug=True, formating_text="formating_text", tta_experience=True)
+    TTA.start(config.API, "test", debug=True, formating_text="formating_text", tta_experience=True)

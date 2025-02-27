@@ -9,11 +9,11 @@ from telebot import apihelper
 VERSION="0.2.5.1"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
-    TTA_scripts.create_file_menus(menus)
+    TTA_scripts.create_file_menus(f"{menus}.json")
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
-    commands_locale = TTA_menus.settings_menu(menus, caller_filename, formating_text)
+    commands_locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text)
 
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
