@@ -6,7 +6,7 @@ import inspect
 from telebot import apihelper
 
 
-VERSION="0.2.5.1"
+VERSION="0.3.1"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(f"{menus}.json")
