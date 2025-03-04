@@ -6,7 +6,7 @@ import inspect
 from telebot import apihelper
 
 
-VERSION="0.3.1"
+VERSION="0.3.2"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -43,11 +43,27 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
             menu_data = TTA_menus.open_menu(call=call, loading=True)
         if menu_data.get("handler"):
             bot.register_next_step_handler(call.message, step_handler, menu_id, call, menu_data["handler"]["function"], menu_data["handler"]["menu"])
+        if menu_data.get("send"):
+            send_menu(menu_data)
         
         try:
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
         except Exception as e:
             pass
+
+        if debug == True:
+            pass
+
+    def send_menu(menu_data):
+        type_send = menu_data["send"]
+        recipient = type_send["recipient"]
+        menu = type_send["menu"]
+        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu)
+        if recipient == 'all':
+            role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role IS NOT NULL",(), True)
+
+        for user_id in role_users:
+            bot.send_message(user_id[0], menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
 
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста
@@ -69,7 +85,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
             else:
                 new_message = bot.send_message(message.chat.id, menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
                 TTA_scripts.update_user(message=new_message)
-            if menu_data.get("send_menu"):
+            if menu_data.get("send"):
                 send_menu(menu_data)
                 
         if tta_experience == True:
@@ -98,6 +114,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
                 bot.register_next_step_handler(call.message, step_handler, menu_id, call, menu_data["handler"]["function"], menu_data["handler"]["menu"])
         
         try:
+            if menu_data.get("send"):
+                send_menu(menu_data)
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
         except apihelper.ApiTelegramException as e:
             if "message is not modified" in str(e): pass

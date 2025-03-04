@@ -99,7 +99,7 @@ def data_formated(text, data=None): # форматирование текста
         data = {}
 
     if data.get("user"):
-        user_data = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(data["user"]),))
+        user_data = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(data["user"]),))
 
     if data != {}:
         text = text.format(

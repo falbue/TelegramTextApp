@@ -15,7 +15,7 @@
             "buttons":{
                 "profile:admin-10:20":"Профиль",
                 "input":"Ввод",
-                "admin":"хуй"
+                "admin":"admin"
             }
         },
 
@@ -31,6 +31,39 @@
         "test":{
             "text":"Вы ввели `{input_text}`",
             "return":"input"
+        },
+
+        "admin":{
+            "text":"Панель администратора",
+            "buttons":{
+                "newsletter":"Рассылка"
+            },
+            "return":"main"
+        },
+
+        "newsletter":{
+            "text":"Введите текст, для рассылки",
+            "return":"admin",
+            "handler": {
+                "function":"newsletter",
+                "menu":"newsletter_send"
+            }
+        },
+
+        "newsletter_send":{
+            "text":"Рассылка отправлена",
+            "return":"admin",
+            "send":{
+                "menu":"newsletter_test",
+                "recipient":"all"
+            }
+        },
+
+        "newsletter_test":{
+            "function":"newsletter",
+            "buttons":{
+                "notification":"notification"
+            }
         },
 
         "profile":{

@@ -197,6 +197,9 @@ def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
     if locale["menus"][menu_data['name']].get('handler') is not None: # ожидание ввода
         return_data["handler"] = locale["menus"][menu_data['name']]["handler"]
 
+    if locale["menus"][menu_data['name']].get('send') is not None: # Отправка сообщения
+        return_data["send"] = locale["menus"][menu_data['name']]["send"]
+
     return_data["call"] = call
     return_data["message"] = message
     return return_data

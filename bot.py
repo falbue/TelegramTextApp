@@ -4,6 +4,9 @@ import re
 def input_text(message, menu_id, call, menu):
     print("Работает")
 
+def newsletter(message, menu_id, call, menu):
+    pass
+
 def formating_text(tta_data, text):        
     format_dict = {}
     try:
