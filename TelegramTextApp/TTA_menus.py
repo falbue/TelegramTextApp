@@ -161,6 +161,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
 
     if locale["menus"][menu_data['name']].get('text') is not None:
         text = locale["menus"][menu_data['name']]['text']
+        text = TTA_scripts.data_formated(text, user_id)
         if format_text:
             function_format = globals()[format_text]
             text = function_format(menu_data, text)
@@ -169,7 +170,6 @@ def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
         text = function_data
         if text is None: text = "Укажите текст настройках меню!"
 
-    text = TTA_scripts.data_formated(text, formatting_data)
     return_data["text"] = text
 
     if locale["menus"][menu_data['name']].get('width') is not None: # настройка ширины клавиатуры

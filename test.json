@@ -67,7 +67,7 @@
         },
 
         "profile":{
-            "text":"Профиль",
+            "text":"TTA id: {tta_id}\nTelegram id: {telegram_id}\nЛинк: @{username}\nВремя регистрации\n{time_registration}\nРоль: {tta_role}",
             "buttons":{
                 "return":"main"
             }

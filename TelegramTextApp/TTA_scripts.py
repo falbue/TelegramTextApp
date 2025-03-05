@@ -93,20 +93,15 @@ def markdown(text, full=False):  # экранирование
             escaped_text += char
     return escaped_text
 
-def data_formated(text, data=None): # форматирование текста
-    user_data = [None] * 4
-    if data is None:
-        data = {}
-
-    if data.get("user"):
-        user_data = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(data["user"]),))
-
-    if data != {}:
-        text = text.format(
-            user_id=user_data[1],
-            user_link=user_data[2],
-            user_balance=user_data[3],
-        )
+def data_formated(text, user_id): # форматирование текста
+    user_data = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
+    text = text.format(
+        tta_id=user_data[0],
+        telegram_id=user_data[1],
+        username=user_data[3],
+        time_registration=user_data[5],
+        tta_role=user_data[6],
+    )
     return text
 
 def update_user(message=None, call=None):
