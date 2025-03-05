@@ -25,41 +25,6 @@ def get_locale():
         locale = json.load(file)
         return locale
 
-def menu_layout(call=None, message=None, user_id=None, menu=None, handler=None):
-    locale = get_locale()
-
-    try:
-        if call:
-            menu_base = (call.data).split(":")
-            menu_name = menu_base[0].split("-")[0]
-            menu_page = menu_base[0].split("-")[1]
-            get_data = (call.data).replace(f"{menu_base[0]}:", "")
-            if get_data == "": get_data = None
-        elif message:
-            command = (message.text).replace("/", "")
-            menu_name = "error_command"
-            if locale["commands"].get(command):
-                menu_name = locale["commands"][command]["menu"]
-            get_data = None
-            if len(menu_name.split(":")) > 1: 
-                menu_name = menu_name.split(":")[0]
-                get_data = (call.data).replace(f"{menu_name}:", "")
-            menu_page = "0"
-            if command == "start":
-                TTA_scripts.registration(message, call)
-
-        if handler:
-            get_data = f"{get_data}:{handler}"        
-
-        menu_data = {"menu":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
-        if menu:
-            menu_data = {"menu":menu, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
-        return menu_data
-    except Exception as e:
-        print(e)
-        return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
-
-
 def create_buttons(buttons_data, menu_data, keyboard, list_page, role=None):
     locale = get_locale()
     data = buttons_data
@@ -128,10 +93,47 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page, role=None):
     return keyboard
 
 
+def menu_layout(call=None, message=None, user_id=None, menu=None, handler=None):
+    locale = get_locale()
+
+    try:
+        if call:
+            menu_base = (call.data).split(":")
+            menu_name = menu_base[0].split("-")[0]
+            menu_page = menu_base[0].split("-")[1]
+            get_data = (call.data).replace(f"{menu_base[0]}:", "")
+            if get_data == "": get_data = None
+        elif message:
+            command = (message.text).replace("/", "")
+            menu_name = "error_command"
+            if locale["commands"].get(command):
+                menu_name = locale["commands"][command]["menu"]
+            get_data = None
+            if len(menu_name.split(":")) > 1: 
+                menu_name = menu_name.split(":")[0]
+                get_data = (call.data).replace(f"{menu_name}:", "")
+            menu_page = "0"
+            if command == "start":
+                TTA_scripts.registration(message, call)
+      
+
+        menu_data = {"menu":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
+        if menu:
+            menu_data = {"menu":menu, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
+        if handler:
+            menu_data["handler"] = handler  
+        return menu_data
+    except Exception as e:
+        print(e)
+        return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
+
+
 def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
     locale = get_locale()
+
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
+
     menu_data = menu_layout(call, message, user_id, menu, handler)
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
@@ -176,7 +178,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
         kb_width = int((locale["menus"][menu_data['menu']]['width']))
     keyboard = InlineKeyboardMarkup(row_width=kb_width)
 
-    if locale["menus"][menu_data['menu']].get('list_page') is not None: # настройка ширины клавиатуры
+    if locale["menus"][menu_data['menu']].get('list_page') is not None: # сколько кнопок на странице
         list_page = int((locale["menus"][menu_data['menu']]['list_page']))
 
     if locale["menus"][menu_data['menu']].get('buttons') is not None: # добавление кнопок
