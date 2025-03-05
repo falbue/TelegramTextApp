@@ -13,7 +13,7 @@
         "main": {
             "text": "Главное меню",
             "buttons":{
-                "profile:admin-10:20":"Профиль",
+                "profile":"Профиль",
                 "input":"Ввод",
                 "admin":"admin"
             }
@@ -26,6 +26,7 @@
                 "function":"input_text",
                 "menu":"test"
             }
+
         },
 
         "test":{
@@ -67,10 +68,11 @@
         },
 
         "profile":{
-            "text":"TTA id: {tta_id}\nTelegram id: {telegram_id}\nЛинк: @{username}\nВремя регистрации\n{time_registration}\nРоль: {tta_role}",
+            "text":"*TTA id:* `{tta_id}`\n*Telegram id:* `{telegram_id}`\n*Линк:* @{username}\n*Время регистрации:*\n`{time_registration}`\n*Роль:* _{tta_role}_",
             "buttons":{
                 "return":"main"
-            }
+            },
+            "loading":"Загрузка..."
         }
     },
 
@@ -81,7 +83,7 @@
         }
     },
     "var_buttons": {
-        "return": "< Назад",
+        "return": "‹ Назад",
         "admin": {
             "text":"Администратор",
             "role":"admin"

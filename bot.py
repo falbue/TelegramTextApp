@@ -7,7 +7,7 @@ def input_text(message, menu_id, call, menu):
 def newsletter(message, menu_id, call, menu):
     pass
 
-def formating_text(tta_data, text):        
+def formating_text(tta_data, text):
     format_dict = {}
     try:
         input_text = tta_data["data"].split(":")[1]
