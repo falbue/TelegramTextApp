@@ -64,7 +64,6 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
             role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role IS NOT NULL",(), True)
 
         for user_id in role_users:
-            print(menu_data["text"])
             bot.send_message(user_id[0], menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
 
     @bot.message_handler()

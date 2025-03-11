@@ -126,6 +126,7 @@ def menu_layout(call=None, message=None, user_id=None):
 
 def open_menu(call=None, message=None, loading=False, menu=None, input_text=None):
     locale = get_locale()
+    menus = locale["menus"]
 
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
@@ -136,6 +137,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         tta_data['menu'] = menu
     if input_text:
         tta_data["input_text"] = input_text
+    menu = menus[tta_data['menu']]     
 
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
@@ -147,25 +149,25 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
     function_data = {}
     list_page = 20
 
-    find_menu = locale["menus"].get(tta_data['menu'])
+    find_menu = menus.get(tta_data['menu'])
     if find_menu is None: tta_data['menu'] = "error"
 
     kb_width=2
     menu_data = {}
     formatting = {}
 
-    if locale["menus"][tta_data['menu']].get('loading') is not None and loading == False:
-        menu_data["text"] = TTA_scripts.markdown(locale["menus"][tta_data['menu']]['loading'])
+    if menu.get('loading') is not None and loading == False:
+        menu_data["text"] = TTA_scripts.markdown(menu['loading'])
         menu_data['loading'] = True
         return menu_data
 
-    if locale["menus"][tta_data['menu']].get('function') is not None: # выполнение указанной функции
-        function_name = (locale["menus"][tta_data['menu']]['function'])
+    if menu.get('function') is not None: # выполнение указанной функции
+        function_name = (menu['function'])
         function = globals()[function_name]
         function_data = function(tta_data)
 
-    if locale["menus"][tta_data['menu']].get('text') is not None:
-        text = locale["menus"][tta_data['menu']]['text']
+    if menu.get('text') is not None:
+        text = menu['text']
         text = TTA_scripts.data_formated(text, user_id)
         if format_text:
             function_format = globals()[format_text]
@@ -173,37 +175,37 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         text = TTA_scripts.markdown(text)
     else:
         text = function_data
-        if text is None: text = "Укажите текст настройках меню\!"
+        if text is None: text = "Укажите текст настройках меню"
 
     menu_data["text"] = text
 
-    if locale["menus"][tta_data['menu']].get('width') is not None: # настройка ширины клавиатуры
-        kb_width = int((locale["menus"][tta_data['menu']]['width']))
+    if menu.get('width') is not None: # настройка ширины клавиатуры
+        kb_width = int((menu['width']))
     keyboard = InlineKeyboardMarkup(row_width=kb_width)
 
-    if locale["menus"][tta_data['menu']].get('list_page') is not None: # сколько кнопок на странице
-        list_page = int((locale["menus"][tta_data['menu']]['list_page']))
+    if menu.get('list_page') is not None: # сколько кнопок на странице
+        list_page = int((menu['list_page']))
 
-    if locale["menus"][tta_data['menu']].get('buttons') is not None: # добавление кнопок
-        keyboard = create_buttons(locale["menus"][tta_data['menu']]["buttons"], tta_data, keyboard, list_page, role=role)
+    if menu.get('buttons') is not None: # добавление кнопок
+        keyboard = create_buttons(menu["buttons"], tta_data, keyboard, list_page, role=role)
 
-    if locale["menus"][tta_data['menu']].get('create_buttons') is not None: # добавление кнопок
-        function_name = locale["menus"][tta_data['menu']]['create_buttons']
+    if menu.get('create_buttons') is not None: # добавление кнопок
+        function_name = menu['create_buttons']
         function = globals()[function_name]
         function_data = function(tta_data)
         keyboard = create_buttons(function_data, tta_data, keyboard, list_page, role=role)
 
-    if locale["menus"][tta_data['menu']].get('return') is not None: # кнопка возврата
+    if menu.get('return') is not None: # кнопка возврата
         btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{locale["menus"][tta_data["menu"]]["return"]}-0:')
         keyboard.add(btn_return)
 
     menu_data["keyboard"] = keyboard
 
-    if locale["menus"][tta_data['menu']].get('handler') is not None: # ожидание ввода
-        menu_data["handler"] = locale["menus"][tta_data['menu']]["handler"]
+    if menu.get('handler') is not None: # ожидание ввода
+        menu_data["handler"] = menu["handler"]
 
-    if locale["menus"][tta_data['menu']].get('send') is not None: # Отправка сообщения
-        menu_data["send"] = locale["menus"][tta_data['menu']]["send"]
+    if menu.get('send') is not None: # Отправка сообщения
+        menu_data["send"] = menu["send"]
 
     menu_data["call"] = call
     menu_data["message"] = message
