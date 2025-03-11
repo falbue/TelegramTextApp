@@ -15,6 +15,7 @@
             "buttons":{
                 "profile":"Профиль",
                 "input":"Ввод",
+                "query":"Успешно",
                 "admin":"admin"
             }
         },
@@ -27,6 +28,13 @@
                 "menu":"test"
             }
 
+        },
+
+        "query": {
+            "query":{
+                "text":"Ахуенно",
+                "show_alert":false
+            }
         },
 
         "test":{

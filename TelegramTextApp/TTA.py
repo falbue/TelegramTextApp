@@ -113,10 +113,12 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
                 menu_data = TTA_menus.open_menu(call=call, loading=True)
             if menu_data.get("handler"):
                 bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
-        
-        try:
             if menu_data.get("send"):
                 send_menu(menu_data)
+            if menu_data.get("query"):
+                bot.answer_callback_query(callback_query_id=call.id,text=menu_data['query']['text'], show_alert=menu_data['query']['show_alert'])
+        
+        try:
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
         except apihelper.ApiTelegramException as e:
             if "message is not modified" in str(e): pass

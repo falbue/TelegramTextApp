@@ -137,7 +137,6 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         tta_data['menu'] = menu
     if input_text:
         tta_data["input_text"] = input_text
-    menu = menus[tta_data['menu']]     
 
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
@@ -152,6 +151,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
     find_menu = menus.get(tta_data['menu'])
     if find_menu is None: tta_data['menu'] = "error"
 
+    menu = menus[tta_data['menu']]    
     kb_width=2
     menu_data = {}
     formatting = {}
@@ -206,6 +206,9 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
 
     if menu.get('send') is not None: # Отправка сообщения
         menu_data["send"] = menu["send"]
+
+    if menu.get('query') is not None:
+        menu_data['query'] = menu['query']
 
     menu_data["call"] = call
     menu_data["message"] = message
