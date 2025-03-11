@@ -84,7 +84,7 @@ def get_unique_filename(base_path, filename):
 
 def markdown(text, full=False):  # экранирование
     if full == True: special_characters = r'*|~[]()>#+-=|{}._!'
-    else: special_characters = r'>#+-={}.!'
+    else: special_characters = r'#+-={}.!'
     escaped_text = ''
     for char in text:
         if char in special_characters:
