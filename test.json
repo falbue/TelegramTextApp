@@ -45,9 +45,22 @@
         "admin":{
             "text":"Панель администратора",
             "buttons":{
+                "start_work":"Работаем",
+                "close_work":"Завершение работы",
                 "newsletter":"Рассылка"
             },
             "return":"main"
+        },
+
+        "start_work":{
+            "query":{
+                "text":"Рассылка отправлена!",
+                "show_alert":false
+            },
+            "send":{
+                "text":"Админ на месте",
+                "recipient":"admin"
+            }
         },
 
         "newsletter":{

@@ -13,7 +13,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
-    commands_locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text)
+    commands_locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience)
 
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
@@ -58,13 +58,19 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     def send_menu(menu_data, input_text=None):
         type_send = menu_data["send"]
         recipient = type_send["recipient"]
-        menu = type_send["menu"]
+        menu = type_send.get("menu")
         menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, input_text=input_text)
+        if menu:
+            send_text = menu_data["text"]
+        else:
+            send_text = type_send["text"]
         if recipient == 'all':
             role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role IS NOT NULL",(), True)
+        else:
+            role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role=?",(recipient,), True)
 
         for user_id in role_users:
-            bot.send_message(user_id[0], menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+            bot.send_message(user_id[0], send_text, reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
 
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста

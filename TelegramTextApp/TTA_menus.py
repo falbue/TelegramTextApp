@@ -4,9 +4,11 @@ from TelegramTextApp import TTA_scripts
 import json
 
 LOCALE_PATH = None
+TTA_EXPERIENCE = False
 
-def settings_menu(menus, script_path, formating_text):
-    global LOCALE_PATH, format_text
+def settings_menu(menus, script_path, formating_text, tta_experience):
+    global LOCALE_PATH, format_text, TTA_EXPERIENCE
+    TTA_EXPERIENCE = tta_experience
     LOCALE_PATH = menus
     format_text = formating_text
     import sys
@@ -199,17 +201,21 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{locale["menus"][tta_data["menu"]]["return"]}-0:')
         keyboard.add(btn_return)
 
-    menu_data["keyboard"] = keyboard
 
     if menu.get('handler') is not None: # ожидание ввода
         menu_data["handler"] = menu["handler"]
 
     if menu.get('send') is not None: # Отправка сообщения
         menu_data["send"] = menu["send"]
+                                                                                                                                                                     
+        if TTA_EXPERIENCE == True and menu.get("text") is None:
+            btn_notif = InlineKeyboardButton((locale["var_buttons"]['notification']), callback_data=f'notification')
+            keyboard.add(btn_notif)
 
     if menu.get('query') is not None:
         menu_data['query'] = menu['query']
 
     menu_data["call"] = call
     menu_data["message"] = message
+    menu_data["keyboard"] = keyboard
     return menu_data
