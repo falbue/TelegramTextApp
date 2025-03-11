@@ -93,7 +93,7 @@ def create_buttons(buttons_data, menu_data, keyboard, list_page, role=None):
     return keyboard
 
 
-def menu_layout(call=None, message=None, user_id=None, menu=None, handler=None):
+def menu_layout(call=None, message=None, user_id=None):
     locale = get_locale()
 
     try:
@@ -117,24 +117,26 @@ def menu_layout(call=None, message=None, user_id=None, menu=None, handler=None):
                 TTA_scripts.registration(message, call)
       
 
-        menu_data = {"menu":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
-        if menu:
-            menu_data = {"menu":menu, "page":menu_page, "data":get_data, "call":call, "message":message, "user_id": user_id}
-        if handler:
-            menu_data["handler"] = handler  
+        menu_data = {"menu":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message} 
         return menu_data
     except Exception as e:
         print(e)
-        return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message, "user_id": user_id}
+        return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message}
 
 
-def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
+def open_menu(call=None, message=None, loading=False, menu=None, input_text=None):
     locale = get_locale()
 
     if message is not None: user_id = message.chat.id
     elif call is not None: user_id = call.message.chat.id
 
-    menu_data = menu_layout(call, message, user_id, menu, handler)
+    menu_data = menu_layout(call, message, user_id)
+    menu_data["user_id"] = user_id
+    if menu:
+        menu_data['menu'] = menu
+    if input_text:
+        menu_data["input_text"] = input_text
+
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
         TTA_scripts.registration(message, call)
@@ -170,7 +172,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, handler=None):
         text = TTA_scripts.markdown(text)
     else:
         text = function_data
-        if text is None: text = "Укажите текст настройках меню!"
+        if text is None: text = "Укажите текст настройках меню\!"
 
     tta_data["text"] = text
 

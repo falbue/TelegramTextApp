@@ -1,17 +1,16 @@
 import config
 import re
 
-def input_text(message, menu_id, call, menu):
+def input_text(tta_data):
     print("Работает")
 
-def newsletter(message, menu_id, call, menu):
+def newsletter(tta_data):
     pass
 
 def formating_text(tta_data, text):
     format_dict = {}
     try:
-        input_text = tta_data["data"].split(":")[1]
-        format_dict = {"input_text":input_text}
+        format_dict = {"input_text":tta_data["input_text"]}
         formatted_text = text.format_map(
             {key: format_dict.get(key, None) for key in re.findall(r'\{(.*?)\}', text)}
         )

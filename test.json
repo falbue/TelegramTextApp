@@ -61,7 +61,7 @@
         },
 
         "newsletter_test":{
-            "function":"newsletter",
+            "text":"*Рассылка:*\n{input_text}",
             "buttons":{
                 "notification":"notification"
             }

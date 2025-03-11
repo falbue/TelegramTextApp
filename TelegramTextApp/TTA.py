@@ -30,21 +30,22 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     bot.set_my_commands(commands)
 
 
-    def step_handler(message, menu_id, call, function_name, menu):
+    def step_handler(message, menu_data, menu_id):
+        call = menu_data['call']
         user_id = call.message.chat.id
         if tta_experience == True:
             bot.delete_message(user_id, message.message_id)
-        function = globals()[function_name]
-        function_data = function(message, menu_id, call, menu)
+        function = globals()[menu_data["handler"]["function"]]
+        function_data = function(menu_data)
 
-        menu_data = TTA_menus.open_menu(call=call, menu=menu, handler=message.text)
+        menu_data = TTA_menus.open_menu(call=call, menu=menu_data["handler"]["menu"], input_text=message.text)
         if menu_data.get("loading"):
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
             menu_data = TTA_menus.open_menu(call=call, loading=True)
         if menu_data.get("handler"):
-            bot.register_next_step_handler(call.message, step_handler, menu_id, call, menu_data["handler"]["function"], menu_data["handler"]["menu"])
+            bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
         if menu_data.get("send"):
-            send_menu(menu_data)
+            send_menu(menu_data, message.text)
         
         try:
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
@@ -54,15 +55,16 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         if debug == True:
             pass
 
-    def send_menu(menu_data):
+    def send_menu(menu_data, input_text=None):
         type_send = menu_data["send"]
         recipient = type_send["recipient"]
         menu = type_send["menu"]
-        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu)
+        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, input_text=input_text)
         if recipient == 'all':
             role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role IS NOT NULL",(), True)
 
         for user_id in role_users:
+            print(menu_data["text"])
             bot.send_message(user_id[0], menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
 
     @bot.message_handler()
@@ -101,7 +103,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
             
         if call.data == "none": return
     
-        elif call.data == "notification":
+        elif (call.data).split("-")[0] == "notification":
             bot.delete_message(user_id, menu_id)
             return
     
@@ -111,7 +113,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
                 bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
                 menu_data = TTA_menus.open_menu(call=call, loading=True)
             if menu_data.get("handler"):
-                bot.register_next_step_handler(call.message, step_handler, menu_id, call, menu_data["handler"]["function"], menu_data["handler"]["menu"])
+                bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
         
         try:
             if menu_data.get("send"):
