@@ -174,8 +174,10 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         function_name = (menu['function'])
         function = globals()[function_name]
         function_data = function(tta_data)
-        if function_data.get("text"): menu['text'] = function_data.get("text")
-        if function_data.get("buttons"): menu['buttons'] = function_data.get("buttons")
+        try:
+            if function_data.get("text"): menu['text'] = function_data.get("text")
+            if function_data.get("buttons"): menu['buttons'] = function_data.get("buttons")
+        except: pass
 
     if menu.get('text') is not None:
         text = menu['text']
