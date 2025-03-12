@@ -4,7 +4,13 @@ from TelegramTextApp import TTA_menus
 from TelegramTextApp import TTA_scripts
 import inspect
 from telebot import apihelper
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s [%(asctime)s]   %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 VERSION="0.4.0"
 
@@ -77,7 +83,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         user_id = message.chat.id
         if message.text[0] == "/":
             if debug == True:
-                print(f"{user_id}: command - {message.text}")
+                logging.info(f"{user_id}: command - {message.text}")
             menu_data = TTA_menus.open_menu(message=message) 
             old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))[0]
             if old_menu and tta_experience == True:
@@ -104,7 +110,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         user_id, menu_id = TTA_scripts.update_user(call=call)
         bot.clear_step_handler_by_chat_id(chat_id=user_id)
         if debug == True:
-            print(f"{user_id}: {call.data}")
+            logging.info(f"{user_id}: {call.data}")
             
         if call.data == "none": return
     
@@ -131,15 +137,16 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     
     
     def start_polling():
-        print(f"бот запущен...")
+        logging.info(f"бот запущен...")
         while True:
             try:
                 bot.polling(none_stop=True, timeout=60)
             except Exception as e:
-                print(e)
-                print(f"Перезапуск...")
+                logging.error(e)
+                logging.info(f"Перезапуск...")
     if debug == False: start_polling()
     else:
-        print(f"Режим разработчика\nВерсия TTA: {VERSION}")
-        print(f"бот запущен...")
+        logging.info(f"Режим разработчика")
+        logging.info(f"Версия TTA: {VERSION}")
+        logging.info(f"бот запущен...")
         bot.polling()

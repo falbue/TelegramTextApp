@@ -122,7 +122,7 @@ def menu_layout(call=None, message=None, user_id=None):
         tta_data = {"menu":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message} 
         return tta_data
     except Exception as e:
-        print(e)
+        logging.error(e)
         return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message}
 
 

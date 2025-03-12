@@ -39,7 +39,7 @@ def create_file_menus(menu_path):
         
         with open(menu_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
-        print("Файл Для работы с меню бота создан!")
+        logging.info("Файл Для работы с меню бота создан!")
 
 def get_config(DB_PATH="database.db", save_folder="SAVE_FOLDER"):
     global SAVE_FOLDER
@@ -131,4 +131,4 @@ def registration(message, call):
     user = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
         SQL_request("INSERT INTO TTA (telegram_id, time_registration) VALUES (?, ?)", (user_id, f"{date} {time}"))
-        print(f"Зарегистрирован новый пользователь")
+        logging.info(f"Зарегистрирован новый пользователь")
