@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.4.6"
+VERSION="0.4.7"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -40,6 +40,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         call = menu_data['call']
         user_id = call.message.chat.id
         menu = menu_data["handler"]["menu"]
+        menu_data["input_text"] = message.text
         if tta_experience == True:
             bot.delete_message(user_id, message.message_id)
         if menu_data["handler"].get("function"):
