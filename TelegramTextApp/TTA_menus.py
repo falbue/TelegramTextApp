@@ -174,6 +174,8 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         function_name = (menu['function'])
         function = globals()[function_name]
         function_data = function(tta_data)
+        if function_data.get("text"): menu['text'] = function_data.get("text")
+        if function_data.get("buttons"): menu['buttons'] = function_data.get("buttons")
 
     if menu.get('text') is not None:
         text = menu['text']
@@ -183,8 +185,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
             text = function_format(tta_data, text)
         text = TTA_scripts.markdown(text)
     else:
-        text = function_data
-        if text is None: text = "Укажите текст настройках меню"
+        text = "Вы не передали никакой текст"
 
     menu_data["text"] = text
 
