@@ -7,6 +7,13 @@ import re
 import inspect
 from TelegramTextApp import TTA_use_db
 from TelegramTextApp.TTA_use_db import SQL_request
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s [%(asctime)s]   %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 def create_file_menus(menu_path):
     if not os.path.isfile(menu_path):

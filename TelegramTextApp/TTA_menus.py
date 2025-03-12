@@ -2,6 +2,13 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from telebot import types
 from TelegramTextApp import TTA_scripts
 import json
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s [%(asctime)s]   %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 LOCALE_PATH = None
 TTA_EXPERIENCE = False
