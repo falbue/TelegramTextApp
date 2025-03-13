@@ -187,7 +187,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
             text = function_format(tta_data, text)
         text = TTA_scripts.markdown(text)
     else:
-        text = "Вы не передали никакой текст"
+        text = None
 
     menu_data["text"] = text
 
