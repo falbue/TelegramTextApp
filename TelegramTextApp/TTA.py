@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.4.7.1"
+VERSION="0.4.7.2"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -46,7 +46,9 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         if menu_data["handler"].get("function"):
             function = globals()[menu_data["handler"]["function"]]
             menu = menu_data["handler"]["menu"].split(":")[0]
-            menu_data['data'] = menu_data["handler"]["menu"].split(":")[1]
+            if len(menu_data["handler"]["menu"].split(":")) > 1:
+                menu_data['data'] = menu_data["handler"]["menu"].split(":")[1]
+            else: menu_data['data'] = None
             function_data = function(menu_data)
 
         menu_data = TTA_menus.open_menu(call=call, menu=menu, input_text=message.text)
