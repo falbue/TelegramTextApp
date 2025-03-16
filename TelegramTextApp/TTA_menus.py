@@ -40,6 +40,7 @@ def create_buttons(buttons_data, tta_data, keyboard, list_page, role=None):
     prefix= tta_data['data']
     page = int(tta_data["page"])
     btn_role = 'user'
+    menu = tta_data["menu"]
 
     buttons = []
     nav_buttons = []
@@ -89,14 +90,13 @@ def create_buttons(buttons_data, tta_data, keyboard, list_page, role=None):
     if buttons:
         keyboard.add(*buttons)
 
-    
-    if len(paginated_data) > list_page:
+    # print(len(paginated_data))
+    if len(data) > list_page:
         nav_buttons = []
         if int(page) > 0:
-            nav_buttons.append(types.InlineKeyboardButton('⬅️', callback_data=f'{menu}-{page-1}:{prefix}'))
-        nav_buttons.append(types.InlineKeyboardButton(f"• {page+1} •", callback_data=f'none'))
+            nav_buttons.append(types.InlineKeyboardButton(f'⬅️ {page} ', callback_data=f'{menu}-{page-1}:{prefix}'))
         if end_index < len(data):
-            nav_buttons.append(types.InlineKeyboardButton('➡️', callback_data=f'{menu}-{page+1}:{prefix}'))
+            nav_buttons.append(types.InlineKeyboardButton(f'{page+1+1} ➡️', callback_data=f'{menu}-{page+1}:{prefix}'))
         keyboard.add(*nav_buttons)
     
     return keyboard
