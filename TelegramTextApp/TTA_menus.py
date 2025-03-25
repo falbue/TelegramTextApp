@@ -183,7 +183,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         text = TTA_scripts.data_formated(text, user_id)
         if format_text:
             function_format = globals()[format_text]
-            text = function_format(tta_data, text)
+            text = function_format(tta_data, text, "text")
         text = TTA_scripts.markdown(text)
     else:
         text = None
