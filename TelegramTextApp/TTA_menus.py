@@ -191,7 +191,13 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
     menu_data["text"] = text
 
     if menu.get('error_text'): # добавление ошибочного текста
-        menu_data["error_text"] = TTA_scripts.markdown(menu.get("error_text"))
+        error_text = menu.get("error_text")
+        error_text = TTA_scripts.data_formated(error_text, user_id)
+        if format_text:
+            function_format = globals()[format_text]
+            error_text = function_format(tta_data, error_text, "text")
+        error_text = TTA_scripts.markdown(error_text)
+        menu_data["error_text"] = error_text
 
     if menu.get('width') is not None: # настройка ширины клавиатуры
         kb_width = int((menu['width']))
