@@ -100,18 +100,26 @@ def markdown(text, full=False):  # экранирование
             escaped_text += char
     return escaped_text
 
-def data_formated(text, user_id): # форматирование текста
+
+class SafeDict(dict):
+    def __missing__(self, key):
+        return '{' + key + '}'
+
+def data_formated(text, user_id):  # форматирование текста
     user_data = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (int(user_id),))
-    try:
-        text = text.format(
-            tta_id=user_data[0],
-            telegram_id=user_data[1],
-            username=user_data[3],
-            time_registration=user_data[5],
-            tta_role=user_data[6],
-        )
-    except: pass
-    return text
+    if not user_data:
+        return text
+    
+    tta_dict = {
+        'tta_id': user_data[0],
+        'telegram_id': user_data[1],
+        'username': user_data[3],
+        'time_registration': user_data[5],
+        'tta_role': user_data[6],
+    }
+    safe_user_dict = SafeDict(tta_dict)
+    formatted_text = text.format_map(safe_user_dict)
+    return formatted_text
 
 def update_user(message=None, call=None):
     if message is not None: 
