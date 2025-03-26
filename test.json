@@ -14,7 +14,8 @@
             "text": "Главное меню",
             "buttons":{
                 "profile":"Профиль",
-                "input":"Ввод",
+                "input":"\\Ввод",
+                "input_number":"Ввод числа",
                 "query_min":"Маленькое уведомление",
                 "query_big":"Большое уведомление",
                 "markdown":"Разметка",
@@ -27,6 +28,17 @@
             "return":"main",
             "handler": {
                 "function":"input_text",
+                "menu":"test"
+            }
+
+        },
+
+        "input_number": {
+            "text": "Введите число:",
+            "error_text": "Вы ввели не число!\n\nВведите число:",
+            "return":"main",
+            "handler": {
+                "function":"input_number",
                 "menu":"test"
             }
 

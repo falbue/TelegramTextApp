@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.4.8.2"
+VERSION="0.4.9"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -36,7 +36,12 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     bot.set_my_commands(commands)
 
 
+    def processing_menu(menu_data): # общая функция, для обработки полученных данных меню
+        pass
+
+
     def step_handler(message, menu_data, menu_id):
+        handler_menu = {}
         call = menu_data['call']
         user_id = call.message.chat.id
         menu = menu_data["handler"]["menu"]
@@ -51,8 +56,12 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
             else: menu_data['data'] = None
             menu_data["handler_data"] = message
             function_data = function(menu_data)
+            if function_data == False and menu_data.get("error_text") is not None:
+                bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["error_text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
+                bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
+                return
 
-        menu_data = TTA_menus.open_menu(call=call, menu=menu, input_text=message.text)
+        menu_data = TTA_menus.open_menu(call=call, menu=menu, old_data=menu_data)
         if menu_data.get("loading"):
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
             menu_data = TTA_menus.open_menu(call=call, loading=True)

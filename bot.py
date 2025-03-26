@@ -4,10 +4,15 @@ import re
 def input_text(tta_data):
     print("Работает")
 
+def input_number(tta_data):
+    try:
+        int(tta_data["input_text"])
+    except: return False    
+
 def newsletter(tta_data):
     pass
 
-def formating_text(tta_data, text):
+def formating_text(tta_data, text, type_text=None):
     format_dict = {}
     try:
         format_dict = {"input_text":tta_data["input_text"]}

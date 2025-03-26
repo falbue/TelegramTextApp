@@ -132,7 +132,7 @@ def menu_layout(call=None, message=None, user_id=None):
         return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message}
 
 
-def open_menu(call=None, message=None, loading=False, menu=None, input_text=None):
+def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
     locale = get_locale()
     menus = locale["menus"]
 
@@ -141,10 +141,10 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
 
     tta_data = menu_layout(call, message, user_id)
     tta_data["user_id"] = user_id
+    if old_data:
+        tta_data["input_text"] = old_data.get("input_text")
     if menu:
         tta_data['menu'] = menu
-    if input_text:
-        tta_data["input_text"] = input_text
 
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
@@ -189,6 +189,9 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
         text = None
 
     menu_data["text"] = text
+
+    if menu.get('error_text'): # добавление ошибочного текста
+        menu_data["error_text"] = TTA_scripts.markdown(menu.get("error_text"))
 
     if menu.get('width') is not None: # настройка ширины клавиатуры
         kb_width = int((menu['width']))
