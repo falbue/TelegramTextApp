@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.4.9.1"
+VERSION="0.4.9.2"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -82,7 +82,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
         type_send = menu_data["send"]
         recipient = type_send["recipient"]
         menu = type_send.get("menu")
-        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, input_text=input_text)
+        menu_data["input_text"] = input_text
+        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, old_data=menu_data)
         if menu:
             send_text = menu_data["text"]
         else:
