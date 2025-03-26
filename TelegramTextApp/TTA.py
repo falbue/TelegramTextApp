@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.4.9.2.4"
+VERSION="0.4.9.2.5"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -60,6 +60,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
                 bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["error_text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
                 bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
                 return
+            elif function_data:
+                menu_data['data'] = function_data
 
         menu_data = TTA_menus.open_menu(call=call, menu=menu, old_data=menu_data)
         if menu_data.get("loading"):
