@@ -34,6 +34,14 @@ def get_locale():
         locale = json.load(file)
         return locale
 
+def processing_text(text):
+    text = TTA_scripts.data_formated(text, user_id)
+    if format_text:
+        function_format = globals()[format_text]
+        text = function_format(tta_data, text, "text")
+    text = TTA_scripts.markdown(text)
+    return text
+
 def create_buttons(buttons_data, tta_data, keyboard, list_page, role=None):
     locale = get_locale()
     data = buttons_data
@@ -131,7 +139,6 @@ def menu_layout(call=None, message=None, user_id=None):
         logging.error(e)
         return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message}
 
-
 def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
     locale = get_locale()
     menus = locale["menus"]
@@ -179,25 +186,14 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
         except: pass
 
     if menu.get('text') is not None:
-        text = menu['text']
-        text = TTA_scripts.data_formated(text, user_id)
-        if format_text:
-            function_format = globals()[format_text]
-            text = function_format(tta_data, text, "text")
-        text = TTA_scripts.markdown(text)
+        text = processing_text(menu['text'])
     else:
         text = None
 
     menu_data["text"] = text
 
     if menu.get('error_text'): # добавление ошибочного текста
-        error_text = menu.get("error_text")
-        error_text = TTA_scripts.data_formated(error_text, user_id)
-        if format_text:
-            function_format = globals()[format_text]
-            error_text = function_format(tta_data, error_text, "text")
-        error_text = TTA_scripts.markdown(error_text)
-        menu_data["error_text"] = error_text
+        menu_data["error_text"] = processing_text(menu.get("error_text"))
 
     if menu.get('width') is not None: # настройка ширины клавиатуры
         kb_width = int((menu['width']))
@@ -226,6 +222,8 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
         menu_data["handler"]["menu"] = function_format(tta_data, menu_data["handler"]["menu"])
 
     if menu.get('send') is not None: # Отправка сообщения
+        if menu['send'].get("text"):
+            menu['send']['text'] = processing_text(menu['send']['text'])
         menu_data["send"] = menu["send"]
                                                                                                                                                                      
         if TTA_EXPERIENCE == True and menu.get("text") is None:
