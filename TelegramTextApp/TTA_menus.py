@@ -34,7 +34,7 @@ def get_locale():
         locale = json.load(file)
         return locale
 
-def processing_text(text):
+def processing_text(text, user_id):
     text = TTA_scripts.data_formated(text, user_id)
     if format_text:
         function_format = globals()[format_text]
@@ -186,14 +186,14 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
         except: pass
 
     if menu.get('text') is not None:
-        text = processing_text(menu['text'])
+        text = processing_text(menu['text'], user_id)
     else:
         text = None
 
     menu_data["text"] = text
 
     if menu.get('error_text'): # добавление ошибочного текста
-        menu_data["error_text"] = processing_text(menu.get("error_text"))
+        menu_data["error_text"] = processing_text(menu.get("error_text"), user_id)
 
     if menu.get('width') is not None: # настройка ширины клавиатуры
         kb_width = int((menu['width']))
@@ -223,7 +223,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
 
     if menu.get('send') is not None: # Отправка сообщения
         if menu['send'].get("text"):
-            menu['send']['text'] = processing_text(menu['send']['text'])
+            menu['send']['text'] = processing_text(menu['send']['text'], user_id)
         menu_data["send"] = menu["send"]
                                                                                                                                                                      
         if TTA_EXPERIENCE == True and menu.get("text") is None:
