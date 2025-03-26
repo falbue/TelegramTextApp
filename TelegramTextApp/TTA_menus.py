@@ -148,6 +148,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
 
     tta_data = menu_layout(call, message, user_id)
     tta_data["user_id"] = user_id
+    tta_data['old_data'] = old_data
     if old_data:
         tta_data["input_text"] = old_data.get("input_text")
     if menu:
@@ -236,4 +237,5 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
     menu_data["call"] = call
     menu_data["message"] = message
     menu_data["keyboard"] = keyboard
+    menu_data["old_data"] = old_data
     return menu_data
