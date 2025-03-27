@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Меню</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+</head>
+<body>
+    <main>
+        <h1>Настройка меню</h1>
+        <section>
+            <div class="menu">
+                <textarea id="codeEditor">{{ data }}</textarea>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+                <script>
+                    function adjustHeight(editor) {
+                        const scrollInfo = editor.getScrollInfo();
+                        const newHeight = scrollInfo.height + scrollInfo.top;
+                        editor.setSize(null, newHeight);
+                    }
+                    var editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+                        lineNumbers: true,
+                        mode: 'javascript',
+                        theme: 'dracula',
+                        readOnly: false,
+                        lineWrapping: true
+                    });
+
+                    // Начальная настройка высоты
+                    adjustHeight(editor);
+
+        // Обновление высоты при изменении содержимого
+                    editor.on("change", function() {
+                        adjustHeight(editor);
+                    });
+                </script>
+            </div>        
+        </section>
+    </main>
+</body>
+</html>
