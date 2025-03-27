@@ -32,19 +32,29 @@ function buildGraph(data) {
         edges.push({
           from: currentMenuName,
           to: nextMenu,
-          label: buttonText
+          label: buttonText,
+          // Добавим уникальный класс для обычных кнопок
+          classes: 'regular-edge'
         });
         traverseMenu(nextMenu);
       }
     }
 
-    // Обработка кнопки "return"
+    // Обработка кнопки "return" (убираем текст и добавляем стиль)
     if (menu.return) {
       const nextMenuReturn = menu.return;
       const buttonTextReturn = data.var_buttons["return"] || "‹ Назад";
       edges.push({
         from: currentMenuName,
-        to: nextMenuReturn
+        to: nextMenuReturn,
+        // Убираем текст
+        label: '',
+        // Серый цвет и пунктирная линия для отличия
+        color: { color: 'gray' },
+        dashes: true, // Пунктирная линия
+        arrows: { to: { enabled: true } },
+        // Добавляем уникальный класс для return
+        classes: 'return-edge'
       });
       traverseMenu(nextMenuReturn);
     }
@@ -55,7 +65,9 @@ function buildGraph(data) {
       edges.push({
         from: currentMenuName,
         to: nextMenuHandler,
-        label: 'handler'
+        label: 'handler',
+        // Добавим класс для handler
+        classes: 'handler-edge'
       });
       traverseMenu(nextMenuHandler);
     }
@@ -84,7 +96,34 @@ function buildGraph(data) {
       font: {
         align: 'middle',
         size: 12
-      }
+      },
+      // Стили для классов ребер
+      style: [
+        {
+          selector: '.regular-edge',
+          style: {
+            width: 2,
+            color: '#333',
+            fontColor: '#333'
+          }
+        },
+        {
+          selector: '.return-edge',
+          style: {
+            width: 1.5,
+            color: 'gray',
+            dashes: true // Пунктир
+          }
+        },
+        {
+          selector: '.handler-edge',
+          style: {
+            width: 2,
+            color: '#007bff',
+            fontColor: '#007bff'
+          }
+        }
+      ]
     },
     interaction: {
       dragView: true,
@@ -92,7 +131,9 @@ function buildGraph(data) {
     },
     layout: {
       hierarchical: {
-        direction: 'UD' // Вертикальное направление
+        direction: 'UD',
+        // Увеличение расстояния между узлами для избежания наложения
+        nodeSpacingFactor: 1.5
       }
     }
   };
