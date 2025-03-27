@@ -44,8 +44,7 @@ function buildGraph(data) {
       const buttonTextReturn = data.var_buttons["return"] || "‹ Назад";
       edges.push({
         from: currentMenuName,
-        to: nextMenuReturn,
-        label: buttonTextReturn
+        to: nextMenuReturn
       });
       traverseMenu(nextMenuReturn);
     }
@@ -99,4 +98,12 @@ function buildGraph(data) {
   };
 
   const network = new vis.Network(container, networkData, options);
+
+  // Добавляем обработчик двойного клика
+  network.on("doubleClick", function(params) {
+    if (params.nodes.length > 0) {
+      const nodeId = params.nodes[0];
+      window.location.href = '/' + encodeURIComponent(nodeId);
+    }
+  });
 }
