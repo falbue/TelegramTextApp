@@ -4,6 +4,17 @@ import json
 app = Flask(__name__)
 MENU = 'data.json'
 
+def create_menu(menu):
+    with open(MENU, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+
+    data['menus'][menu] = {"text":"Нужно настроить меню"}
+
+    with open(MENU, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+        
+    return data['menus'][menu]
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -17,7 +28,10 @@ def data():
 def open_menu(menu):
     with open(MENU, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    data_menu = data['menus'][menu]
+    try:
+        data_menu = data['menus'][menu]
+    except:
+        data_menu = create_menu(menu)
     data = {menu:data_menu}
     formatted_data = json.dumps(data, ensure_ascii=False, indent=4)
 
