@@ -72,6 +72,7 @@
             "text":"Панель администратора",
             "buttons":{
                 "start_work":"Работаем",
+                "close_work":"sdfsd",
                 "newsletter":"Рассылка"
             },
             "return":"main"

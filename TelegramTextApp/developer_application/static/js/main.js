@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
   fetch('/data')
-    .then(response => response.json())
-    .then(data => buildGraph(data));
+  .then(response => response.json())
+  .then(data => buildGraph(data))
+  .catch(error => console.error('Ошибка при загрузке данных:', error));
 });
 
 function buildGraph(data) {
@@ -15,7 +16,25 @@ function buildGraph(data) {
     visited.add(currentMenuName);
 
     const menu = data.menus[currentMenuName];
-    nodes.push({ id: currentMenuName, label: currentMenuName });
+
+    // Проверка на существование меню
+    if (!menu) {
+      nodes.push({
+        id: currentMenuName,
+        label: currentMenuName,
+        color: { 
+          background: 'red',
+          highlight: {
+            background: '#9f0000', // Светло-серый фон при подсветке
+            border: '#333' // Темно-серая рамка при подсветке
+        }
+          },
+        classes: 'not-found' // Добавляем класс для стилизации
+      });
+      return; // Прерываем обработку, если меню не существует
+    }
+
+    nodes.push({ id: currentMenuName, label: currentMenuName,});
 
     // Обработка кнопок (buttons)
     if (menu.buttons) {
@@ -89,7 +108,19 @@ function buildGraph(data) {
       margin: 10,
       font: {
         size: 14
-      }
+      },
+      // Добавляем стили для класса 'not-found'
+      color: {
+        background: '#fff', // Белый фон по умолчанию
+        border: '#000', // Черная рамка по умолчанию
+        highlight: {
+          background: '#e6e6e6', // Светло-серый фон при подсветке
+          border: '#333' // Темно-серая рамка при подсветке
+        }
+      },
+      borderWidth: 1,
+      borderWidthSelected: 2,
+      shadow: true
     },
     edges: {
       arrows: 'to',
@@ -98,32 +129,12 @@ function buildGraph(data) {
         size: 12
       },
       // Стили для классов ребер
-      style: [
-        {
-          selector: '.regular-edge',
-          style: {
-            width: 2,
-            color: '#333',
-            fontColor: '#333'
-          }
-        },
-        {
-          selector: '.return-edge',
-          style: {
-            width: 1.5,
-            color: 'gray',
-            dashes: true // Пунктир
-          }
-        },
-        {
-          selector: '.handler-edge',
-          style: {
-            width: 2,
-            color: '#007bff',
-            fontColor: '#007bff'
-          }
-        }
-      ]
+      color: {
+        inherit: 'from'
+      },
+      smooth: {
+        type: 'continuous'
+      },
     },
     interaction: {
       dragView: true,
@@ -144,7 +155,7 @@ function buildGraph(data) {
   network.on("doubleClick", function(params) {
     if (params.nodes.length > 0) {
       const nodeId = params.nodes[0];
-      window.location.href = '/' + encodeURIComponent(nodeId);
+      window.location.href = '/menu/' + encodeURIComponent(nodeId);
     }
   });
 }
