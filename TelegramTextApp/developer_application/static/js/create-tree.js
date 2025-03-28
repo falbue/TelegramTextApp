@@ -27,8 +27,8 @@ function buildGraph(data) {
           highlight: {
             background: '#9f0000', // Светло-серый фон при подсветке
             border: '#333' // Темно-серая рамка при подсветке
-        }
-          },
+          }
+        },
         classes: 'not-found' // Добавляем класс для стилизации
       });
       return; // Прерываем обработку, если меню не существует
@@ -39,6 +39,11 @@ function buildGraph(data) {
     // Обработка кнопок (buttons)
     if (menu.buttons) {
       for (const [nextMenu, buttonTextKey] of Object.entries(menu.buttons)) {
+    // Проверяем, если nextMenu равно "return", пропускаем этот шаг
+        if (nextMenu === "return") {
+          continue;
+        }
+
         let buttonText = buttonTextKey;
         if (data.var_buttons[buttonTextKey]) {
           const varButton = data.var_buttons[buttonTextKey];
@@ -52,7 +57,7 @@ function buildGraph(data) {
           from: currentMenuName,
           to: nextMenu,
           label: buttonText,
-          // Добавим уникальный класс для обычных кнопок
+      // Добавим уникальный класс для обычных кнопок
           classes: 'regular-edge'
         });
         traverseMenu(nextMenu);
