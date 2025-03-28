@@ -2,8 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.1.4',
+    version='0.5.1.5',
     packages=find_packages(),
+    package_data={
+        "your_package_name": ["*.html", "*.css", ".js"],
+    },
     install_requires=[
         'telebot',
         'pytz',
