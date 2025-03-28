@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.4.9.2.6"
+VERSION="0.5.0"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
