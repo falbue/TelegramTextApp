@@ -3,9 +3,10 @@ import json
 import os
 import logging
 
-VERSION_APP = "0.0.2"
+VERSION_APP = "0.0.2.1"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATES = os.path.join(BASE_DIR, 'templates')
 
 app = Flask(
     __name__,
@@ -31,7 +32,7 @@ def start_app(menu, code):
     
     @app.route('/')
     def index():
-        return render_template('index.html')
+        return render_template(f'index.html')
     
     @app.route('/data')
     def data():
@@ -41,7 +42,7 @@ def start_app(menu, code):
     @app.route('/menu/<menu>', methods=['GET', 'POST'])
     def open_menu(menu):
         if request.method == 'GET':
-            return render_template('menu.html')
+            return render_template(f'menu.html')
     
         elif request.method == 'POST':
             with open(MENU, 'r', encoding='utf-8') as file:
@@ -98,3 +99,6 @@ def start_app(menu, code):
     
     logging.info(f"Версия приложения: {VERSION_APP}")
     app.run(debug=True)
+
+if __name__=='__main__':
+    start_app(f"{BASE_DIR}/../../test.json", f'{BASE_DIR}/../../bot.py')

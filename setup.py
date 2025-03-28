@@ -2,11 +2,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.1',
+    version='0.5.1.1',
     packages=find_packages(),
     install_requires=[
         'telebot',
-        'pytz'
+        'pytz',
+        'flask'
     ],
     description='Библиотека для создания текстовых приложений в telegram',
     long_description=open('README.md').read(),
