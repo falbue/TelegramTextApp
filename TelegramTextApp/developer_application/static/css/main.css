@@ -1,6 +1,8 @@
 *{
 	padding: 0;
 	margin: 0;
+	font-family: "Rubik", sans-serif;
+  	font-optical-sizing: auto;
 }
 
 #graph{
@@ -9,14 +11,42 @@
 	background-color: #333;
 }
 
+.editor{
+	width: 40%;
+	font-family: "Roboto Mono", monospace;
+	font-optical-sizing: auto;
+	font-style: normal;
+}
 .CodeMirror{
 	border-radius: 12px;
-	width: 40%;
+	font-family: "Roboto Mono", monospace;
+	font-optical-sizing: auto;
+	font-style: normal;
+}
+
+#codeEditor2 > .CodeMirror{
+	width: 100%;
 }
 
 body{
 	background-color: #333;
 	color: white;
+}
+
+header{
+	display: flex;
+	align-items: center;
+	padding-left: 5%;
+	padding-right: 5%;
+	justify-content: space-between;
+	height: 40px;
+	width: 90%;
+	background-color: #404040;
+}
+
+#tools > div{
+	display: flex;
+	align-items: center;
 }
 
 main{
@@ -33,4 +63,14 @@ section{
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+}
+
+section>h2{
+	margin-bottom: 20px;
+}
+
+.iconoir{
+	display: block;
+	font-size: 32px;
+	color: white;
 }

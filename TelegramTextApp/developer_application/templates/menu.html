@@ -2,43 +2,58 @@
 <html>
 <head>
     <title>Меню</title>
+    <!-- шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="{{ url_for('static', filename='js/settings-editors.js') }}" defer></script>
+    <!-- CodeMirror основные стили -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <!-- Подключение темы Monokai -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
 </head>
 <body>
+    <header id="tools">
+        <div>
+            <a href="/">
+                <div class="iconoir iconoir-nav-arrow-left"></div>
+            </a>
+
+            <h4>Настройка меню</h4>
+        </div>
+        <div>
+            <div class="iconoir iconoir-floppy-disk"></div>
+        </div>
+    </header>
     <main>
-        <h1>Настройка меню</h1>
         <section>
             <div class="menu">
-                <textarea id="codeEditor">{{ data }}</textarea>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-                <script>
-                    function adjustHeight(editor) {
-                        const scrollInfo = editor.getScrollInfo();
-                        const newHeight = scrollInfo.height + scrollInfo.top;
-                        editor.setSize(null, newHeight);
-                    }
-                    var editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
-                        lineNumbers: true,
-                        mode: 'javascript',
-                        theme: 'dracula',
-                        readOnly: false,
-                        lineWrapping: true
-                    });
+                <div class="editor"><textarea id="codeEditor1">{{ data }}</textarea></div>
+            </div>
+        </section>
 
-                    // Начальная настройка высоты
-                    adjustHeight(editor);
+        <section>
+            <h2># function:</h2>
+            <div class="function">
+                <textarea id="codeEditor2"></textarea>
+            </div>
+        </section>
 
-        // Обновление высоты при изменении содержимого
-                    editor.on("change", function() {
-                        adjustHeight(editor);
-                    });
-                </script>
-            </div>        
+        <section>
+            <h2># handler:</h2>
+            <div class="function">
+                <textarea id="codeEditor3"></textarea>
+            </div>
         </section>
     </main>
 </body>
