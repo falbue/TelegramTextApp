@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.2',
+    version='0.5.2.1',
     packages=find_packages(where="."),  # Ищем все пакеты в текущей директории
     include_package_data=True,  # Включение всех файлов, указанных в MANIFEST.in
     package_data={
