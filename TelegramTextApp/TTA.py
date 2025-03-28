@@ -14,13 +14,16 @@ logging.basicConfig(
 
 VERSION="0.4.9.2.6"
 
-def start(api, menus, debug=False, tta_experience=False, formating_text=None):
+def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
     commands_locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience)
 
+    if app:
+        from TelegramTextApp.developer_application import server
+        server.start_app(f"{menus}.json", caller_filename)
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
     sys.path.append("scripts.py")
@@ -34,6 +37,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None):
     for command in commands_locale["commands"]:
         commands.append(telebot.types.BotCommand(command, commands_locale["commands"][command]["text"]))
     bot.set_my_commands(commands)
+
 
 
     def processing_menu(menu_data): # общая функция, для обработки полученных данных меню
