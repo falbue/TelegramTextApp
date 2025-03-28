@@ -1,1 +1,2 @@
-MANIFEST.in
+include README.md
+global-include *.html
