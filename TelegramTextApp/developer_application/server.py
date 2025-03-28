@@ -73,7 +73,7 @@ def find_function(function_name):
 
         # Если функция найдена, объединяем строки в одну строку
         if code_function:
-            code_function = ''.join(code_function)
+            code_function = ''.join(code_function[:-1])
             return jsonify(code_function)
         else:
             return jsonify(f"Функция '{function_name}' не найдена в файле.")
