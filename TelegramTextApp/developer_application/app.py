@@ -1,7 +1,18 @@
 from flask import Flask, render_template, jsonify, request
 import json
+import os
+import logging
 
-app = Flask(__name__)
+VERSION_APP = "0.0.2"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
+
 
 def start_app(menu, code):
     MENU = menu
@@ -85,4 +96,5 @@ def start_app(menu, code):
         except Exception as e:
             return jsonify(f"Произошла ошибка: {e}")
     
+    logging.info(f"Версия приложения: {VERSION_APP}")
     app.run(debug=True)

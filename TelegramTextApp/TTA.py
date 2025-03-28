@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.5.0"
+VERSION="0.5.1"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -22,8 +22,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     commands_locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience)
 
     if app:
-        from TelegramTextApp.developer_application import server
-        server.start_app(f"{menus}.json", caller_filename)
+        from TelegramTextApp.developer_application import app
+        app.start_app(f"{menus}.json", caller_filename)
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
     sys.path.append("scripts.py")
