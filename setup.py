@@ -2,10 +2,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.1.5',
+    version='0.5.1.6',
     packages=find_packages(),
     package_data={
-        "your_package_name": ["*.html", "*.css", ".js"],
+        "developer_application": ["*"],  # Включить все файлы в app/templates
     },
     install_requires=[
         'telebot',
