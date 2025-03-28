@@ -2,8 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.1.7',
+    version='0.5.1.8',
     packages=find_packages(),
+    include_package_data=True,
     package_data={
         "developer_application": ["*"],
     },
