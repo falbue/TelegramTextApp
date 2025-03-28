@@ -2,11 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.1.8',
-    packages=find_packages(),
-    include_package_data=True,
+    version='0.5.1.9',
+    packages=find_packages(where="."),  # Ищем все пакеты в текущей директории
+    include_package_data=True,  # Включение всех файлов, указанных в MANIFEST.in
     package_data={
-        "developer_application": ["*"],
+        "developer_application": ["*"],  # Включение всех файлов в developer_application
     },
     install_requires=[
         'telebot',
