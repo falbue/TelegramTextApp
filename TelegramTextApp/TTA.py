@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.5.2.2"
+VERSION="0.5.2.3"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -21,9 +21,6 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     caller_filename = caller_frame.f_code.co_filename
     commands_locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience)
 
-    if app:
-        from TelegramTextApp.developer_application import app
-        app.start_app(f"{menus}.json", caller_filename)
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
     sys.path.append("scripts.py")
@@ -169,6 +166,9 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
                 logging.error(e)
                 logging.info(f"Перезапуск...")
     if debug == False: start_polling()
+    if app:
+        from TelegramTextApp.developer_application import app
+        app.start_app(f"{menus}.json", caller_filename)
     else:
         logging.info(f"Режим разработчика")
         logging.info(f"Версия TTA: {VERSION}")

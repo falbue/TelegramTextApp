@@ -3,7 +3,7 @@ import json
 import os
 import logging
 
-VERSION_APP = "0.0.2.1"
+VERSION_APP = "0.0.2.2"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES = os.path.join(BASE_DIR, 'templates')
@@ -14,6 +14,8 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, 'static')
 )
 
+logging.getLogger('werkzeug').handlers = []
+logging.getLogger('werkzeug').propagate = False
 
 def start_app(menu, code):
     MENU = menu
@@ -97,7 +99,7 @@ def start_app(menu, code):
         except Exception as e:
             return jsonify(f"Произошла ошибка: {e}")
     
-    logging.info(f"Версия приложения: {VERSION_APP}")
+    print(f"Версия приложения: {VERSION_APP}")
     app.run(debug=True)
 
 if __name__=='__main__':
