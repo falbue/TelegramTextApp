@@ -22,6 +22,11 @@
                 "query_big": "Большое уведомление",
                 "markdown": "Разметка",
                 "admin": "\\admin"
+            },
+            "function":"newsletter",
+            "handler": {
+                "function": "input_text",
+                "menu": "test"
             }
         },
         "input": {
@@ -108,6 +113,9 @@
             "loading": "Загрузка..."
         },
         "close_work": {
+            "text": "Нужно настроить меню"
+        },
+        "input_text": {
             "text": "Нужно настроить меню"
         }
     },

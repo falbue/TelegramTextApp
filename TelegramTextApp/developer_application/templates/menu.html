@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Меню</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <!-- шрифты -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -9,18 +11,16 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/iconoir-icons/iconoir@main/css/iconoir.css" />
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <script src="{{ url_for('static', filename='js/settings-editors.js') }}" defer></script>
-    <!-- CodeMirror основные стили -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <!-- Подключение темы Monokai -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+
+    <script src="{{ url_for('static', filename='js/settings-editors.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="{{ url_for('static', filename='js/get-menu.js') }}" defer></script>
 </head>
 <body>
     <header id="tools">
@@ -31,25 +31,26 @@
 
             <h4>Настройка меню</h4>
         </div>
-        <div>
+        <h4 id='menu-name'></h4>
+        <div class="right">
             <div class="iconoir iconoir-floppy-disk"></div>
         </div>
     </header>
     <main>
         <section>
             <div class="menu">
-                <div class="editor"><textarea id="codeEditor1">{{ data }}</textarea></div>
+                <div class="editor"><textarea id="codeEditor1"></textarea></div>
             </div>
         </section>
 
-        <section>
+        <section id="function" class="none">
             <h2># function:</h2>
             <div class="function">
                 <textarea id="codeEditor2"></textarea>
             </div>
         </section>
 
-        <section>
+        <section id="handler" class="none">
             <h2># handler:</h2>
             <div class="function">
                 <textarea id="codeEditor3"></textarea>
