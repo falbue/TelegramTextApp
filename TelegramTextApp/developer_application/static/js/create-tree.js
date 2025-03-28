@@ -145,11 +145,19 @@ function buildGraph(data) {
       dragView: true,
       zoomView: true
     },
+
     layout: {
-      hierarchical: {
-        direction: 'UD',
-        // Увеличение расстояния между узлами для избежания наложения
-        nodeSpacingFactor: 1.5
+      randomSeed: 42,
+      improvedLayout: true,
+      clusterThreshold: 150
+    },
+    physics: {
+      enabled: true,
+      barnesHut: {
+        gravitationalConstant: -8000,
+        springLength: 200,
+        springConstant: 0.04, 
+        damping: 0.09
       }
     }
   };
