@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.1.1',
+    version='0.5.1.2',
     packages=find_packages(),
     install_requires=[
         'telebot',
