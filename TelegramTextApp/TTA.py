@@ -117,7 +117,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
 
         if message.text[0] == "/": # проверка на команду
             if debug == True:
-                logging.info(f"{user_id}: command - {message.text}")
+                logging.info(f"{user_id}: {message.text}")
 
             menu_data = TTA_menus.open_menu(message=message)
             if menu_data.get("loading"):
