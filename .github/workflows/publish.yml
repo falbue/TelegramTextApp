@@ -2,10 +2,10 @@ name: Publish to PyPI
 
 on:
   release:
-    types: [published]  # Триггер при создании релиза
+    types: [published]
   push:
     tags:
-      - "v*.*.*"        # Или триггер при пуше тега (например, v1.0.0)
+      - "*.*.*"
 
 jobs:
   deploy:
