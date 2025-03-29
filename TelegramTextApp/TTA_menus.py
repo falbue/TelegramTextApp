@@ -35,12 +35,13 @@ def get_locale():
         locale = json.load(file)
         return locale
 
-def processing_text(text, user_id, tta_data):
-    text = TTA_scripts.data_formated(text, user_id)
+def processing_text(text, tta_data):
+    user_id = user_tg_data(tta_data['telegram_data'])
+    text = data_formated(text, user_id)
     if format_text:
         function_format = globals()[format_text]
         text = function_format(tta_data, text, "text")
-    text = TTA_scripts.markdown(text)
+    text = markdown(text)
     return text
 
 def create_buttons(buttons_data, tta_data, keyboard, list_page, role=None):
