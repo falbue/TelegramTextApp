@@ -139,7 +139,7 @@ def menu_layout(call=None, message=None, user_id=None):
         logging.error(e)
         return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message}
 
-def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
+def open_menu(call=None, message=None, loading=False, menu=None, input_text=None):
     locale = get_locale()
     menus = locale["menus"]
 
@@ -148,9 +148,7 @@ def open_menu(call=None, message=None, loading=False, menu=None, old_data=None):
 
     tta_data = menu_layout(call, message, user_id)
     tta_data["user_id"] = user_id
-    tta_data['old_data'] = old_data
-    if old_data:
-        tta_data["input_text"] = old_data.get("input_text")
+    tta_data["input_text"] = input_text
     if menu:
         tta_data['menu'] = menu
 

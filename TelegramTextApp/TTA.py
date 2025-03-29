@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.5.3"
+VERSION="0.5.3.1"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -72,7 +72,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
             elif function_data:
                 menu_data['data'] = function_data
 
-        menu_data = TTA_menus.open_menu(call=call, menu=menu, old_data=menu_data)
+        menu_data = TTA_menus.open_menu(call=call, menu=menu, input_text=message.text)
         if menu_data.get("loading"):
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
             menu_data = TTA_menus.open_menu(call=call, loading=True)
@@ -93,8 +93,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         type_send = menu_data["send"]
         recipient = type_send["recipient"]
         menu = type_send.get("menu")
-        menu_data["input_text"] = input_text
-        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, old_data=menu_data)
+        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, input_text=message.text)
         if menu:
             send_text = menu_data["text"]
         else:
