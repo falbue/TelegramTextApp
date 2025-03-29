@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='TelegramTextApp',
-    version='0.5.3.1',
+    version='0.5.3.2',
     packages=find_packages(where="."),
     include_package_data=True,
     package_data={
