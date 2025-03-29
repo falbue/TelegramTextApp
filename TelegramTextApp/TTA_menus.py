@@ -115,9 +115,9 @@ def create_buttons(tta_data):
     if len(buttons_data) > list_page:
         nav_buttons = []
         if int(page) > 0:
-            nav_buttons.append(types.InlineKeyboardButton(f'⬅️ {page} ', callback_data=f'{menu}-{page-1}:{prefix}'))
+            nav_buttons.append(types.InlineKeyboardButton(f'⬅️ {page} ', callback_data=f'{menu}-{page-1}:{data_menu}'))
         if end_index < len(buttons_data):
-            nav_buttons.append(types.InlineKeyboardButton(f'{page+1+1} ➡️', callback_data=f'{menu}-{page+1}:{prefix}'))
+            nav_buttons.append(types.InlineKeyboardButton(f'{page+1+1} ➡️', callback_data=f'{menu}-{page+1}:{data_menu}'))
         keyboard.add(*nav_buttons)
     
     return keyboard
