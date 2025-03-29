@@ -28,6 +28,10 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     module.__spec__.loader.exec_module(module)
     globals().update(vars(module))
 
+    if app == True:
+        from TelegramTextApp.developer_application import app
+        app.start_app(f"{menus}.json", caller_filename, port=port)
+
     TTA_scripts.get_config()
     bot = telebot.TeleBot(api)
     commands = []
@@ -166,9 +170,6 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
                 logging.error(e)
                 logging.info(f"Перезапуск...")
     if debug == False: start_polling()
-    if app:
-        from TelegramTextApp.developer_application import app
-        app.start_app(f"{menus}.json", caller_filename)
     else:
         logging.info(f"Режим разработчика")
         logging.info(f"Версия TTA: {VERSION}")

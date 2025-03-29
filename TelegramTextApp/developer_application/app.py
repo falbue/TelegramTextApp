@@ -17,7 +17,7 @@ app = Flask(
 logging.getLogger('werkzeug').handlers = []
 logging.getLogger('werkzeug').propagate = False
 
-def start_app(menu, code):
+def start_app(menu, code, port=5000):
     MENU = menu
     CODE = code
 
@@ -100,7 +100,7 @@ def start_app(menu, code):
             return jsonify(f"Произошла ошибка: {e}")
     
     print(f"Версия приложения: {VERSION_APP}")
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=port)
 
 if __name__=='__main__':
     start_app(f"{BASE_DIR}/../../test.json", f'{BASE_DIR}/../../bot.py')
