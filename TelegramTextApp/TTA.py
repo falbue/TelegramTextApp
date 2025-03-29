@@ -57,13 +57,12 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         handler_menu = {}
         call = menu_data['call']
         user_id = call.message.chat.id
-        menu = menu_data["handler"]["menu"]
         menu_data["input_text"] = message.text
         if tta_experience == True:
             bot.delete_message(user_id, message.message_id)
         if menu_data["handler"].get("function"):
             function = globals()[menu_data["handler"]["function"]]
-            menu = menu_data["handler"]["menu"].split(":")[0]
+            menu_data['menu'] = menu_data["handler"]["menu"].split(":")[0]
             if len(menu_data["handler"]["menu"].split(":")) > 1:
                 menu_data['data'] = menu_data["handler"]["menu"].split(":")[1]
             else: menu_data['data'] = None
