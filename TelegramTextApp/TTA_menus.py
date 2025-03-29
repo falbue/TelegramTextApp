@@ -204,7 +204,7 @@ def open_menu(data, loading=False):
     if menu.get('handler') is not None: # ожидание ввода
         bot_data["handler"] = menu["handler"]
         function_format = globals()[format_text]
-        bot_data["handler"]["menu"] = function_format(tta_data, menu_data["handler"]["menu"]) # 4
+        bot_data["handler"]["menu"] = function_format(tta_data, bot_data["handler"]["menu"]) # 4
 
     if menu.get('send') is not None: # Отправка сообщения
         if menu['send'].get("text"):
