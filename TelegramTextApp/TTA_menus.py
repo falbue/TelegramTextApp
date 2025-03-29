@@ -1,8 +1,9 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from telebot import types
-from TelegramTextApp import TTA_scripts
+from TelegramTextApp.TTA_scripts import *
 import json
 import logging
+import inspect
 
 logging.basicConfig(
     level=logging.INFO,
