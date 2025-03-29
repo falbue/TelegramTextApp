@@ -113,28 +113,31 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста
         user_id = message.chat.id
-        if message.text[0] == "/":
+        old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))[0]
+
+        if message.text[0] == "/": # проверка на команду
             if debug == True:
                 logging.info(f"{user_id}: command - {message.text}")
-            menu_data = TTA_menus.open_menu(message=message) 
-            old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))[0]
-            if old_menu and tta_experience == True:
-                try:
-                    bot.delete_message(user_id, int(old_menu))
-                except: pass
+
+            menu_data = TTA_menus.open_menu(message=message)
             if menu_data.get("loading"):
                 new_message = bot.send_message(message.chat.id, menu_data["text"], parse_mode="MarkdownV2")
-                TTA_scripts.update_user(message=new_message)
+                TTA_scripts.update_user(message=new_message) # обновление данных пользователя
                 menu_data = TTA_menus.open_menu(message=message, loading=True)
                 bot.edit_message_text(chat_id=user_id, message_id=new_message.message_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
             else:
                 new_message = bot.send_message(message.chat.id, menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
                 TTA_scripts.update_user(message=new_message)
+
             if menu_data.get("send"):
                 send_menu(menu_data)
-                
+
         if tta_experience == True:
-                bot.delete_message(user_id, message.message_id)
+            if old_menu:
+                try:
+                    bot.delete_message(user_id, int(old_menu))
+                except: pass
+            bot.delete_message(user_id, message.message_id)
     
     
     @bot.callback_query_handler(func=lambda call: True)
