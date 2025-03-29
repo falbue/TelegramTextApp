@@ -39,9 +39,13 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         commands.append(telebot.types.BotCommand(command, locale["commands"][command]["text"]))
     bot.set_my_commands(commands)
     if locale.get('bot'):
-        bot.set_my_name(locale['bot'].get('name'))
-        bot.set_my_description(locale['bot'].get('description'))
-        bot.set_my_short_description(locale['bot'].get('short_description'))
+        try:
+            bot.set_my_name(locale['bot'].get('name'))
+            bot.set_my_description(locale['bot'].get('description'))
+            bot.set_my_short_description(locale['bot'].get('short_description'))
+        except:
+            logging.error("Не удалось обновить данные бота")
+            pass
 
 
 
@@ -72,7 +76,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
             elif function_data:
                 menu_data['data'] = function_data
 
-        menu_data = TTA_menus.open_menu(call=call, menu=menu, input_text=message.text)
+        menu_data = TTA_menus.open_menu(call=call, menu_data=menu_data)
         if menu_data.get("loading"):
             bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
             menu_data = TTA_menus.open_menu(call=call, loading=True)
@@ -92,8 +96,9 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     def send_menu(menu_data, input_text=None):
         type_send = menu_data["send"]
         recipient = type_send["recipient"]
+        menu_data["input_text"] = input_text
         menu = type_send.get("menu")
-        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, input_text=input_text)
+        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu_data=menu_data)
         if menu:
             send_text = menu_data["text"]
         else:

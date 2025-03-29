@@ -139,7 +139,7 @@ def menu_layout(call=None, message=None, user_id=None):
         logging.error(e)
         return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message}
 
-def open_menu(call=None, message=None, loading=False, menu=None, input_text=None):
+def open_menu(call=None, message=None, loading=False, menu_data=None):
     locale = get_locale()
     menus = locale["menus"]
 
@@ -148,9 +148,12 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
 
     tta_data = menu_layout(call, message, user_id)
     tta_data["user_id"] = user_id
-    tta_data["input_text"] = input_text
-    if menu:
-        tta_data['menu'] = menu
+    if menu_data:
+        tta_data["input_text"] = menu_data["input_text"]
+        if tta_data.get('data') is None:
+            tta_data['data'] = menu_data.get('data')
+        if menu_data.get("handler"):
+            tta_data['menu'] = menu_data['handler'].get("menu")
 
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:

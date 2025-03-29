@@ -70,7 +70,7 @@
         },
 
         "test":{
-            "text":"Вы ввели `{input_text}`",
+            "text":"Вы ввели `{input_text}` {data}",
             "return":"input"
         },
 
