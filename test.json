@@ -67,7 +67,8 @@
             "query":{
                 "text":"Тут гораздо больше информации",
                 "show_alert":true
-            }
+            },
+            "function":"newsletter"
         },
 
         "test":{

@@ -11,7 +11,8 @@ def input_number(tta_data):
     except: return False    
 
 def newsletter(tta_data):
-    pass
+    print(f"Выполнение функции: {5+3}")
+    return tta_data
 
 def formating_text(tta_data, text, type_text=None):
     format_dict = {}

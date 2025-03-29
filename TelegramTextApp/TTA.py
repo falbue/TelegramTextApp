@@ -56,44 +56,15 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
 
 # ----------------------------------------------------------
 
-    def step_handler(message, menu_data, menu_id): # ожидание ввода от пользователя (пока только сообщения)
-        handler_menu = {}
-        call = menu_data['call']
-        user_id = call.message.chat.id
-        menu_data["input_text"] = message.text
-        if tta_experience == True:
-            bot.delete_message(user_id, message.message_id)
-        if menu_data["handler"].get("function"):
-            function = globals()[menu_data["handler"]["function"]]
-            menu_data['menu'] = menu_data["handler"]["menu"].split(":")[0]
-            if len(menu_data["handler"]["menu"].split(":")) > 1:
-                menu_data['data'] = menu_data["handler"]["menu"].split(":")[1]
-            else: menu_data['data'] = None
-            menu_data["handler_data"] = message
-            function_data = function(menu_data)
-            if function_data == False and menu_data.get("error_text") is not None:
-                bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["error_text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
-                bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
-                return
-            elif function_data:
-                menu_data['data'] = function_data
+    def step_handler(message, bot_data, telegram_data): # ожидание ввода от пользователя (пока только сообщения)
+        input_text = message.text
+        handler_data = bot_data["handler"]
+        print(handler_data)
 
-        menu_data = TTA_menus.open_menu(call=call, menu_data=menu_data)
-        if menu_data.get("loading"):
-            bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
-            menu_data = TTA_menus.open_menu(call=call, loading=True)
-        if menu_data.get("handler"):
-            bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
-        if menu_data.get("send"):
-            send_menu(menu_data, message.text)
+        function_name = (handler_data['function'])
+        function = globals()[function_name]
+        tta_data = function(tta_data)
         
-        try:
-            bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
-        except Exception as e:
-            pass
-
-        if debug == True:
-            pass
 
     def send_menu(menu_data, input_text=None):
         type_send = menu_data["send"]
@@ -115,7 +86,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
 
 # -----
 
-    def processing_data(data):
+    def processing_data(data):  # обработка данных, получаемых после открытия меню
         bot_data = TTA_menus.open_menu(data=data)
 
         if hasattr(data, 'data') and data.data is not None:
@@ -127,7 +98,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
                     if "message is not modified" in str(e): pass
                 bot_data = TTA_menus.open_menu(data, loading=True)
             if bot_data.get("handler"):
-                bot.register_next_step_handler(data.message, step_handler, bot_data, menu_id)
+                bot.register_next_step_handler(data.message, step_handler, bot_data, data)
             if bot_data.get("send"):
                 send_menu(bot_data)
             if bot_data.get("query"):
