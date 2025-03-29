@@ -93,7 +93,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         type_send = menu_data["send"]
         recipient = type_send["recipient"]
         menu = type_send.get("menu")
-        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, input_text=message.text)
+        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu=menu, input_text=input_text)
         if menu:
             send_text = menu_data["text"]
         else:
