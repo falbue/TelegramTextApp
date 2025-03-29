@@ -126,7 +126,6 @@ def create_buttons(tta_data):
 def menu_layout(data):    
     try:
         if hasattr(data, 'data') and data.data is not None:
-            user_id = data.message.chat.id
             menu_base = (data.data).split(":")
             menu_name = menu_base[0].split("-")[0]
             menu_page = menu_base[0].split("-")[1]
@@ -135,7 +134,6 @@ def menu_layout(data):
 
         elif hasattr(data, 'text') and data.text is not None:
             locale = get_locale()
-            user_id = data.chat.id
             command = (data.text).replace("/", "")
             menu_name = "error_command"
             if locale["commands"].get(command):
@@ -146,7 +144,7 @@ def menu_layout(data):
                 get_data = (data.data).replace(f"{menu_name}:", "")
             menu_page = "0"
             if command == "start":
-                TTA_scripts.registration(data)
+                registration(data)
       
 
         call_data = {"menu":menu_name, "page":menu_page, "data":get_data} 
@@ -161,61 +159,50 @@ def open_menu(data, loading=False):
     locale = get_locale() # весь json файл
     menus = locale["menus"] # все меню
     menu = menus.get(call_data['menu']) # меню, которое будем обрабатывать
-    if menu is None: menu = 'error' # если меню отстутсвует, то обрабатываем меню error
+    if menu is None: menu = menus['error'] # если меню отстутсвует, то обрабатываем меню error
 
-    list_page = 20 # количество кнопок в меню
-    kb_width = 2 # ширина клавиатуры
-    
+    tta_data = {"menu_data":menu, "call_data":call_data, "telegram_data":data}
     bot_data = {} # контейнер данных, для бота
 
 
     if menu.get('loading') is not None and loading == False: # отправляется только текст, что бы потом обработать всё меню
-        bot_data["text"] = TTA_scripts.markdown(menu['loading'])
+        bot_data["text"] = markdown(menu['loading'])
         bot_data['loading'] = True
         return bot_data
 
     if menu.get('function') is not None: # выполнение указанной функции
         function_name = (menu['function'])
         function = globals()[function_name]
-        function_data = function(tta_data)
-        try:
-            if function_data.get("text"): menu['text'] = function_data.get("text")
-            if function_data.get("buttons"): menu['buttons'] = function_data.get("buttons")
-        except: pass
+        tta_data = function(tta_data)
+
+# ---
 
     if menu.get('text') is not None:
-        text = processing_text(menu['text'], user_id, tta_data)
-    else:
-        text = None
-
+        text = processing_text(menu['text'], tta_data)
+    else: text = None
     bot_data["text"] = text
 
     if menu.get('error_text'): # добавление ошибочного текста
         menu_data["error_text"] = processing_text(menu.get("error_text"), user_id, tta_data)
 
-    if menu.get('width') is not None: # настройка ширины клавиатуры
-        kb_width = int((menu['width']))
-    keyboard = InlineKeyboardMarkup(row_width=kb_width)
+# ---
 
-    if menu.get('list_page') is not None: # сколько кнопок на странице
-        list_page = int((menu['list_page']))
-
-    if menu.get('buttons') is not None: # добавление кнопок
-        keyboard = create_buttons(menu["buttons"], tta_data, keyboard, list_page, role=role)
+    keyboard = create_buttons(tta_data)
 
     if menu.get('create_buttons') is not None: # добавление кнопок
         function_name = menu['create_buttons']
         function = globals()[function_name]
         function_data = function(tta_data)
-        keyboard = create_buttons(function_data, tta_data, keyboard, list_page, role=role)
+        keyboard = create_buttons(function_data, tta_data, keyboard, list_page)
 
     if menu.get('return') is not None: # кнопка возврата
-        btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{locale["menus"][tta_data["menu"]]["return"]}-0:')
+        btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{menu["return"]}-0:')
         keyboard.add(btn_return)
 
+# ---
 
     if menu.get('handler') is not None: # ожидание ввода
-        menu_data["handler"] = menu["handler"]
+        bot_data["handler"] = menu["handler"]
         function_format = globals()[format_text]
         bot_data["handler"]["menu"] = function_format(tta_data, menu_data["handler"]["menu"]) # 4
 
