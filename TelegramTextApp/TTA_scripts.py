@@ -139,9 +139,9 @@ def update_user(message=None, call=None):
     SQL_request("UPDATE TTA SET menu_id = ?, use_time = ? WHERE telegram_id = ?", (menu_id, date, user_id))
     return user_id, menu_id
 
-def registration(message, call):
-    if message: user_id = message.chat.id
-    if call: user_id = call.message.chat.id
+def registration(data):
+    if hasattr(data, 'text') and data.text is not None: user_id = data.chat.id
+    if hasattr(data, 'data') and data.data is not None: user_id = data.message.chat.id
     date, time  = now_time()
     user = SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:

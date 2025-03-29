@@ -16,11 +16,15 @@ VERSION="0.5.3.3"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
+
+    # путь файла, откуда был запущен TTA
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
-    caller_filename = caller_frame.f_code.co_filename
-    locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience)
+    caller_filename = caller_frame.f_code.co_filename # полный путь
 
+    locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience) # получение всего json файла
+
+    # добавление функций в глобальный список функций из файла запуска 
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
     sys.path.append("scripts.py")
@@ -28,16 +32,19 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     module.__spec__.loader.exec_module(module)
     globals().update(vars(module))
 
-    if app == True:
+    if app == True: # запуск приложения
         from TelegramTextApp.developer_application import app
         app.start_app(f"{menus}.json", caller_filename, port=port)
 
+    # установка команд бота
     TTA_scripts.get_config()
     bot = telebot.TeleBot(api)
     commands = []
     for command in locale["commands"]:
         commands.append(telebot.types.BotCommand(command, locale["commands"][command]["text"]))
     bot.set_my_commands(commands)
+
+    # установка описаний бота
     if locale.get('bot'):
         try:
             bot.set_my_name(locale['bot'].get('name'))
@@ -47,13 +54,9 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
             logging.error("Не удалось обновить данные бота")
             pass
 
+# ----------------------------------------------------------
 
-
-    def processing_menu(menu_data): # общая функция, для обработки полученных данных меню
-        pass
-
-
-    def step_handler(message, menu_data, menu_id):
+    def step_handler(message, menu_data, menu_id): # ожидание ввода от пользователя (пока только сообщения)
         handler_menu = {}
         call = menu_data['call']
         user_id = call.message.chat.id
@@ -110,32 +113,65 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         for user_id in role_users:
             bot.send_message(user_id[0], send_text, reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
 
+# -----
+
+    def processing_data(data):
+        bot_data = TTA_menus.open_menu(data=data)
+
+        if hasattr(data, 'data') and data.data is not None:
+            user_id, menu_id = TTA_scripts.update_user(call=data)
+            if bot_data.get("loading"):
+                try:
+                    bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=bot_data["text"], parse_mode="MarkdownV2")
+                except apihelper.ApiTelegramException as e: # проверка на двойное нажатие
+                    if "message is not modified" in str(e): pass
+                bot_data = TTA_menus.open_menu(data, loading=True)
+            if bot_data.get("handler"):
+                bot.register_next_step_handler(data.message, step_handler, bot_data, menu_id)
+            if bot_data.get("send"):
+                send_menu(bot_data)
+            if bot_data.get("query"):
+                bot.answer_callback_query(callback_query_id=data.id,text=bot_data['query']['text'], show_alert=bot_data['query']['show_alert'])
+    
+            try:
+                bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=bot_data["text"], reply_markup=bot_data["keyboard"], parse_mode="MarkdownV2")
+            except apihelper.ApiTelegramException as e: # проверка на двойное нажатие
+                if "message is not modified" in str(e): pass
+
+        elif hasattr(data, 'text') and data.text is not None:
+            user_id = data.chat.id
+            if bot_data.get("loading"):
+                new_message = bot.send_message(data.chat.id, bot_data["text"], parse_mode="MarkdownV2")
+                TTA_scripts.update_user(message=new_message) # обновление данных пользователя
+                bot_data = TTA_menus.open_menu(data, loading=True)
+                bot.edit_message_text(chat_id=user_id, message_id=new_message.message_id, text=bot_data["text"], reply_markup=bot_data["keyboard"], parse_mode="MarkdownV2")
+            else:
+                new_message = bot.send_message(data.chat.id, bot_data["text"], reply_markup=bot_data["keyboard"], parse_mode="MarkdownV2")
+                TTA_scripts.update_user(message=new_message)
+
+            if bot_data.get("handler"):
+                bot.register_next_step_handler(call.message, step_handler, bot_data, menu_id)
+
+            if bot_data.get("send"):
+                send_menu(bot_data)
+
+
     @bot.message_handler()
     def text_handler(message): # обработка полученного текста
         user_id = message.chat.id
-        old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))[0]
+        old_menu = None
 
         if message.text[0] == "/": # проверка на команду
+            old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))
             if debug == True:
                 logging.info(f"{user_id}: {message.text}")
 
-            menu_data = TTA_menus.open_menu(message=message)
-            if menu_data.get("loading"):
-                new_message = bot.send_message(message.chat.id, menu_data["text"], parse_mode="MarkdownV2")
-                TTA_scripts.update_user(message=new_message) # обновление данных пользователя
-                menu_data = TTA_menus.open_menu(message=message, loading=True)
-                bot.edit_message_text(chat_id=user_id, message_id=new_message.message_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
-            else:
-                new_message = bot.send_message(message.chat.id, menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
-                TTA_scripts.update_user(message=new_message)
-
-            if menu_data.get("send"):
-                send_menu(menu_data)
+            processing_data(message)
 
         if tta_experience == True:
             if old_menu:
                 try:
-                    bot.delete_message(user_id, int(old_menu))
+                    bot.delete_message(user_id, int(old_menu[0]))
                 except: pass
             bot.delete_message(user_id, message.message_id)
     
@@ -153,22 +189,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
             bot.delete_message(user_id, menu_id)
             return
     
-        else:
-            menu_data = TTA_menus.open_menu(call=call)
-            if menu_data.get("loading"):
-                bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], parse_mode="MarkdownV2")
-                menu_data = TTA_menus.open_menu(call=call, loading=True)
-            if menu_data.get("handler"):
-                bot.register_next_step_handler(call.message, step_handler, menu_data, menu_id)
-            if menu_data.get("send"):
-                send_menu(menu_data)
-            if menu_data.get("query"):
-                bot.answer_callback_query(callback_query_id=call.id,text=menu_data['query']['text'], show_alert=menu_data['query']['show_alert'])
-        
-        try:
-            bot.edit_message_text(chat_id=user_id, message_id=menu_id, text=menu_data["text"], reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
-        except apihelper.ApiTelegramException as e:
-            if "message is not modified" in str(e): pass
+        processing_data(call)
     
     
     def start_polling():

@@ -109,51 +109,44 @@ def create_buttons(buttons_data, tta_data, keyboard, list_page, role=None):
     return keyboard
 
 
-def menu_layout(call=None, message=None, user_id=None):
-    locale = get_locale()
-
+def menu_layout(data):    
     try:
-        if call:
-            menu_base = (call.data).split(":")
+        if hasattr(data, 'data') and data.data is not None:
+            user_id = data.message.chat.id
+            menu_base = (data.data).split(":")
             menu_name = menu_base[0].split("-")[0]
             menu_page = menu_base[0].split("-")[1]
-            get_data = (call.data).replace(f"{menu_base[0]}:", "")
+            get_data = (data.data).replace(f"{menu_base[0]}:", "")
             if get_data == "": get_data = None
-        elif message:
-            command = (message.text).replace("/", "")
+
+        elif hasattr(data, 'text') and data.text is not None:
+            user_id = data.chat.id
+            locale = get_locale()
+            command = (data.text).replace("/", "")
             menu_name = "error_command"
             if locale["commands"].get(command):
                 menu_name = locale["commands"][command]["menu"]
             get_data = None
             if len(menu_name.split(":")) > 1: 
                 menu_name = menu_name.split(":")[0]
-                get_data = (call.data).replace(f"{menu_name}:", "")
+                get_data = (data.data).replace(f"{menu_name}:", "")
             menu_page = "0"
             if command == "start":
-                TTA_scripts.registration(message, call)
+                TTA_scripts.registration(data)
       
 
-        tta_data = {"menu":menu_name, "page":menu_page, "data":get_data, "call":call, "message":message} 
+        tta_data = {"menu":menu_name, "page":menu_page, "data":get_data, "telegram_data":data, "user_id":user_id} 
         return tta_data
     except Exception as e:
         logging.error(e)
-        return {"menu":"error_command", "page":"0", "data":None, "call":call, "message":message}
+        return {"menu":"error_command", "page":"0", "data":None, "telegram_data":data, "user_id":user_id}
 
-def open_menu(call=None, message=None, loading=False, menu_data=None):
+def open_menu(data, loading=False):
     locale = get_locale()
     menus = locale["menus"]
 
-    if message is not None: user_id = message.chat.id
-    elif call is not None: user_id = call.message.chat.id
-
-    tta_data = menu_layout(call, message, user_id)
-    tta_data["user_id"] = user_id
-    if menu_data:
-        tta_data["input_text"] = menu_data["input_text"]
-        if tta_data.get('data') is None:
-            tta_data['data'] = menu_data.get('data')
-        if menu_data.get("handler"):
-            tta_data['menu'] = menu_data['handler'].get("menu")
+    tta_data = menu_layout(data)
+    user_id = tta_data["user_id"]
 
     user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
     if user is None:
@@ -235,7 +228,5 @@ def open_menu(call=None, message=None, loading=False, menu_data=None):
     if menu.get('query') is not None:
         menu_data['query'] = menu['query']
 
-    menu_data["call"] = call
-    menu_data["message"] = message
     menu_data["keyboard"] = keyboard
     return menu_data
