@@ -134,6 +134,11 @@
         "start": {
             "menu": "main",
             "text": "Перезапуск бота"
+        },
+
+        "number": {
+            "menu": "input_number",
+            "text": "Ввод числа"
         }
     },
     "var_buttons": {
