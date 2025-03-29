@@ -12,14 +12,14 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.5.2.3"
+VERSION="0.5.3"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
     current_frame = inspect.currentframe()
     caller_frame = current_frame.f_back
     caller_filename = caller_frame.f_code.co_filename
-    commands_locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience)
+    locale = TTA_menus.settings_menu(f"{menus}.json", caller_filename, formating_text, tta_experience)
 
     import sys
     from importlib.util import spec_from_file_location, module_from_spec
@@ -35,9 +35,13 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     TTA_scripts.get_config()
     bot = telebot.TeleBot(api)
     commands = []
-    for command in commands_locale["commands"]:
-        commands.append(telebot.types.BotCommand(command, commands_locale["commands"][command]["text"]))
+    for command in locale["commands"]:
+        commands.append(telebot.types.BotCommand(command, locale["commands"][command]["text"]))
     bot.set_my_commands(commands)
+    if locale.get('bot'):
+        bot.set_my_name(locale['bot'].get('name'))
+        bot.set_my_description(locale['bot'].get('description'))
+        bot.set_my_short_description(locale['bot'].get('short_description'))
 
 
 

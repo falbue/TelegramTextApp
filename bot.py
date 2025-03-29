@@ -28,4 +28,4 @@ def formating_text(tta_data, text, type_text=None):
 
 if __name__ == "__main__":
     from TelegramTextApp import TTA
-    TTA.start(config.API, "test", debug=True, formating_text="formating_text", tta_experience=True, app=True)
+    TTA.start(config.API, "test", debug=True, formating_text="formating_text", tta_experience=True, app=False)
