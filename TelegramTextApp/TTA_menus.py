@@ -235,5 +235,4 @@ def open_menu(call=None, message=None, loading=False, menu=None, input_text=None
     menu_data["call"] = call
     menu_data["message"] = message
     menu_data["keyboard"] = keyboard
-    menu_data["old_data"] = old_data
     return menu_data
