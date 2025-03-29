@@ -44,19 +44,31 @@ def processing_text(text, tta_data):
     text = markdown(text)
     return text
 
-def create_buttons(buttons_data, tta_data, keyboard, list_page, role=None):
+
+def create_buttons(tta_data):
     locale = get_locale()
-    data = buttons_data
-    prefix= tta_data['data']
-    page = int(tta_data["page"])
+    data_menu = tta_data["call_data"]['data'] # значение для навигационных кнопок 
+    menu = tta_data["call_data"]["menu"] # название меню, для навигационных кнопок
+    page = int(tta_data["call_data"]["page"])
+    buttons_data = tta_data["menu_data"].get("buttons")
+    if buttons_data is None: buttons_data = {}
+
     btn_role = 'user'
-    menu = tta_data["menu"]
+    user_id = user_tg_data(tta_data["telegram_data"])
+    role =  SQL_request("SELECT role FROM TTA WHERE telegram_id = ?", (int(user_id),))
+
+    list_page = (tta_data["menu_data"].get("list_page"))
+    if list_page is None: list_page = 20
+
+    width = (tta_data["menu_data"].get("list_page"))
+    if width is None: width = 2
+    keyboard = InlineKeyboardMarkup(row_width=width)
 
     buttons = []
     nav_buttons = []
     start_index = int(page) * list_page
     end_index = start_index + list_page
-    paginated_data = list(data.items())[start_index:end_index]
+    paginated_data = list(buttons_data.items())[start_index:end_index]
     
     for data, text in paginated_data:
         slash  = text
