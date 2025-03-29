@@ -120,8 +120,8 @@ def menu_layout(data):
             if get_data == "": get_data = None
 
         elif hasattr(data, 'text') and data.text is not None:
-            user_id = data.chat.id
             locale = get_locale()
+            user_id = data.chat.id
             command = (data.text).replace("/", "")
             menu_name = "error_command"
             if locale["commands"].get(command):
@@ -135,41 +135,30 @@ def menu_layout(data):
                 TTA_scripts.registration(data)
       
 
-        tta_data = {"menu":menu_name, "page":menu_page, "data":get_data, "telegram_data":data, "user_id":user_id} 
-        return tta_data
+        call_data = {"menu":menu_name, "page":menu_page, "data":get_data} 
     except Exception as e:
         logging.error(e)
-        return {"menu":"error_command", "page":"0", "data":None, "telegram_data":data, "user_id":user_id}
+        call_data = {"menu":"error_command", "page":"0", "data":None}
+    return call_data
 
 def open_menu(data, loading=False):
-    locale = get_locale()
-    menus = locale["menus"]
+    call_data = menu_layout(data) # данные, передаваемые в меню
 
-    tta_data = menu_layout(data)
-    user_id = tta_data["user_id"]
+    locale = get_locale() # весь json файл
+    menus = locale["menus"] # все меню
+    menu = menus.get(call_data['menu']) # меню, которое будем обрабатывать
+    if menu is None: menu = 'error' # если меню отстутсвует, то обрабатываем меню error
 
-    user = TTA_scripts.SQL_request("SELECT * FROM TTA WHERE telegram_id = ?", (user_id,))
-    if user is None:
-        TTA_scripts.registration(message, call)
-        role = "user"
-    else:
-        role = user[6]
-    formatting_data = None
-    function_data = {}
-    list_page = 20
+    list_page = 20 # количество кнопок в меню
+    kb_width = 2 # ширина клавиатуры
+    
+    bot_data = {} # контейнер данных, для бота
 
-    find_menu = menus.get(tta_data['menu'])
-    if find_menu is None: tta_data['menu'] = "error"
 
-    menu = menus[tta_data['menu']]    
-    kb_width=2
-    menu_data = {}
-    formatting = {}
-
-    if menu.get('loading') is not None and loading == False:
-        menu_data["text"] = TTA_scripts.markdown(menu['loading'])
-        menu_data['loading'] = True
-        return menu_data
+    if menu.get('loading') is not None and loading == False: # отправляется только текст, что бы потом обработать всё меню
+        bot_data["text"] = TTA_scripts.markdown(menu['loading'])
+        bot_data['loading'] = True
+        return bot_data
 
     if menu.get('function') is not None: # выполнение указанной функции
         function_name = (menu['function'])
@@ -185,7 +174,7 @@ def open_menu(data, loading=False):
     else:
         text = None
 
-    menu_data["text"] = text
+    bot_data["text"] = text
 
     if menu.get('error_text'): # добавление ошибочного текста
         menu_data["error_text"] = processing_text(menu.get("error_text"), user_id, tta_data)
@@ -214,19 +203,19 @@ def open_menu(data, loading=False):
     if menu.get('handler') is not None: # ожидание ввода
         menu_data["handler"] = menu["handler"]
         function_format = globals()[format_text]
-        menu_data["handler"]["menu"] = function_format(tta_data, menu_data["handler"]["menu"])
+        bot_data["handler"]["menu"] = function_format(tta_data, menu_data["handler"]["menu"]) # 4
 
     if menu.get('send') is not None: # Отправка сообщения
         if menu['send'].get("text"):
             menu['send']['text'] = processing_text(menu['send']['text'], user_id, tta_data)
-        menu_data["send"] = menu["send"]
+        bot_data["send"] = menu["send"] # 3
                                                                                                                                                                      
         if TTA_EXPERIENCE == True and menu.get("text") is None:
             btn_notif = InlineKeyboardButton((locale["var_buttons"]['notification']), callback_data=f'notification')
             keyboard.add(btn_notif)
 
     if menu.get('query') is not None:
-        menu_data['query'] = menu['query']
+        bot_data['query'] = menu['query'] # 2
 
-    menu_data["keyboard"] = keyboard
-    return menu_data
+    bot_data["keyboard"] = keyboard # 1
+    return bot_data
