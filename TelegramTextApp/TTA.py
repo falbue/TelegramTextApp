@@ -120,6 +120,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
                 if "message is not modified" in str(e): pass
 
         elif hasattr(data, 'text') and data.text is not None:
+            if bot_data.get("handler"):
+                return
             user_id = data.chat.id
             if bot_data.get("loading"):
                 new_message = bot.send_message(data.chat.id, bot_data["text"], parse_mode="MarkdownV2")
@@ -130,9 +132,6 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
                 new_message = bot.send_message(data.chat.id, bot_data["text"], reply_markup=bot_data["keyboard"], parse_mode="MarkdownV2")
                 TTA_scripts.update_user(message=new_message)
 
-            if bot_data.get("handler"):
-                bot.register_next_step_handler(call.message, step_handler, bot_data, menu_id)
-
             if bot_data.get("send"):
                 send_menu(bot_data)
 
@@ -141,9 +140,6 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
     def text_handler(message): # обработка полученного текста
         user_id = message.chat.id
         old_menu = None
-
-        if tta_experience == True:
-            bot.delete_message(user_id, message.message_id)
 
         if message.text[0] == "/": # проверка на команду
             old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))
@@ -156,6 +152,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
 
             processing_data(message)
 
+        if tta_experience == True:
+            bot.delete_message(user_id, message.message_id)
     
     
     @bot.callback_query_handler(func=lambda call: True)

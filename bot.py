@@ -1,7 +1,7 @@
 import config
 import re
 
-def input_text(tta_data):
+def input_text(tta_data, input_text):
     print("Работает")
 
 def input_number(tta_data, input_text):
