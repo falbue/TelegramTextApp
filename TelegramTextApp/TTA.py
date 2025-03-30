@@ -142,19 +142,20 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         user_id = message.chat.id
         old_menu = None
 
+        if tta_experience == True:
+            bot.delete_message(user_id, message.message_id)
+
         if message.text[0] == "/": # проверка на команду
             old_menu = TTA_scripts.SQL_request("SELECT menu_id FROM TTA WHERE telegram_id = ?", (user_id,))
+            if old_menu and tta_experience == True:
+                try:
+                    bot.delete_message(user_id, int(old_menu[0]))
+                except: pass
             if debug == True:
                 logging.info(f"{user_id}: {message.text}")
 
             processing_data(message)
 
-        if tta_experience == True:
-            if old_menu:
-                try:
-                    bot.delete_message(user_id, int(old_menu[0]))
-                except: pass
-            bot.delete_message(user_id, message.message_id)
     
     
     @bot.callback_query_handler(func=lambda call: True)
