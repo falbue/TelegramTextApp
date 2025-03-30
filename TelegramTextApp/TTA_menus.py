@@ -123,7 +123,7 @@ def create_buttons(tta_data):
     return keyboard
 
 
-def menu_layout(data):    
+def menu_layout(data, handler_data):    
     try:
         if hasattr(data, 'data') and data.data is not None:
             menu_base = (data.data).split(":")
@@ -145,21 +145,31 @@ def menu_layout(data):
             menu_page = "0"
             if command == "start":
                 registration(data)
-      
+        
+        input_text = None
+        if handler_data:
+            get_data =  f'{get_data}/{handler_data["data"]}'
+            input_text = handler_data.get("input_text")
 
-        call_data = {"menu":menu_name, "page":menu_page, "data":get_data} 
+        call_data = {"menu":menu_name, "page":menu_page, "data":get_data, "input_text":input_text} 
     except Exception as e:
         logging.error(e)
-        call_data = {"menu":"error_command", "page":"0", "data":None}
+        call_data = {"menu":"error_command", "page":"0", "data":None, "input_text":None}
     return call_data
 
-def open_menu(data, loading=False):
-    call_data = menu_layout(data) # данные, передаваемые в меню
+def open_menu(data, loading=False, handler_data=None):
+    call_data = menu_layout(data, handler_data) # данные, передаваемые в меню
 
+    error = None
     locale = get_locale() # весь json файл
     menus = locale["menus"] # все меню
     menu = menus.get(call_data['menu']) # меню, которое будем обрабатывать
+    if handler_data:
+        error = handler_data["error"]
+        if error != True:
+            menu = menus.get(handler_data["menu"]) # меню, которое отдает handler
     if menu is None: menu = menus['error'] # если меню отстутсвует, то обрабатываем меню error
+
 
     tta_data = {"menu_data":menu, "call_data":call_data, "telegram_data":data}
     bot_data = {} # контейнер данных, для бота
@@ -182,8 +192,8 @@ def open_menu(data, loading=False):
     else: text = None
     bot_data["text"] = text
 
-    if menu.get('error_text'): # добавление ошибочного текста
-        menu_data["error_text"] = processing_text(menu.get("error_text"), user_id, tta_data)
+    if error == True and menu.get("error_text"): # добавление ошибочного текста
+        bot_data["text"] = processing_text(menu["error_text"], tta_data)
 
 # ---
 

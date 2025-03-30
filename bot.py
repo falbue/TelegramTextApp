@@ -4,11 +4,12 @@ import re
 def input_text(tta_data):
     print("Работает")
 
-def input_number(tta_data):
+def input_number(tta_data, input_text):
     try:
-        int(tta_data["input_text"])
+        int(input_text)
         return "Работает"
-    except: return False    
+    except:
+        return False    
 
 def newsletter(tta_data):
     print(f"Выполнение функции: {5+3}")
@@ -16,10 +17,11 @@ def newsletter(tta_data):
 
 def formating_text(tta_data, text, type_text=None):
     format_dict = {}
+    call_data = tta_data["call_data"]
     try:
         format_dict = {
-        "input_text":tta_data["input_text"],
-        "data":tta_data['data']
+        "input_text":call_data["input_text"],
+        "data":call_data['data']
         }
         formatted_text = text.format_map(
             {key: format_dict.get(key, None) for key in re.findall(r'\{(.*?)\}', text)}

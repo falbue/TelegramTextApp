@@ -57,13 +57,23 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
 # ----------------------------------------------------------
 
     def step_handler(message, bot_data, telegram_data): # ожидание ввода от пользователя (пока только сообщения)
+        if tta_experience == True:
+            bot.delete_message(TTA_scripts.user_tg_data(telegram_data), message.message_id)
         input_text = message.text
         handler_data = bot_data["handler"]
-        print(handler_data)
-
         function_name = (handler_data['function'])
+        menu_name = (handler_data['menu'])
+
         function = globals()[function_name]
-        tta_data = function(tta_data)
+        data = function(telegram_data, input_text)
+        handler_data = {"input_text":message.text, "menu":menu_name, "error":False, "data":None}
+        if data == False: handler_data["error"] = True
+        else: handler_data["data"] = data
+        processing_data(telegram_data, handler_data=handler_data)
+
+
+
+
         
 
     def send_menu(menu_data, input_text=None):
@@ -86,8 +96,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
 
 # -----
 
-    def processing_data(data):  # обработка данных, получаемых после открытия меню
-        bot_data = TTA_menus.open_menu(data=data)
+    def processing_data(data, handler_data=None):  # обработка данных, получаемых после открытия меню
+        bot_data = TTA_menus.open_menu(data=data, handler_data=handler_data)
 
         if hasattr(data, 'data') and data.data is not None:
             user_id, menu_id = TTA_scripts.update_user(call=data)

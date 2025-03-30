@@ -72,7 +72,7 @@
         },
 
         "test":{
-            "text":"Вы ввели `{input_text}` {data}",
+            "text":"Вы ввели `{input_text}`\n\nПередаваеммые данные: {data}",
             "return":"input"
         },
 
