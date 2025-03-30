@@ -157,7 +157,7 @@ def menu_layout(data, handler_data):
         call_data = {"menu":"error_command", "page":"0", "data":None, "input_text":None}
     return call_data
 
-def open_menu(data, loading=False, handler_data=None):
+def open_menu(data, loading=False, handler_data=None, send_data=None):
     call_data = menu_layout(data, handler_data) # данные, передаваемые в меню
 
     error = None
@@ -168,6 +168,9 @@ def open_menu(data, loading=False, handler_data=None):
         error = handler_data["error"]
         if error != True:
             menu = menus.get(handler_data["menu"]) # меню, которое отдает handler
+    if send_data:
+        menu = menus.get(send_data)
+        print(menu)
     if menu is None: menu = menus['error'] # если меню отстутсвует, то обрабатываем меню error
 
 
@@ -218,7 +221,8 @@ def open_menu(data, loading=False, handler_data=None):
 
     if menu.get('send') is not None: # Отправка сообщения
         if menu['send'].get("text"):
-            menu['send']['text'] = processing_text(menu['send']['text'], user_id, tta_data)
+            menu['send']['text'] = processing_text(menu['send']['text'], tta_data)
+        menu['send']['recipient'] = processing_text(menu['send']['recipient'], tta_data)
         bot_data["send"] = menu["send"] # 3
                                                                                                                                                                      
         if TTA_EXPERIENCE == True and menu.get("text") is None:

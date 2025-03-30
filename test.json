@@ -26,6 +26,7 @@
                 "query_min":"Маленькое уведомление",
                 "query_big":"Большое уведомление",
                 "markdown":"Разметка",
+                "create_me":"Письмо",
                 "admin":"\\admin"
             }
         },
@@ -120,6 +121,29 @@
             "buttons":{
                 "notification":"notification"
             }
+        },
+
+        "create_me":{
+            "text":"Введите текст, для отправки сообщения самому себе",
+            "return":"main",
+            "handler":{
+                "function":"newsletter",
+                "menu":"me"
+            }
+        },
+
+        "me":{
+            "text":"Письмо отправлено",
+            "send":{
+                "menuu":"send_me",
+                "recipient":"{telegram_id}"
+            },
+            "return":"main"
+        },
+
+        "send_me":{
+            "text":"{input_text}",
+            "button":{"notification":"notification"}
         },
 
         "profile":{

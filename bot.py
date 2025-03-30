@@ -11,7 +11,7 @@ def input_number(tta_data, input_text):
     except:
         return False    
 
-def newsletter(tta_data):
+def newsletter(tta_data, input_text=None):
     print(f"Выполнение функции: {5+3}")
     return tta_data
 

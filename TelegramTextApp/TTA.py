@@ -72,22 +72,21 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         processing_data(telegram_data, handler_data=handler_data)
 
 
-
-
-        
-
-    def send_menu(menu_data, input_text=None):
-        type_send = menu_data["send"]
+    def send_menu(data, bot_data):
+        type_send = bot_data["send"]
         recipient = type_send["recipient"]
-        menu_data["input_text"] = input_text
         menu = type_send.get("menu")
-        menu_data = TTA_menus.open_menu(call=menu_data['call'], menu_data=menu_data)
+        menu_data = TTA_menus.open_menu(data=data, send_data=menu)
+        print(menu_data)
+        user_id = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE telegram_id = ?", (recipient,))
         if menu:
             send_text = menu_data["text"]
         else:
             send_text = type_send["text"]
         if recipient == 'all':
             role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role IS NOT NULL",(), True)
+        elif user_id:
+            role_users = [user_id]
         else:
             role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role=?",(recipient,), True)
 
@@ -110,7 +109,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
             if bot_data.get("handler"):
                 bot.register_next_step_handler(data.message, step_handler, bot_data, data)
             if bot_data.get("send"):
-                send_menu(bot_data)
+                send_menu(data, bot_data)
             if bot_data.get("query"):
                 bot.answer_callback_query(callback_query_id=data.id,text=bot_data['query']['text'], show_alert=bot_data['query']['show_alert'])
     
