@@ -227,6 +227,8 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
     if menu.get('send') is not None: # Отправка сообщения
         if menu['send'].get("text"):
             menu['send']['text'] = processing_text(menu['send']['text'], tta_data)
+        elif menu['send'].get("menu"):
+            menu['send']['menu'] = processing_text(menu['send']['menu'], tta_data, None)
         menu['send']['recipient'] = processing_text(menu['send']['recipient'], tta_data, None)
         bot_data["send"] = menu["send"] # 3
                                                                                                                                                                      
