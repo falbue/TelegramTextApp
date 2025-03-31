@@ -35,7 +35,7 @@ def get_locale():
         locale = json.load(file)
         return locale
 
-def processing_text(text, tta_data):
+def processing_text(text, tta_data, edit="text"):
     user_id = user_tg_data(tta_data['telegram_data'])
     text = data_formated(text, user_id)
     if format_text:
@@ -226,7 +226,7 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
     if menu.get('send') is not None: # Отправка сообщения
         if menu['send'].get("text"):
             menu['send']['text'] = processing_text(menu['send']['text'], tta_data)
-        menu['send']['recipient'] = processing_text(menu['send']['recipient'], tta_data)
+        menu['send']['recipient'] = processing_text(menu['send']['recipient'], tta_data, None)
         bot_data["send"] = menu["send"] # 3
                                                                                                                                                                      
         if TTA_EXPERIENCE == True and menu.get("text") is None:
