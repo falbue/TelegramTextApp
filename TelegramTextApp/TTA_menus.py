@@ -55,7 +55,7 @@ def create_buttons(tta_data):
 
     btn_role = 'user'
     user_id = user_tg_data(tta_data["telegram_data"])
-    role =  SQL_request("SELECT role FROM TTA WHERE telegram_id = ?", (int(user_id),))
+    role =  SQL_request("SELECT role FROM TTA WHERE telegram_id = ?", (int(user_id),))[0]
 
     list_page = (tta_data["menu_data"].get("list_page"))
     if list_page is None: list_page = 20

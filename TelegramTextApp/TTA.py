@@ -78,7 +78,6 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         menu = type_send.get("menu")
         send_data = {"menu":menu, "handler_data":handler_data}
         menu_data = TTA_menus.open_menu(data=data, send_data=send_data)
-        print(menu_data)
         user_id = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE telegram_id = ?", (recipient,))
         if menu:
             send_text = menu_data["text"]
@@ -90,6 +89,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
             role_users = [user_id]
         else:
             role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role=?",(recipient,), True)
+            print(role_users)
 
         for user_id in role_users:
             bot.send_message(user_id[0], send_text, reply_markup=menu_data["keyboard"], parse_mode="MarkdownV2")
