@@ -154,7 +154,7 @@ def menu_layout(data, handler_data, send_data):
             get_data =  f'{get_data}/{handler_data["data"]}'
             input_text = handler_data.get("input_text")
         if send_data:
-            menu_name = menus.get(send_data["menu"])
+            menu_name = send_data["menu"]
             input_text = send_data['handler_data'].get("input_text")
             menu_base = (data.data).split(":")
             get_data = (data.data).replace(f"{menu_base[0]}:", "")
@@ -175,7 +175,7 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
     if handler_data:
         error = handler_data["error"]
         if error != True:
-            menu = menus.get(handler_data["menu"]) # меню, которое отдает handler        
+            menu = menus.get(handler_data["menu"]) # меню, которое отдает handler   
     if menu is None: menu = menus['error'] # если меню отстутсвует, то обрабатываем меню error
 
 
