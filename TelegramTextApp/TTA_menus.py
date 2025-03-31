@@ -63,7 +63,7 @@ def create_buttons(tta_data, custom_buttons=None):
     list_page = (tta_data["menu_data"].get("list_page"))
     if list_page is None: list_page = 20
 
-    width = (tta_data["menu_data"].get("list_page"))
+    width = (tta_data["menu_data"].get("width"))
     if width is None: width = 2
     keyboard = InlineKeyboardMarkup(row_width=width)
 
