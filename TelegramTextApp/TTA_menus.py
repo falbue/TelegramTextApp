@@ -40,7 +40,7 @@ def processing_text(text, tta_data, edit="text"):
     text = data_formated(text, user_id)
     if format_text:
         function_format = globals()[format_text]
-        text = function_format(tta_data, text, "text")
+        text = function_format(tta_data, text, edit)
     text = markdown(text)
     return text
 
