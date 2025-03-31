@@ -123,7 +123,7 @@ def create_buttons(tta_data):
     return keyboard
 
 
-def menu_layout(data, handler_data):    
+def menu_layout(data, handler_data, send_data):    
     try:
         if hasattr(data, 'data') and data.data is not None:
             menu_base = (data.data).split(":")
@@ -150,6 +150,8 @@ def menu_layout(data, handler_data):
         if handler_data:
             get_data =  f'{get_data}/{handler_data["data"]}'
             input_text = handler_data.get("input_text")
+        if send_data:
+            input_text = send_data['handler_data'].get("input_text")
 
         call_data = {"menu":menu_name, "page":menu_page, "data":get_data, "input_text":input_text} 
     except Exception as e:
@@ -158,7 +160,7 @@ def menu_layout(data, handler_data):
     return call_data
 
 def open_menu(data, loading=False, handler_data=None, send_data=None):
-    call_data = menu_layout(data, handler_data) # данные, передаваемые в меню
+    call_data = menu_layout(data, handler_data, send_data) # данные, передаваемые в меню
 
     error = None
     locale = get_locale() # весь json файл
@@ -169,8 +171,7 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
         if error != True:
             menu = menus.get(handler_data["menu"]) # меню, которое отдает handler
     if send_data:
-        menu = menus.get(send_data)
-        print(menu)
+        menu = menus.get(send_data["menu"])
     if menu is None: menu = menus['error'] # если меню отстутсвует, то обрабатываем меню error
 
 
