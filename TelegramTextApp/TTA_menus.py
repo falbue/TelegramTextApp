@@ -45,12 +45,15 @@ def processing_text(text, tta_data):
     return text
 
 
-def create_buttons(tta_data):
+def create_buttons(tta_data, custom_buttons=None):
     locale = get_locale()
     data_menu = tta_data["call_data"]['data'] # значение для навигационных кнопок 
     menu = tta_data["call_data"]["menu"] # название меню, для навигационных кнопок
     page = int(tta_data["call_data"]["page"])
-    buttons_data = tta_data["menu_data"].get("buttons")
+    if custom_buttons:
+        buttons_data = custom_buttons
+    else:
+        buttons_data = tta_data["menu_data"].get("buttons")
     if buttons_data is None: buttons_data = {}
 
     btn_role = 'user'
@@ -207,7 +210,7 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
         function_name = menu['create_buttons']
         function = globals()[function_name]
         function_data = function(tta_data)
-        keyboard = create_buttons(function_data, tta_data, keyboard, list_page)
+        keyboard = create_buttons(tta_data, custom_buttons=function_data)
 
     if menu.get('return') is not None: # кнопка возврата
         btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{menu["return"]}-0:')
