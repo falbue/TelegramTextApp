@@ -154,10 +154,10 @@ def menu_layout(data, handler_data, send_data):
             get_data =  f'{get_data}/{handler_data["data"]}'
             input_text = handler_data.get("input_text")
         if send_data:
-            menu_name = send_data["menu"]
+            menu_base = (send_data["menu"]).split(":")
+            menu_name = menu_base[0].split("-")[0]
+            get_data = (send_data["menu"]).replace(f"{menu_base[0]}:", "")
             input_text = send_data['handler_data'].get("input_text")
-            menu_base = (data.data).split(":")
-            get_data = (data.data).replace(f"{menu_base[0]}:", "")
 
         call_data = {"menu":menu_name, "page":menu_page, "data":get_data, "input_text":input_text} 
     except Exception as e:
