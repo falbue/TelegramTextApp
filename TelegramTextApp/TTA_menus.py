@@ -154,7 +154,7 @@ def menu_layout(data, handler_data, send_data):
             get_data =  f'{get_data}/{handler_data["data"]}'
             input_text = handler_data.get("input_text")
         if send_data:
-            menu_base = (send_data["menu"]).split(":")
+            menu_base = (send_data["menu"]).split(":")  # нужно исправить
             print(menu_base)
             menu_name = menu_base[0].split("-")[0]
             get_data = (send_data["menu"]).replace(f"{menu_base[0]}:", "")
