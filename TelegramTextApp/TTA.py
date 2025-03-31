@@ -63,6 +63,8 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         handler_data = bot_data["handler"]
         function_name = (handler_data['function'])
         menu_name = (handler_data['menu'])
+        if debug == True:
+            logging.info(f"{telegram_data.message.chat.id}: handler > {menu_name} ({input_text})")
 
         function = globals()[function_name]
         data = function(telegram_data, input_text)
@@ -79,10 +81,19 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         send_data = {"menu":menu, "handler_data":handler_data}
         menu_data = TTA_menus.open_menu(data=data, send_data=send_data)
         user_id = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE telegram_id = ?", (recipient,))
+
         if menu:
             send_text = menu_data["text"]
+            menu_name = menu
         else:
             send_text = type_send["text"]
+            menu_name = send_text
+
+        if debug == True:
+            if user_id:
+                recipient = user_id[0]
+            logging.info(f"{data.message.chat.id}: send > {menu_name} > {recipient}")
+
         if recipient == 'all':
             role_users = TTA_scripts.SQL_request("SELECT telegram_id FROM TTA WHERE role IS NOT NULL",(), True)
         elif user_id:
