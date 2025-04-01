@@ -1,6 +1,2 @@
-test.db
-database.db
 __pycache__/
-menus.json
-scripts.py
-config.py
+TelegramTextApp.egg-info
