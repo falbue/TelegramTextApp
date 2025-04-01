@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.5.7"
+VERSION="0.5.7.1"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -173,7 +173,7 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         if debug == True:
             logging.info(f"{user_id}: {call.data}")
             
-        if call.data == "none": return
+        if (call.data).split("-")[0] == "none": return
     
         elif (call.data).split("-")[0] == "notification":
             bot.delete_message(user_id, menu_id)
