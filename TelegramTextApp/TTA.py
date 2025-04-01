@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.5.7.1"
+VERSION="0.5.7.2"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -63,11 +63,17 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         handler_data = bot_data["handler"]
         function_name = (handler_data['function'])
         menu_name = (handler_data['menu'])
+        menu_base = menu_name.split(":")
+        menu_name = menu_base[0].split("-")[0]
+        menu_page = menu_base[0].split("-")[1]
+        data = (menu_name).replace(f"{menu_base[0]}:", "")
+        call_data = {"menu":menu_name, "page":menu_page, "data":data, "input_text":input_text} 
         if debug == True:
             logging.info(f"{telegram_data.message.chat.id}: handler > {menu_name} ({input_text})")
 
         function = globals()[function_name]
-        data = function(telegram_data, input_text)
+        han_data = function({"telegram_data":telegram_data, "call_data":call_data})
+        if han_data: data = han_data
         handler_data = {"input_text":message.text, "menu":menu_name, "error":False, "data":None}
         if data == False: handler_data["error"] = True
         else: handler_data["data"] = data
