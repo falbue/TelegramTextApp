@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-VERSION="0.5.7.2"
+VERSION="0.5.7.3"
 
 def start(api, menus, debug=False, tta_experience=False, formating_text=None, app=None, port=5000):
     TTA_scripts.create_file_menus(f"{menus}.json")
@@ -64,10 +64,9 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
         function_name = (handler_data['function'])
         menu_name = (handler_data['menu'])
         menu_base = menu_name.split(":")
-        menu_name = menu_base[0].split("-")[0]
-        menu_page = menu_base[0].split("-")[1]
+        menu_name = menu_base[0]
         data = (menu_name).replace(f"{menu_base[0]}:", "")
-        call_data = {"menu":menu_name, "page":menu_page, "data":data, "input_text":input_text} 
+        call_data = {"menu":menu_name, "data":data, "input_text":input_text} 
         if debug == True:
             logging.info(f"{telegram_data.message.chat.id}: handler > {menu_name} ({input_text})")
 
