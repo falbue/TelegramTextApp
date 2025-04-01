@@ -72,10 +72,9 @@ def start(api, menus, debug=False, tta_experience=False, formating_text=None, ap
 
         function = globals()[function_name]
         han_data = function({"telegram_data":telegram_data, "call_data":call_data})
-        if han_data: data = han_data
         handler_data = {"input_text":message.text, "menu":menu_name, "error":False, "data":None}
-        if data == False: handler_data["error"] = True
-        else: handler_data["data"] = data
+        if han_data == False: handler_data["error"] = True
+        else: handler_data["data"] = han_data
         processing_data(telegram_data, handler_data=handler_data)
 
 
