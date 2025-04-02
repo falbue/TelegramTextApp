@@ -194,7 +194,10 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
     if menu.get('function') is not None: # выполнение указанной функции
         function_name = (menu['function'])
         function = globals()[function_name]
-        tta_data = function(tta_data)
+        function_data = function(tta_data)
+        if function_data:
+            tta_data = function_data
+
 
 # ---
 
