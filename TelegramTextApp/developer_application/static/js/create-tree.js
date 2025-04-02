@@ -37,7 +37,7 @@ function buildGraph(data) {
     nodes.push({ id: currentMenuName, label: currentMenuName,});
 
     // Обработка кнопок (buttons)
-    if (menu.buttons) {
+    if (menu.buttons && typeof menu.buttons !== 'string') {
       for (const [nextMenu, buttonTextKey] of Object.entries(menu.buttons)) {
     // Проверяем, если nextMenu равно "return", пропускаем этот шаг
         if (nextMenu === "return") {
