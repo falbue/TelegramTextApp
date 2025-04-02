@@ -47,13 +47,12 @@ def processing_text(text, tta_data, edit="text"):
 
 def create_buttons(tta_data, custom_buttons=None):
     locale = get_locale()
-    data_menu = tta_data["call_data"]['data'] # значение для навигационных кнопок 
+    data_menu = tta_data["call_data"].get('data') # значение для навигационных кнопок 
     menu = tta_data["call_data"]["menu"] # название меню, для навигационных кнопок
     page = int(tta_data["call_data"]["page"])
-    if custom_buttons:
+    buttons_data = tta_data["menu_data"].get("buttons")
+    if isinstance(buttons_data, str):
         buttons_data = custom_buttons
-    else:
-        buttons_data = tta_data["menu_data"].get("buttons")
     if buttons_data is None: buttons_data = {}
 
     btn_role = 'user'
@@ -116,6 +115,7 @@ def create_buttons(tta_data, custom_buttons=None):
         keyboard.add(*buttons)
 
     if len(buttons_data) > list_page:
+        if data_menu == "None": data_menu = None
         nav_buttons = []
         if int(page) > 0:
             nav_buttons.append(types.InlineKeyboardButton(f'⬅️ • {page} •', callback_data=f'{menu}-{page-1}:{data_menu}'))
@@ -205,13 +205,14 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
 
 # ---
 
-    keyboard = create_buttons(tta_data)
 
-    if menu.get('create_buttons') is not None: # добавление кнопок
-        function_name = menu['create_buttons']
+    if isinstance(menu.get("buttons"), str): # добавление кнопок
+        function_name = menu['buttons']
         function = globals()[function_name]
         function_data = function(tta_data)
         keyboard = create_buttons(tta_data, custom_buttons=function_data)
+    else:
+        keyboard = create_buttons(tta_data)
 
     if menu.get('return') is not None: # кнопка возврата
         btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{menu["return"]}-0:')
