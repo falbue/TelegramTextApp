@@ -47,7 +47,8 @@ def processing_text(text, tta_data, edit="text"):
 
 def create_buttons(tta_data, custom_buttons=None):
     locale = get_locale()
-    data_menu = tta_data["call_data"].get('data') # значение для навигационных кнопок 
+    data_menu = tta_data["call_data"].get('data') # значение для навигационных кнопок
+    print(tta_data['call_data'])
     menu = tta_data["call_data"]["menu"] # название меню, для навигационных кнопок
     page = int(tta_data["call_data"]["page"])
     buttons_data = tta_data["menu_data"].get("buttons")
@@ -116,6 +117,7 @@ def create_buttons(tta_data, custom_buttons=None):
 
     if len(buttons_data) > list_page:
         if data_menu == "None": data_menu = None
+        print(data_menu, type(data_menu))
         nav_buttons = []
         if int(page) > 0:
             nav_buttons.append(types.InlineKeyboardButton(f'⬅️ • {page} •', callback_data=f'{menu}-{page-1}:{data_menu}'))
@@ -133,6 +135,7 @@ def menu_layout(data, handler_data, send_data):
             menu_name = menu_base[0].split("-")[0]
             menu_page = menu_base[0].split("-")[1]
             get_data = (data.data).replace(f"{menu_base[0]}:", "")
+            print(type(get_data))
             if get_data == "": get_data = None
 
         elif hasattr(data, 'text') and data.text is not None:
