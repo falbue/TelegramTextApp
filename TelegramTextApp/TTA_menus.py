@@ -140,11 +140,11 @@ def menu_layout(data, handler_data, send_data):
             command = (data.text).replace("/", "")
             menu_name = "error_command"
             if locale["commands"].get(command):
-                menu_name = locale["commands"][command]["menu"]
+                menu = locale["commands"][command]["menu"]
             get_data = None
-            if len(menu_name.split(":")) > 1: 
-                menu_name = menu_name.split(":")[0]
-                get_data = (data.data).replace(f"{menu_name}:", "")
+            menu_base = menu.split(":")
+            menu_name = menu_base[0]
+            get_data = (menu).replace(f"{menu_name}:", "")
             menu_page = "0"
             if command == "start":
                 registration(data)
@@ -188,7 +188,6 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
         bot_data['loading'] = True
         return bot_data
 
-    print(f"До функции: {menu}")
     if menu.get('function') is not None: # выполнение указанной функции
         function_name = (menu['function'])
         function = globals()[function_name]
