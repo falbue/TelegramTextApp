@@ -89,15 +89,26 @@ def get_unique_filename(base_path, filename):
         counter += 1
     return new_filename
 
-def markdown(text, full=False):  # экранирование
-    if full == True: special_characters = r'*|~[]()>#+-=|{}._!'
-    else: special_characters = r'#+-={}.!'
+def markdown(text, full=False):
+    if full:
+        special_characters = r'*|~[]()>#+-=|{}._!'
+    else:
+        special_characters = r'#+-={}.!'
+    
     escaped_text = ''
-    for char in text:
-        if char in special_characters:
+    i = 0
+    while i < len(text):
+        char = text[i]
+        if char == '\\' and i + 1 < len(text) and text[i + 1] in special_characters:
+            escaped_text += char + text[i + 1]
+            i += 2
+        elif char in special_characters:
             escaped_text += f'\\{char}'
+            i += 1
         else:
             escaped_text += char
+            i += 1
+    
     return escaped_text
 
 
