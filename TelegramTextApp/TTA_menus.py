@@ -133,7 +133,7 @@ def menu_layout(data, handler_data, send_data):
             menu_name = menu_base[0].split("-")[0]
             menu_page = menu_base[0].split("-")[1]
             get_data = (data.data).replace(f"{menu_base[0]}:", "")
-            if get_data == "": get_data = None
+            if get_data == "" or get_data == "None": get_data = None
 
         elif hasattr(data, 'text') and data.text is not None:
             locale = get_locale()
