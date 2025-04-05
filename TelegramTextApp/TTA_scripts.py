@@ -21,8 +21,12 @@ def create_file_menus(menu_path):
             "menus": {
                 "error": {
                     "text": "Это меню ещё не создано",
-                    "buttons": {},
                     "return": "main"
+                },
+        
+                "error_command": {
+                    "text": "Команда не найдена",
+                    "buttons":{"return":"main"}
                 },
 
                 "main": {
@@ -38,8 +42,11 @@ def create_file_menus(menu_path):
             },
 
             "general_buttons": {
-                "return": "< Назад",
-                "admin": "Администратор",
+                "return": "‹ Назад",
+                "admin": {
+                    "text":"Администратор",
+                    "role":"admin"
+                },
                 "notification": "Прочитано"
             }
         }
