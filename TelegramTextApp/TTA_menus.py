@@ -1,5 +1,6 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from telebot import types
+from TelegramTextApp import TTA_scripts
 from TelegramTextApp.TTA_scripts import *
 import json
 import logging
@@ -147,7 +148,7 @@ def menu_layout(data, handler_data, send_data):
             get_data = (menu).replace(f"{menu_name}:", "")
             menu_page = "0"
             if command == "start":
-                registration(data)
+                TTA_scripts.registration(data)
         
         input_text = None
         if handler_data:
