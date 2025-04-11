@@ -50,6 +50,7 @@ def create_buttons(tta_data, custom_buttons=None):
     locale = get_locale()
     data_menu = tta_data["call_data"].get('data') # значение для навигационных кнопок
     menu = tta_data["call_data"]["menu"] # название меню, для навигационных кнопок
+    general_data = tta_data["call_data"]["data"]
     page = int(tta_data["call_data"]["page"])
     buttons_data = tta_data["menu_data"].get("buttons")
     if isinstance(buttons_data, str):
@@ -101,7 +102,7 @@ def create_buttons(tta_data, custom_buttons=None):
             elif callback == "app":
                 button = types.InlineKeyboardButton(text, web_app=types.WebAppInfo(url=data_button))
             else:
-                button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}:{data_button}')
+                button = types.InlineKeyboardButton(text, callback_data=f'{callback}-{page}>{general_data}')
         else:
             continue
     
@@ -119,9 +120,9 @@ def create_buttons(tta_data, custom_buttons=None):
         if data_menu == "None": data_menu = None
         nav_buttons = []
         if int(page) > 0:
-            nav_buttons.append(types.InlineKeyboardButton(f'⬅️ • {page} •', callback_data=f'{menu}-{page-1}:{data_menu}'))
+            nav_buttons.append(types.InlineKeyboardButton(f'⬅️ • {page} •', callback_data=f'{menu}-{page-1}>{data_menu}'))
         if end_index < len(buttons_data):
-            nav_buttons.append(types.InlineKeyboardButton(f'• {page+1+1} • ➡️', callback_data=f'{menu}-{page+1}:{data_menu}'))
+            nav_buttons.append(types.InlineKeyboardButton(f'• {page+1+1} • ➡️', callback_data=f'{menu}-{page+1}>{data_menu}'))
         keyboard.add(*nav_buttons)
     
     return keyboard
@@ -130,10 +131,11 @@ def create_buttons(tta_data, custom_buttons=None):
 def menu_layout(data, handler_data, send_data):    
     try:
         if hasattr(data, 'data') and data.data is not None:
-            menu_base = (data.data).split(":")
+            print(data.data)
+            menu_base = (data.data).split(">")
             menu_name = menu_base[0].split("-")[0]
             menu_page = menu_base[0].split("-")[1]
-            get_data = (data.data).replace(f"{menu_base[0]}:", "")
+            get_data = (data.data).replace(f"{menu_base[0]}>", "")
             if get_data == "" or get_data == "None": get_data = None
 
         elif hasattr(data, 'text') and data.text is not None:
@@ -197,7 +199,7 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
             tta_data = function_data
 
 
-# ---
+# --- обработка текста
 
     if menu.get('text') is not None:
         text = processing_text(menu['text'], tta_data)
@@ -207,7 +209,7 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
     if error == True and menu.get("error_text"): # добавление ошибочного текста
         bot_data["text"] = processing_text(menu["error_text"], tta_data)
 
-# ---
+# --- кнопки
 
 
     if isinstance(menu.get("buttons"), str): # добавление кнопок
@@ -219,10 +221,10 @@ def open_menu(data, loading=False, handler_data=None, send_data=None):
         keyboard = create_buttons(tta_data)
 
     if menu.get('return') is not None: # кнопка возврата
-        btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{menu["return"]}-0:')
+        btn_return = InlineKeyboardButton((locale["var_buttons"]['return']), callback_data=f'{menu["return"]}-0>{call_data["data"]}')
         keyboard.add(btn_return)
 
-# ---
+# --- функции
 
     if menu.get('handler') is not None: # ожидание ввода
         bot_data["handler"] = menu["handler"]
