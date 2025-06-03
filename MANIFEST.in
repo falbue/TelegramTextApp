@@ -1,4 +1,4 @@
 include README.md
 global-include *.html
 global-include *.css
-global-include *.js
+global-include *.js 
