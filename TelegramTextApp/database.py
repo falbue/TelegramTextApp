@@ -2,9 +2,12 @@ import aiosqlite
 import json
 import sqlite3
 import asyncio
-from logging_config import logger
+from .logging_config import setup_logging
 
-DB_PATH = "database.db"
+def config_db(path="database.db", debug=False):
+    global DB_PATH, logger
+    logger = setup_logging(debug)
+    DB_PATH = path
 
 async def SQL_request(query, params=(), fetch=None, jsonify_result=False):
     async with aiosqlite.connect(DB_PATH) as db:
@@ -77,8 +80,6 @@ async def create_tables():
         is_approved BOOLEAN DEFAULT 1,
         role TEXT DEFAULT 'user'
     )''')
-
-asyncio.run(create_tables())
 
 
 async def create_user(bot_data):

@@ -2,9 +2,11 @@ from aiogram import Bot
 from aiogram.types import BufferedInputFile
 from aiogram.types import BotCommand
 import aiohttp
-from logging_config import logger
+from .logging_config import setup_logging
 
-async def update_bot_info(bot_token, bot_data):
+
+async def update_bot_info(bot_token, bot_data, debug):
+    logger = setup_logging(debug)
     bot = Bot(token=bot_token)
     
     data = bot_data['bot']

@@ -2,9 +2,12 @@ import re
 import os
 import json
 import random
+import inspect
+import importlib.util
+import sys
 
-from logging_config import logger
-from database import *
+from .logging_config import setup_logging
+from .database import *
 
 def markdown(text, full=False):  # экранирование
     if full == True: special_characters = r'*|~[]()>#+-=|{}._!'
@@ -16,6 +19,10 @@ def markdown(text, full=False):  # экранирование
         else:
             escaped_text += char
     return escaped_text
+
+def utils_config(debug):
+    global logger
+    logger = setup_logging(debug)
 
 
 def default_values():
@@ -75,3 +82,36 @@ def parse_bot_data(template: str, input_string: str) -> dict | None:
     
     match = re.match(pattern, input_string)
     return match.groupdict() if match else None
+
+
+def get_caller_file_path():
+    current_frame = inspect.currentframe()
+    try:
+        caller_frame = current_frame.f_back
+        if caller_frame is None:
+            return None
+        
+        grand_caller_frame = caller_frame.f_back
+        if grand_caller_frame is None:
+            return None
+        caller_file = inspect.getframeinfo(grand_caller_frame).filename
+        abs_path = os.path.abspath(caller_file)
+        return abs_path
+    finally:
+        del current_frame
+
+def load_custom_functions(file_path):
+    try:
+        module_name = file_path.split('\\')[-1].replace('.py', '')
+        
+        # Загружаем модуль динамически
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+        custom_module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = custom_module
+        spec.loader.exec_module(custom_module)
+        
+        logger.debug(f"Успешно загружен модуль: {file_path}")
+        return custom_module
+    except Exception as e:
+        logger.error(f"Ошибка загрузки модуля {file_path}: {e}")
+        return None
