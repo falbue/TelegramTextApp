@@ -1,9 +1,5 @@
 from setuptools import setup, find_packages
 
-# Чтение зависимостей из requirements.txt
-with open('requirements.txt') as f:
-    install_requires = f.read().splitlines()
-
 setup(
     name='TelegramTextApp',
     version='0.6.0',
@@ -12,6 +8,15 @@ setup(
     package_data={
         "developer_application": ["*"],
     },
+    ,
+    install_requires=[
+        'aiogram',
+        'aiohttp',
+        'aiosqlite',
+        'asyncio',
+        'dotenv',
+        'requests'
+    ],
     install_requires=install_requires,  # Используем зависимости из файла
     description='Библиотека для создания текстовых приложений в telegram',
     long_description=open('README.md').read(),
