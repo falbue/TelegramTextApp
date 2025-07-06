@@ -16,7 +16,6 @@ setup(
         'dotenv',
         'requests'
     ],
-    install_requires=install_requires,  # Используем зависимости из файла
     description='Библиотека для создания текстовых приложений в telegram',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
