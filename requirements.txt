@@ -1,0 +1,6 @@
+aiogram
+aiohttp
+aiosqlite
+asyncio
+dotenv
+requests
