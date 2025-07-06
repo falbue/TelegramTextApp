@@ -8,7 +8,6 @@ setup(
     package_data={
         "developer_application": ["*"],
     },
-    ,
     install_requires=[
         'aiogram',
         'aiohttp',
