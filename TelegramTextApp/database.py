@@ -4,6 +4,7 @@ import sqlite3
 import asyncio
 from .logging_config import setup_logging
 
+
 def config_db(path="database.db", debug=False):
     global DB_PATH, logger
     logger = setup_logging(debug)
