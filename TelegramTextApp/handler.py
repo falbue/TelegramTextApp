@@ -40,12 +40,31 @@ def start(token, json_file, database, debug=False):
     async def start_command(message: types.Message, state: FSMContext):
         await state.clear()
         user_id = message.chat.id
+        try: # если пользователь есть, удалим старое сообщение
+            message_id = await get_user(message, False)
+            message_id = message_id["message_id"]
+            if message.text == "/start":
+                await bot.delete_message(chat_id=user_id, message_id=message_id)
+        except:
+            message_id = 0
+
+
         logger.debug(f"id: {user_id} | Команда: {message.text}")
         menu = await get_menu(message)
-        if menu is None:
-            await message.delete()
-        else:
-            await message.answer(menu["text"], reply_markup=menu["keyboard"])
+        
+        if menu:
+            try:
+                await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
+            except Exception as e:
+                if "message is not modified" in str(e) and message.text != "/start":
+                    # Это именно та ошибка, которую мы ожидаем
+                    logger.debug("Сообщение не было изменено (контент и разметка идентичны)")
+                else:
+                    # Это какая-то другая ошибка
+                    logger.error(f"Не удалось изменить сообщение: {e}") 
+                    await message.answer(menu["text"], reply_markup=menu["keyboard"])
+
+        await message.delete()
     
     # Обработчики нажатий на кнопки
     @dp.callback_query()

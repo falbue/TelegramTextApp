@@ -82,33 +82,93 @@ async def create_tables():
         role TEXT DEFAULT 'user'
     )''')
 
+async def extract_user_data(bot_data, update=True):  # Извлекает данные пользователя из объекта бота/сообщения
+    if hasattr(bot_data, 'message'):
+        message = bot_data.message
+        message_id = message.message_id
+    else:
+        message = bot_data
+        try:
+            if update and message.text == "/start":
+                message_id = message.message_id+1
+            else:
+                user = await SQL_request('SELECT * FROM TTA WHERE telegram_id = ?', (message.chat.id,), "one")
+                message_id = user["message_id"]
+        except:
+            message_id = message.message_id
+    
+    return {
+        'telegram_id': message.chat.id,
+        'first_name': message.chat.first_name,
+        'last_name': message.chat.last_name,
+        'username': message.chat.username,
+        'message_id': message_id,
+        'message_text': message.text
+    }
 
 async def create_user(bot_data):
-    try: bot_data = bot_data.message
-    except: pass
-
+    """Создает нового пользователя в базе данных."""
+    user_data = await extract_user_data(bot_data)
     try:
-        telegram_id = bot_data.chat.id
-        first_name = bot_data.chat.first_name
-        last_name = bot_data.chat.last_name
-        username = bot_data.chat.username
-        message_id = bot_data.message_id
-    
-        await SQL_request('''
-        INSERT INTO TTA (
-            telegram_id, 
-            first_name, 
-            last_name, 
-            username, 
-            message_id
-        ) VALUES (?, ?, ?, ?, ?)
-        ''', (telegram_id, first_name, last_name, username, message_id))
-
+        await SQL_request(
+            '''
+            INSERT INTO TTA (
+                telegram_id, 
+                first_name, 
+                last_name, 
+                username, 
+                message_id
+            ) VALUES (?, ?, ?, ?, ?)
+            ''',
+            tuple(user_data.values())
+        )
         return True
     except Exception as e:
         logger.error(f"Ошибка SQL при регистрации: {e}")
         return False
 
-async def get_user(telegram_id):
-    user = await SQL_request('SELECT * FROM TTA WHERE telegram_id=?', (telegram_id,), "one")
-    return user
+async def update_user_data(bot_data, update=True):
+    """Обновляет данные пользователя в базе данных."""
+    user_data = await extract_user_data(bot_data, update)
+    try:
+        await SQL_request(
+            '''
+            UPDATE TTA 
+            SET 
+                first_name = ?, 
+                last_name = ?, 
+                username = ?, 
+                message_id = ? 
+            WHERE telegram_id = ?
+            ''',
+            (
+                user_data['first_name'],
+                user_data['last_name'],
+                user_data['username'],
+                user_data['message_id'],
+                user_data['telegram_id'],
+            )
+        )
+    except Exception as e:
+        logger.error(f"Не удалось обновить данные пользователя: {e}")
+
+async def get_user(bot_data, update=True):
+    """Возвращает пользователя, создает нового при отсутствии."""
+    user_data = await extract_user_data(bot_data)
+    telegram_id = user_data['telegram_id']
+    user = await SQL_request('SELECT * FROM TTA WHERE telegram_id = ?', (telegram_id,), "one")
+    
+    if user:
+        await update_user_data(bot_data, update)
+        return await SQL_request('SELECT * FROM TTA WHERE telegram_id = ?', (telegram_id,), "one")
+    else:
+        if await create_user(bot_data):
+            logger.info(f"Зарегистрирован новый пользователь: {telegram_id}")
+            return await SQL_request(
+                'SELECT * FROM TTA WHERE telegram_id = ?', 
+                (telegram_id,), 
+                "one"
+            )
+        else:
+            logger.error(f"Не удалось зарегистрировать пользователя {telegram_id}")
+            return None

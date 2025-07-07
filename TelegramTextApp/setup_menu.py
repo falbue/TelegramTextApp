@@ -20,6 +20,8 @@ def load_bot(level=None): # загрузка меню
         return data
 
 async def get_bot_data(callback, bot_input=None):
+    user = await get_user(callback)
+
     tta_data = {}
     if bot_input:
         menu_name = bot_input['menu']
@@ -40,17 +42,8 @@ async def get_bot_data(callback, bot_input=None):
 
     tta_data["menu_name"] = menu_name
     tta_data["telegram_id"] = message.chat.id
-
-    user = await get_user(tta_data['telegram_id'])
-    if not user:
-        result = await create_user(message)
-        if not result:
-            logger.error(f"Не удалось зарегестировать пользователя {tta_data['telegram_id']}")
-        else:
-            user = await get_user(tta_data['telegram_id'])
-            logger.info(f"Зарегестирован новый пользователь: {tta_data['telegram_id']}")
-
     tta_data['user'] = user
+    
     return tta_data
 
 def create_keyboard(menu_data, format_data=None): # создание клавиатуры
