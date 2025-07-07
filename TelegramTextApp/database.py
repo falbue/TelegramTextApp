@@ -120,7 +120,13 @@ async def create_user(bot_data):
                 message_id
             ) VALUES (?, ?, ?, ?, ?)
             ''',
-            tuple(user_data.values())
+            (
+        user_data['telegram_id'],
+        user_data['first_name'],
+        user_data['last_name'],
+        user_data['username'],
+        user_data['message_id']
+            )
         )
         return True
     except Exception as e:
