@@ -43,7 +43,7 @@ async def get_bot_data(callback, bot_input=None):
     tta_data["menu_name"] = menu_name
     tta_data["telegram_id"] = message.chat.id
     tta_data['user'] = user
-    
+
     return tta_data
 
 def create_keyboard(menu_data, format_data=None): # создание клавиатуры
@@ -105,9 +105,9 @@ def create_text(menu_data, format_data): # создание текста
     text = markdown(text)
     return text
 
-async def get_menu(callback, bot_input=None):
+async def get_menu(callback, bot_input=None, menu_loading=False):
     tta_data = await get_bot_data(callback, bot_input) 
-    return await create_menu(tta_data)
+    return await create_menu(tta_data, menu_loading)
 
 async def get_mini_menu(callback):
     tta_data = await get_bot_data(callback)
@@ -137,14 +137,16 @@ async def get_mini_menu(callback):
     return text
 
 
-async def create_menu(tta_data): # получение нужного меню
+async def create_menu(tta_data, menu_loading=False): # получение нужного меню
     menu_name = tta_data['menu_name']
+    logger.debug(f"Открываемое меню: {menu_name}")
+
     menus = load_bot(level='menu')
     if "return|" in menu_name:
         menu_name = menu_name.replace("return|", "")
+
     menu_data = menus.get(menu_name.split("|")[0])
     template = menu_name
-    logger.debug(f"Открываемое меню: {menu_name}")
 
     if "|" in menu_name:
         prefix = menu_name.split("|")[0] + "|"
@@ -158,6 +160,10 @@ async def create_menu(tta_data): # получение нужного меню
     if not menu_data:
         menu_data = menus.get("none_menu")
 
+    if menu_data.get("loading") and menu_loading == False:
+        menu_data = menus.get("tta_loading_menu")
+        menu_data['loading'] = True
+
     format_data = parse_bot_data(template, menu_name)
     if tta_data.get('bot_input'):
         bot_input = tta_data["bot_input"]
@@ -165,7 +171,7 @@ async def create_menu(tta_data): # получение нужного меню
     format_data = {**format_data, **(tta_data["user"] or {})}
     format_data["menu_name"] = menu_name
 
-
+    # нужно улучшить структуру
     if tta_data.get('bot_input'):
         if isinstance(tta_data['bot_input'], dict) and tta_data['bot_input'].get("function"):
             bot_input = tta_data["bot_input"]
@@ -219,5 +225,9 @@ async def create_menu(tta_data): # получение нужного меню
     text = create_text(menu_data, format_data)
     keyboard = create_keyboard(menu_data, format_data)
     menu_input = menu_data.get("input", None)
+    if menu_loading == False and menu_data.get("loading"):
+        loading = True
+    else:
+        loading = False
     
-    return {"text":text, "keyboard":keyboard, "input":menu_input}
+    return {"text":text, "keyboard":keyboard, "input":menu_input, "loading":loading}

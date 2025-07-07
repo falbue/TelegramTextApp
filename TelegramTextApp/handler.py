@@ -95,6 +95,10 @@ def start(token, json_file, database, debug=False):
             await state.set_state(Form.waiting_for_input)
         
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
+
+        if menu.get("loading"):
+            menu = await get_menu(callback, menu_loading=True)
+            await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     
     
     @dp.message(Form.waiting_for_input)
