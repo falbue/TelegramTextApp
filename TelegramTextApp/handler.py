@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 import asyncio
+import uuid
 
 from .setup_menu import *
 from . import update_bot
@@ -122,6 +123,130 @@ def start(token, json_file, database, debug=False):
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     
     
+    @dp.inline_query()
+    async def inline_query_handler(inline_query: types.InlineQuery):
+        logger.debug(f"inline: {inline_query}")
+
+        def get_keyboard():
+            builder = InlineKeyboardBuilder()
+            builder.add(types.InlineKeyboardButton(
+                text="Кнопка",
+                url="https://example.com"
+            ))
+            builder.add(types.InlineKeyboardButton(
+                text="Действие",
+                callback_data="action"
+            ))
+            return builder.as_markup()
+        
+        results = [
+            # 1. Текстовый результат (Article)
+            types.InlineQueryResultArticle(
+                id=str(uuid.uuid4()),
+                title="📝 Текстовый результат",
+                input_message_content=types.InputTextMessageContent(
+                    message_text="<b>Основной текст</b> с HTML-разметкой",
+                    parse_mode="HTML"
+                ),
+                description="Результат с форматированием и миниатюрой",
+                thumb_url="https://via.placeholder.com/100",
+                reply_markup=get_keyboard()
+            ),
+            
+            # # 2. Фото по URL
+            # types.InlineQueryResultPhoto(
+            #     id=str(uuid.uuid4()),
+            #     photo_url="https://picsum.photos/600/400",
+            #     thumb_url="https://picsum.photos/100/100",
+            #     title="🖼 Фото из интернета",
+            #     description="Загружено по прямой ссылке",
+            #     caption="Фото с подписью",
+            #     reply_markup=get_keyboard()
+            # ),
+            
+            # # 3. Видео
+            # types.InlineQueryResultVideo(
+            #     id=str(uuid.uuid4()),
+            #     video_url="https://example.com/sample.mp4",
+            #     mime_type="video/mp4",
+            #     thumb_url="https://via.placeholder.com/100",
+            #     title="🎬 Видео-результат",
+            #     description="Видео с платформы",
+            #     caption="Пример видео"
+            # ),
+            
+            # # 4. GIF-анимация
+            # types.InlineQueryResultGif(
+            #     id=str(uuid.uuid4()),
+            #     gif_url="https://media.giphy.com/media/3o7TKwxYkeW0ZvTqsU/giphy.gif",
+            #     thumb_url="https://media.giphy.com/media/3o7TKwxYkeW0ZvTqsU/giphy.gif",
+            #     title="🎞 GIF-анимация",
+            #     caption="Гифка с подписью"
+            # ),
+            
+            # # 5. Аудио файл
+            # types.InlineQueryResultAudio(
+            #     id=str(uuid.uuid4()),
+            #     audio_url="https://example.com/sample.mp3",
+            #     title="🎵 Аудио трек",
+            #     performer="Исполнитель",
+            #     caption="Описание трека"
+            # ),
+            
+            # # 6. Голосовое сообщение
+            # types.InlineQueryResultVoice(
+            #     id=str(uuid.uuid4()),
+            #     voice_url="https://example.com/voice.ogg",
+            #     title="🎤 Голосовое сообщение",
+            #     caption="Voice message"
+            # ),
+            
+            # # 7. Документ (PDF и др.)
+            # types.InlineQueryResultDocument(
+            #     id=str(uuid.uuid4()),
+            #     document_url="https://example.com/document.pdf",
+            #     mime_type="application/pdf",
+            #     title="📄 PDF документ",
+            #     caption="Важный документ",
+            #     thumb_url="https://via.placeholder.com/100"
+            # ),
+            
+            # 8. Местоположение
+            types.InlineQueryResultLocation(
+                id=str(uuid.uuid4()),
+                latitude=55.755826,
+                longitude=37.617300,
+                title="📍 Красная площадь",
+                address="Москва, Россия",
+                horizontal_accuracy=50
+            ),
+            
+            # 9. Контакт
+            types.InlineQueryResultContact(
+                id=str(uuid.uuid4()),
+                phone_number="+71234567890",
+                first_name="Иван",
+                last_name="Иванов",
+                thumb_url="https://via.placeholder.com/100"
+            ),
+            
+            # # 10. Кэшированное фото (требует file_id)
+            # types.InlineQueryResultCachedPhoto(
+            #     id=str(uuid.uuid4()),
+            #     photo_file_id="AgACAgIAAxkBAAIB...",  # Замените реальным file_id
+            #     caption="Кэшированное фото",
+            #     reply_markup=get_keyboard()
+            # ),
+            
+            # # 11. Кэшированный стикер
+            # types.InlineQueryResultCachedSticker(
+            #     id=str(uuid.uuid4()),
+            #     sticker_file_id="CAACAgIAAxkBAAIB..."  # Замените реальным file_id
+            # )
+        ]
+        await inline_query.answer(results)
+    
+
     # Запуск бота
     async def main():
         await dp.start_polling(bot)
