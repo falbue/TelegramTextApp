@@ -1,25 +1,71 @@
 name: Publish to PyPI
 
 on:
-  release:
-    types: [published]
   push:
-    tags:
-      - "*.*.*"
+    branches:
+      - main
 
 jobs:
-  deploy:
+  get-version:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      valid: ${{ steps.check_version.outputs.valid }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: get_version
+        run: |
+          VERSION=$(grep -E '^VERSION\s*=\s*"' handler.py | cut -d '"' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate version format
+        id: check_version
+        run: |
+          if [[ "${{ steps.get_version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "valid=true" >> $GITHUB_OUTPUT
+          else
+            echo "valid=false" >> $GITHUB_OUTPUT
+          fi
+
+  create-tag:
+    runs-on: ubuntu-latest
+    needs: get-version
+    if: needs.get-version.outputs.valid == 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Create tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -a "v${{ needs.get-version.outputs.version }}" -m "Version ${{ needs.get-version.outputs.version }}"
+          git push origin "v${{ needs.get-version.outputs.version }}"
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [get-version, create-tag]
+    if: needs.get-version.outputs.valid == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.x"
-      - name: Install build
+
+      - name: Install dependencies
         run: pip install build
+
       - name: Build package
         run: python -m build
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

@@ -1,8 +1,20 @@
 from setuptools import setup, find_packages
+import re
+
+def get_version_from_file(file_path: str, version_var: str = "VERSION"):
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    pattern = rf"^{version_var}\s*=\s*['\"](.*?)['\"]|{version_var}\s*=\s*([\d.]+)"
+    match = re.search(pattern, content, re.MULTILINE)
+    if match:
+        return match.group(1) or match.group(2)
+    return None
+
+version = get_version_from_file("TelegramTextApp/handler.py")
 
 setup(
     name='TelegramTextApp',
-    version='0.6.2',
+    version=version,
     packages=find_packages(where="."),
     include_package_data=True,
     package_data={
