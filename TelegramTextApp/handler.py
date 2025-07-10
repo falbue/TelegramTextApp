@@ -1,4 +1,4 @@
-VERSION="0.6.4"
+VERSION="0.6.5"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -65,11 +65,17 @@ def start(token, json_file, database, debug=False):
                 if "message is not modified" in str(e) and message.text != "/start":
                     # Это именно та ошибка, которую мы ожидаем
                     logger.debug("Сообщение не было изменено (контент и разметка идентичны)")
+                    await message.delete()
                 else:
                     # Это какая-то другая ошибка
                     logger.error(f"Не удалось изменить сообщение: {e}") 
                     await message.answer(menu["text"], reply_markup=menu["keyboard"])
-                await message.delete()
+                    await message.delete()
+                    if menu.get("loading"):
+                        message_id = await get_user(message, False)
+                        message_id = message_id["message_id"]
+                        menu = await get_menu(message, menu_loading=True)
+                        await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
     
     # Обработчики нажатий на кнопки
     @dp.callback_query()
