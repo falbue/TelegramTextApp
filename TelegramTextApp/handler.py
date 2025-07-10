@@ -1,4 +1,4 @@
-VERSION="0.6.3"
+VERSION="0.6.4"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -52,10 +52,15 @@ def start(token, json_file, database, debug=False):
 
         logger.debug(f"id: {user_id} | Команда: {message.text}")
         menu = await get_menu(message)
-        
+
+
         if menu:
             try:
                 await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
+                await message.delete()
+                if menu.get("loading"):
+                    menu = await get_menu(message, menu_loading=True)
+                    await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
             except Exception as e:
                 if "message is not modified" in str(e) and message.text != "/start":
                     # Это именно та ошибка, которую мы ожидаем
@@ -64,8 +69,7 @@ def start(token, json_file, database, debug=False):
                     # Это какая-то другая ошибка
                     logger.error(f"Не удалось изменить сообщение: {e}") 
                     await message.answer(menu["text"], reply_markup=menu["keyboard"])
-
-        await message.delete()
+                await message.delete()
     
     # Обработчики нажатий на кнопки
     @dp.callback_query()
