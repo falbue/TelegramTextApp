@@ -1,4 +1,4 @@
-VERSION="0.6.5"
+VERSION="0.6.5.1"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -105,6 +105,7 @@ def start(token, json_file, database, debug=False):
             )
             await state.set_state(Form.waiting_for_input)
         
+        print(menu["text"])
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
 
         if menu.get("loading"):
