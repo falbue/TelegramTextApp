@@ -41,9 +41,6 @@ def formatting_text(text, format_data=None): # форматирование те
         
         key = text[start+1:end]
 
-        if key == "email_data":
-            values['email_data'] = format_email_data(get_paypal_info(values['email'], values['password']))
-
         if key in values:
             replacement = str(values[key])
             text = text[:start] + replacement + text[end+1:]
