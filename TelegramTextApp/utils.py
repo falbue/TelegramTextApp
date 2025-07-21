@@ -11,7 +11,7 @@ from .database import *
 
 def markdown(text, full=False):  # экранирование
     if full == True: special_characters = r'*|~[]()>|_'
-    else: special_characters = r'#+-={}.!'
+    special_characters = r'#+-={}.!'
     escaped_text = ''
     for char in text:
         if char in special_characters:
@@ -46,7 +46,10 @@ def formatting_text(text, format_data=None): # форматирование те
             text = text[:start] + replacement + text[end+1:]
             start = start + len(replacement)
         else:
-            not_found_wrapper = f"`{{{key}}}`"
+            if key == "notification_text":
+                not_found_wrapper = ""
+            else:
+                not_found_wrapper = f"`{{{key}}}`"
             text = text[:start] + not_found_wrapper + text[end+1:]
             start = start + len(not_found_wrapper)
         
