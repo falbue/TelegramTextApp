@@ -1,4 +1,4 @@
-VERSION="0.6.5.2"
+VERSION="0.6.5.3"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
