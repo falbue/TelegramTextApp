@@ -10,7 +10,7 @@ def config_db(path="database.db", debug=False):
     logger = setup_logger(debug)
     DB_PATH = path
 
-async def SQL_request(query, params=(), fetch=None, jsonify_result=False):
+async def SQL_request_async(query, params=(), fetch=None, jsonify_result=False):
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.cursor() as cursor:
             try:
@@ -66,9 +66,49 @@ async def SQL_request(query, params=(), fetch=None, jsonify_result=False):
     return result
 
 
+def SQL_request(query, params=(), fetch='one', jsonify_result=False):
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query, params)
+
+            if fetch == 'all':
+                rows = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                result = [
+                    {
+                        col: json.loads(row[i]) if isinstance(row[i], str) and row[i].startswith('{') else row[i]
+                        for i, col in enumerate(columns)
+                    }
+                    for row in rows
+                ]
+
+            elif fetch == 'one':
+                row = cursor.fetchone()
+                if row:
+                    columns = [desc[0] for desc in cursor.description]
+                    result = {
+                        col: json.loads(row[i]) if isinstance(row[i], str) and row[i].startswith('{') else row[i]
+                        for i, col in enumerate(columns)
+                    }
+                else:
+                    result = None
+            else:
+                conn.commit()
+                result = None
+
+        except sqlite3.Error as e:
+            print(f"Ошибка SQL: {e}")
+            raise
+
+    if jsonify_result and result is not None:
+        return json.dumps(result, ensure_ascii=False, indent=2)
+    return result
+
+
 async def create_tables():
     # Пользователи
-    await SQL_request('''
+    await SQL_request_async('''
     CREATE TABLE IF NOT EXISTS TTA (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         telegram_id INTEGER NOT NULL,
@@ -92,7 +132,7 @@ async def extract_user_data(bot_data, update=True):  # Извлекает дан
             if update and message.text == "/start":
                 message_id = message.message_id+1
             else:
-                user = await SQL_request('SELECT * FROM TTA WHERE telegram_id = ?', (message.chat.id,), "one")
+                user = await SQL_request_async('SELECT * FROM TTA WHERE telegram_id = ?', (message.chat.id,), "one")
                 message_id = user["message_id"]
         except:
             message_id = message.message_id
@@ -110,7 +150,7 @@ async def create_user(bot_data):
     """Создает нового пользователя в базе данных."""
     user_data = await extract_user_data(bot_data)
     try:
-        await SQL_request(
+        await SQL_request_async(
             '''
             INSERT INTO TTA (
                 telegram_id, 
@@ -137,7 +177,7 @@ async def update_user_data(bot_data, update=True):
     """Обновляет данные пользователя в базе данных."""
     user_data = await extract_user_data(bot_data, update)
     try:
-        await SQL_request(
+        await SQL_request_async(
             '''
             UPDATE TTA 
             SET 
@@ -162,15 +202,15 @@ async def get_user(bot_data, update=True):
     """Возвращает пользователя, создает нового при отсутствии."""
     user_data = await extract_user_data(bot_data)
     telegram_id = user_data['telegram_id']
-    user = await SQL_request('SELECT * FROM TTA WHERE telegram_id = ?', (telegram_id,), "one")
+    user = await SQL_request_async('SELECT * FROM TTA WHERE telegram_id = ?', (telegram_id,), "one")
     
     if user:
         await update_user_data(bot_data, update)
-        return await SQL_request('SELECT * FROM TTA WHERE telegram_id = ?', (telegram_id,), "one")
+        return await SQL_request_async('SELECT * FROM TTA WHERE telegram_id = ?', (telegram_id,), "one")
     else:
         if await create_user(bot_data):
             logger.info(f"Зарегистрирован новый пользователь: {telegram_id}")
-            return await SQL_request(
+            return await SQL_request_async(
                 'SELECT * FROM TTA WHERE telegram_id = ?', 
                 (telegram_id,), 
                 "one"
