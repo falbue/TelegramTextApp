@@ -191,17 +191,13 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     
     if menu_data.get("function"):
         if isinstance(menu_data["function"], str):
-            buttons_func = getattr(custom_module, menu_data["function"], None)
+            custom_func = getattr(custom_module, menu_data["function"], None)
             
-            if buttons_func and callable(buttons_func):
+            if custom_func and callable(custom_func):
                 try:
-                    if asyncio.iscoroutinefunction(buttons_func):
-                        buttons_data = await buttons_func(format_data)
-                    else:
-                        buttons_data = buttons_func(format_data)
-                    
-                    if isinstance(buttons_data, dict):
-                        format_data = {**format_data, **(buttons_data or {})}
+                    func_data = await asyncio.to_thread(custom_func, format_data)
+                    if isinstance(func_data, dict):
+                        format_data = {**format_data, **(func_data or {})}
                 except Exception as e:
                     logger.error(f"Ошибка при вызове функции {menu_data['function']}: {e}")
 
