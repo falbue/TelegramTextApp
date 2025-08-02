@@ -46,6 +46,24 @@ async def get_bot_data(callback, bot_input=None):
 
     return tta_data
 
+async def process_custom_function(key, format_data, menu_data):
+    if menu_data.get(key) and isinstance(menu_data[key], str):
+        func_name = menu_data[key]
+        custom_func = getattr(custom_module, func_name, None)
+        
+        if custom_func and callable(custom_func):
+            try:
+                result = await asyncio.to_thread(custom_func, format_data)
+                
+                if key in ("function", "bot_input") and isinstance(result, dict):
+                    format_data = {**format_data, **(result or {})}
+                elif key == "keyboard" and isinstance(result, dict):
+                    menu_data["keyboard"] = result
+                    
+            except Exception as e:
+                logger.error(f"Ошибка при вызове функции {func_name}: {e}")
+    return format_data, menu_data
+
 def create_keyboard(menu_data, format_data=None): # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
@@ -170,52 +188,14 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         format_data[bot_input["data"]] = bot_input.get("input_text", None)
     format_data = {**format_data, **(tta_data["user"] or {})}
     format_data["menu_name"] = menu_name
-
-    # нужно улучшить структуру
-    if tta_data.get('bot_input'):
-        if isinstance(tta_data['bot_input'], dict) and tta_data['bot_input'].get("function"):
-            bot_input = tta_data["bot_input"]
-            buttons_func = getattr(custom_module, bot_input.get('function'), None)
-            
-            if buttons_func and callable(buttons_func):
-                try:
-                    if asyncio.iscoroutinefunction(buttons_func):
-                        buttons_data = await buttons_func(format_data)
-                    else:
-                        buttons_data = buttons_func(format_data)
-                    
-                    if isinstance(buttons_data, dict):
-                        format_data = {**format_data, **(buttons_data or {})}
-                except Exception as e:
-                    logger.error(f"Ошибка при вызове функции {bot_input.get('function')}: {e}")
     
-    if menu_data.get("function"):
-        if isinstance(menu_data["function"], str):
-            custom_func = getattr(custom_module, menu_data["function"], None)
-            
-            if custom_func and callable(custom_func):
-                try:
-                    func_data = await asyncio.to_thread(custom_func, format_data)
-                    if isinstance(func_data, dict):
-                        format_data = {**format_data, **(func_data or {})}
-                except Exception as e:
-                    logger.error(f"Ошибка при вызове функции {menu_data['function']}: {e}")
 
+    if menu_data.get("function"):
+        format_data, menu_data = await process_custom_function("function", format_data, menu_data)
     if menu_data.get("keyboard"):
-        if isinstance(menu_data["keyboard"], str):
-            buttons_func = getattr(custom_module, menu_data["keyboard"], None)
-            
-            if buttons_func and callable(buttons_func):
-                try:
-                    if asyncio.iscoroutinefunction(buttons_func):
-                        buttons_data = await buttons_func(format_data)
-                    else:
-                        buttons_data = buttons_func(format_data)
-                    
-                    if isinstance(buttons_data, dict):
-                        menu_data["keyboard"] = buttons_data
-                except Exception as e:
-                    logger.error(f"Ошибка при вызове функции {menu_data['keyboard']}: {e}")
+        format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data)
+    if menu_data.get("]bot_input"):
+        format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data)
 
 
     text = create_text(menu_data, format_data)
