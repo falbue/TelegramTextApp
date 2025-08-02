@@ -49,6 +49,7 @@ async def get_bot_data(callback, bot_input=None):
 async def process_custom_function(key, format_data, menu_data):
     if menu_data.get(key) and isinstance(menu_data[key], str):
         func_name = menu_data[key]
+        logger.debug(f"Выполнение функции: {func_name}")
         custom_func = getattr(custom_module, func_name, None)
         
         if custom_func and callable(custom_func):
