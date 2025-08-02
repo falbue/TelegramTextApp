@@ -158,7 +158,6 @@ async def get_mini_menu(callback):
 
 async def create_menu(tta_data, menu_loading=False): # получение нужного меню
     menu_name = tta_data['menu_name']
-    logger.debug(f"Открываемое меню: {menu_name}")
 
     menus = load_bot(level='menu')
     if "return|" in menu_name:
@@ -175,6 +174,9 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
                 menu_data = (menus.get(key))
                 template = key
                 break
+
+    if menu_loading == False:
+        logger.debug(f"Открываемое меню: {menu_name}")
 
     if not menu_data:
         menu_data = menus.get("none_menu")
