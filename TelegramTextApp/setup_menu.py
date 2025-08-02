@@ -7,7 +7,7 @@ from .utils import *
 
 def config_json(json_file, debug, user_custom_functions):
     global JSON_PATH, logger, custom_module
-    logger = setup_logging(debug)
+    logger = setup_logger(debug)
     JSON_PATH = json_file
     custom_module = load_custom_functions(user_custom_functions)
 

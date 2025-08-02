@@ -6,7 +6,7 @@ import inspect
 import importlib.util
 import sys
 
-from .logging_config import setup_logging
+from .logger import setup_logger
 from .database import *
 
 def markdown(text, full=False):  # экранирование
@@ -22,7 +22,7 @@ def markdown(text, full=False):  # экранирование
 
 def utils_config(debug):
     global logger
-    logger = setup_logging(debug)
+    logger = setup_logger(debug)
 
 
 def default_values():

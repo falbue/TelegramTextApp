@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import os
 
-def setup_logging(DEBUG=False):
+def setup_logger(DEBUG=False):
     logger = logging.getLogger("TelegramTextApp")
     
     logger.handlers.clear()

@@ -12,7 +12,7 @@ from . import update_bot
 
 
 def start(token, json_file, database, debug=False):
-    logger = setup_logging(debug)
+    logger = setup_logger(debug)
     logger.debug("Логгирование подключено")
 
     TOKEN = os.getenv("BOT_TOKEN")

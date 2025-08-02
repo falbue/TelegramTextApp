@@ -2,12 +2,12 @@ import aiosqlite
 import json
 import sqlite3
 import asyncio
-from .logging_config import setup_logging
+from .logger import setup_logger
 
 
 def config_db(path="database.db", debug=False):
     global DB_PATH, logger
-    logger = setup_logging(debug)
+    logger = setup_logger(debug)
     DB_PATH = path
 
 async def SQL_request(query, params=(), fetch=None, jsonify_result=False):
