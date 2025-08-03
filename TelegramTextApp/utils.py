@@ -129,7 +129,7 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
                 if key in ("function", "bot_input") and isinstance(result, dict):
                     format_data = {**format_data, **(result or {})}
                 elif key == "keyboard" and isinstance(result, dict):
-                    menu_data["keyboard"] = result
+                    menu_data["custom_keyboard"] = result
                     
             except Exception as e:
                 logger.error(f"Ошибка при вызове функции {func_name}: {e}")

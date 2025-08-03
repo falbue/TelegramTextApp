@@ -46,7 +46,7 @@ async def get_bot_data(callback, bot_input=None):
 
     return tta_data
 
-def create_keyboard(menu_data, format_data=None): # создание клавиатуры
+async def create_keyboard(menu_data, format_data=None, custom_module=None): # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
     variable_buttons = load_bot("buttons")
@@ -71,6 +71,16 @@ def create_keyboard(menu_data, format_data=None): # создание клави�
             if callback_data.startswith("url:"): # Создаем кнопку
                 url = callback_data[4:]
                 button = InlineKeyboardButton(text=button_text, url=url)
+            # elif callback_data == "function":
+            #     format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data, custom_module)
+            #     buttons = menu_data.get("custom_keyboard")
+            #     if buttons:
+            #         for custom_callback_data, custom_button_text in menu_data["custom_keyboard"].items():
+            #             custom_button = InlineKeyboardButton(text=custom_button_text, callback_data=custom_callback_data)
+            #             custom_buttons.append(custom_button)
+            #         print(custom_buttons)
+            #         continue
+
             else:
                 button = InlineKeyboardButton(text=button_text, callback_data=callback_data)
             
@@ -151,6 +161,8 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         format_data, menu_data = await process_custom_function("function", format_data, menu_data, custom_module)
     if menu_data.get("keyboard"):
         format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data, custom_module)
+        if menu_data.get("custom_keyboard"):
+            menu_data['keyboard'] = menu_data['custom_keyboard']
     if menu_data.get("bot_input"):
         format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
 
@@ -163,7 +175,7 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     if menu_data.get("text"):
         text = create_text(menu_data, format_data)
     else: text = None
-    keyboard = create_keyboard(menu_data, format_data)
+    keyboard = await create_keyboard(menu_data, format_data, custom_module)
     menu_input = menu_data.get("input", None)
     if menu_loading == False and menu_data.get("loading"):
         loading = True
