@@ -46,25 +46,6 @@ async def get_bot_data(callback, bot_input=None):
 
     return tta_data
 
-async def process_custom_function(key, format_data, menu_data):
-    if menu_data.get(key) and isinstance(menu_data[key], str):
-        func_name = menu_data[key]
-        logger.debug(f"Выполнение функции: {func_name}")
-        custom_func = getattr(custom_module, func_name, None)
-        
-        if custom_func and callable(custom_func):
-            try:
-                result = await asyncio.to_thread(custom_func, format_data)
-                
-                if key in ("function", "bot_input") and isinstance(result, dict):
-                    format_data = {**format_data, **(result or {})}
-                elif key == "keyboard" and isinstance(result, dict):
-                    menu_data["keyboard"] = result
-                    
-            except Exception as e:
-                logger.error(f"Ошибка при вызове функции {func_name}: {e}")
-    return format_data, menu_data
-
 def create_keyboard(menu_data, format_data=None): # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
@@ -128,33 +109,6 @@ async def get_menu(callback, bot_input=None, menu_loading=False):
     tta_data = await get_bot_data(callback, bot_input) 
     return await create_menu(tta_data, menu_loading)
 
-async def get_mini_menu(callback):
-    tta_data = await get_bot_data(callback)
-    menu_name = tta_data['menu_name'].replace("mini|","")
-    menus = load_bot(level='mini_menu')
-
-    text = menus.get(menu_name.split("|")[0])
-    template = menu_name
-
-    if "|" in menu_name:
-        prefix = menu_name.split("|")[0] + "|"
-        
-        for key in menus:
-            if key.startswith(prefix):
-                text = (menus.get(key))
-                template = key
-                break
-
-    format_data = parse_bot_data(template, menu_name)
-    format_data = {**format_data, **(tta_data["user"] or {})}
-    format_data["menu_name"] = menu_name
-
-    if not text:
-        text = ""
-
-    text = formatting_text(text, format_data)
-    return text
-
 
 async def create_menu(tta_data, menu_loading=False): # получение нужного меню
     menu_name = tta_data['menu_name']
@@ -194,14 +148,21 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     
 
     if menu_data.get("function"):
-        format_data, menu_data = await process_custom_function("function", format_data, menu_data)
+        format_data, menu_data = await process_custom_function("function", format_data, menu_data, custom_module)
     if menu_data.get("keyboard"):
-        format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data)
-    if menu_data.get("]bot_input"):
-        format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data)
+        format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data, custom_module)
+    if menu_data.get("bot_input"):
+        format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
 
+    if menu_data.get("popup"):
+        popup = {}
+        popup = menu_data.get("popup")
+        popup['text'] = create_text(popup, format_data)
+    else: popup = None
 
-    text = create_text(menu_data, format_data)
+    if menu_data.get("text"):
+        text = create_text(menu_data, format_data)
+    else: text = None
     keyboard = create_keyboard(menu_data, format_data)
     menu_input = menu_data.get("input", None)
     if menu_loading == False and menu_data.get("loading"):
@@ -209,4 +170,4 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     else:
         loading = False
     
-    return {"text":text, "keyboard":keyboard, "input":menu_input, "loading":loading}
+    return {"text":text, "keyboard":keyboard, "input":menu_input, "loading":loading, "popup":popup}

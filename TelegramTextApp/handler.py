@@ -84,18 +84,27 @@ def start(token, json_file, database, debug=False):
         data = callback.data
         user_id = callback.message.chat.id
         logger.debug(f"id: {user_id} | Кнопка: {data}")
-        
-        if data.split("|")[0] == "mini":
-            text = await get_mini_menu(callback)
-            await callback.answer(text, show_alert=True)
-            return
     
         if data == 'notification':
             await callback.message.delete()
             return
     
         menu = await get_menu(callback)
-    
+
+        if menu.get("loading"):
+            await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
+            menu = await get_menu(callback, menu_loading=True)
+
+        if menu.get("popup"):
+            popup = menu.get("popup")
+            if popup["size"] == "big":
+                show_alert = True
+            else: 
+                show_alert = False
+            await callback.answer(popup["text"], show_alert=show_alert)
+            if popup.get("menu_block"):
+                return
+
         if menu.get("input"):
             logger.debug("Ожидание ввода...")
             await state.update_data(
@@ -106,11 +115,6 @@ def start(token, json_file, database, debug=False):
             await state.set_state(Form.waiting_for_input)
         
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
-
-        if menu.get("loading"):
-            menu = await get_menu(callback, menu_loading=True)
-            await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
-    
     
     @dp.message(Form.waiting_for_input)
     async def handle_text_input(message: types.Message, state: FSMContext):

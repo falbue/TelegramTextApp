@@ -115,3 +115,22 @@ def load_custom_functions(file_path):
     except Exception as e:
         logger.error(f"Ошибка загрузки модуля {file_path}: {e}")
         return None
+
+async def process_custom_function(key, format_data, menu_data, custom_module):
+    if menu_data.get(key) and isinstance(menu_data[key], str):
+        func_name = menu_data[key]
+        logger.debug(f"Выполнение функции: {func_name}")
+        custom_func = getattr(custom_module, func_name, None)
+        
+        if custom_func and callable(custom_func):
+            try:
+                result = await asyncio.to_thread(custom_func, format_data)
+                
+                if key in ("function", "bot_input") and isinstance(result, dict):
+                    format_data = {**format_data, **(result or {})}
+                elif key == "keyboard" and isinstance(result, dict):
+                    menu_data["keyboard"] = result
+                    
+            except Exception as e:
+                logger.error(f"Ошибка при вызове функции {func_name}: {e}")
+    return format_data, menu_data
