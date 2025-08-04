@@ -117,8 +117,14 @@ def load_custom_functions(file_path):
         return None
 
 async def process_custom_function(key, format_data, menu_data, custom_module):
-    if menu_data.get(key) and isinstance(menu_data[key], str):
+    if menu_data.get(key):
+        keyboard = None
         func_name = menu_data[key]
+        if "function" in menu_data["keyboard"]:
+            func_name = menu_data["keyboard"]['function']
+            keyboard = menu_data['keyboard']
+        if not isinstance(func_name, str):
+            return format_data, menu_data
         logger.debug(f"Выполнение функции: {func_name}")
         custom_func = getattr(custom_module, func_name, None)
         
@@ -129,8 +135,26 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
                 if key in ("function", "bot_input") and isinstance(result, dict):
                     format_data = {**format_data, **(result or {})}
                 elif key == "keyboard" and isinstance(result, dict):
-                    menu_data["custom_keyboard"] = result
+                    if keyboard:
+                        menu_data["keyboard"] = replace_element(keyboard, result)
+                    else:
+                        menu_data["keyboard"] = result
                     
             except Exception as e:
                 logger.error(f"Ошибка при вызове функции {func_name}: {e}")
     return format_data, menu_data
+
+def replace_dict_element(data, new_values):
+    if isinstance(data, dict):
+        new_data = {}
+        for key, value in data.items():
+            if key == "function":
+                if isinstance(new_values, dict):
+                    for k, v in new_values.items():
+                        new_data[k] = v
+                else:
+                    new_data[key] = new_values
+            else:
+                new_data[key] = replace_element(value, new_values)
+        return new_data
+    return data

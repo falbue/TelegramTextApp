@@ -68,18 +68,9 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None): # с
             button_text = formatting_text(button_text, format_data)
             callback_data = formatting_text(callback_data, format_data)
             
-            if callback_data.startswith("url:"): # Создаем кнопку
+            if callback_data.startswith("url:"): # кнопка ссылка
                 url = callback_data[4:]
                 button = InlineKeyboardButton(text=button_text, url=url)
-            # elif callback_data == "function":
-            #     format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data, custom_module)
-            #     buttons = menu_data.get("custom_keyboard")
-            #     if buttons:
-            #         for custom_callback_data, custom_button_text in menu_data["custom_keyboard"].items():
-            #             custom_button = InlineKeyboardButton(text=custom_button_text, callback_data=custom_callback_data)
-            #             custom_buttons.append(custom_button)
-            #         print(custom_buttons)
-            #         continue
 
             else:
                 button = InlineKeyboardButton(text=button_text, callback_data=callback_data)
@@ -96,7 +87,7 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None): # с
         
         if current_row: # Добавляем последнюю строку
             rows.append(current_row)
-        
+
         for row in rows: # Собираем клавиатуру из подготовленных строк
             builder.row(*row)
     
@@ -161,8 +152,6 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         format_data, menu_data = await process_custom_function("function", format_data, menu_data, custom_module)
     if menu_data.get("keyboard"):
         format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data, custom_module)
-        if menu_data.get("custom_keyboard"):
-            menu_data['keyboard'] = menu_data['custom_keyboard']
     if menu_data.get("bot_input"):
         format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
 
