@@ -136,7 +136,7 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
                     format_data = {**format_data, **(result or {})}
                 elif key == "keyboard" and isinstance(result, dict):
                     if keyboard:
-                        menu_data["keyboard"] = replace_element(keyboard, result)
+                        menu_data["keyboard"] = replace_dict_element(keyboard, result)
                     else:
                         menu_data["keyboard"] = result
                     
@@ -155,6 +155,6 @@ def replace_dict_element(data, new_values):
                 else:
                     new_data[key] = new_values
             else:
-                new_data[key] = replace_element(value, new_values)
+                new_data[key] = replace_dict_element(value, new_values)
         return new_data
     return data
