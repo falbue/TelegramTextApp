@@ -1,0 +1,37 @@
+{
+	"bot":{
+		"name":"Name",
+		"short_description":"default",
+		"description":"default\n\n@falbue"
+	},
+
+	"menu":{
+		"none_menu":{
+			"loading":true,
+			"text":"Меню `{menu_name}` не найдено",
+			"return":"main"
+		},
+
+		"tta_loading_menu":{
+			"text":"loading..."
+		},
+
+		"main":{
+			"text":"default text"
+		}
+		
+	},
+
+
+	"buttons":{
+		"return":"‹ Назад"
+	},
+
+
+	"commands":{
+		"start":{
+			"description":"🔄 Перезапуск бота",
+			"menu":"main"
+		}
+	}
+}
