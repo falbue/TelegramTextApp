@@ -174,7 +174,9 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
 
     if menu_data.get("text"):
         text = create_text(menu_data, format_data)
-    else: text = None
+    else: 
+        popup = {"text":f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!", "size":"small", "menu_block":True}
+        text = ""
     keyboard = await create_keyboard(menu_data, format_data, custom_module)
     menu_input = menu_data.get("input", None)
     if menu_loading == False and menu_data.get("loading"):
