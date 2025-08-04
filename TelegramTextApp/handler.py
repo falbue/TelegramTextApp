@@ -18,7 +18,7 @@ def start(token, json_file, database, debug=False):
     logger.debug("Логгирование подключено")
 
     if os.path.exists(json_file):
-        logging.debug(f"Файл бота '{json_file}'существует")
+        logger.debug(f"Файл бота '{json_file}'существует")
     else:
         with open(template_path, 'r', encoding='utf-8') as template_file:
             template_data = json.load(template_file)
@@ -26,7 +26,7 @@ def start(token, json_file, database, debug=False):
         with open(json_file, 'w', encoding='utf-8') as target_file:
             json.dump(template_data, target_file, indent=4, ensure_ascii=False)
         
-        logging.info(f"Файл бота '{json_file}' успешно создан")
+        logger.info(f"Файл бота '{json_file}' успешно создан")
 
     TOKEN = os.getenv("BOT_TOKEN")
     logger.debug("Токен получен")
