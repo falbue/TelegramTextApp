@@ -1,4 +1,4 @@
-VERSION="0.6.8"
+VERSION="0.6.8.1"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -48,6 +48,33 @@ def start(token, json_file, database, debug=False):
     
     class Form(StatesGroup):
         waiting_for_input = State()
+
+    async def processing_menu(menu, callback, state):
+        if menu.get("loading"):
+            await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
+            menu = await get_menu(callback, menu_loading=True)
+
+        if menu.get("popup"):
+            popup = menu.get("popup")
+            if popup["size"] == "big":
+                show_alert = True
+            else: 
+                show_alert = False
+            await callback.answer(popup["text"], show_alert=show_alert)
+            if popup.get("menu_block"):
+                return
+
+        if menu.get("input"):
+            logger.debug("Ожидание ввода...")
+            await state.update_data(
+                current_menu=menu,
+                message_id=callback.message.message_id,
+                callback=callback
+            )
+            await state.set_state(Form.waiting_for_input)
+        
+        await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
+
     
     # Обработчик команд
     @dp.message(lambda message: message.text and message.text.startswith('/'))
@@ -103,37 +130,16 @@ def start(token, json_file, database, debug=False):
             return
     
         menu = await get_menu(callback)
+        await processing_menu(menu, callback, state)
 
-        if menu.get("loading"):
-            await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
-            menu = await get_menu(callback, menu_loading=True)
-
-        if menu.get("popup"):
-            popup = menu.get("popup")
-            if popup["size"] == "big":
-                show_alert = True
-            else: 
-                show_alert = False
-            await callback.answer(popup["text"], show_alert=show_alert)
-            if popup.get("menu_block"):
-                return
-
-        if menu.get("input"):
-            logger.debug("Ожидание ввода...")
-            await state.update_data(
-                current_menu=menu,
-                message_id=callback.message.message_id,
-                callback=callback
-            )
-            await state.set_state(Form.waiting_for_input)
         
-        await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     
     @dp.message(Form.waiting_for_input)
     async def handle_text_input(message: types.Message, state: FSMContext):
         await message.delete()
     
         data = await state.get_data()
+        await state.clear()
         menu = data.get("current_menu")
         callback = data.get('callback')
     
@@ -141,12 +147,7 @@ def start(token, json_file, database, debug=False):
         input_data['input_text'] = message.text
     
         menu = await get_menu(message, input_data)
-        if not menu:
-            logger.debug("Пока никак")
-            return
-    
-        await state.clear()
-        await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
+        await processing_menu(menu, callback, state)
     
     
     # Запуск бота

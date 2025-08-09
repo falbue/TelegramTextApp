@@ -107,7 +107,7 @@ def create_text(menu_data, format_data): # создание текста
     return text
 
 async def get_menu(callback, bot_input=None, menu_loading=False):
-    tta_data = await get_bot_data(callback, bot_input) 
+    tta_data = await get_bot_data(callback, bot_input)
     return await create_menu(tta_data, menu_loading)
 
 
@@ -140,6 +140,9 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         menu_data = menus.get("tta_loading_menu")
         menu_data['loading'] = True
 
+    if tta_data.get("bot_input"):
+        menu_data["bot_input"] = tta_data["bot_input"].get("function")
+
     format_data = parse_bot_data(template, menu_name)
     if tta_data.get('bot_input'):
         bot_input = tta_data["bot_input"]
@@ -147,7 +150,6 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     format_data = {**format_data, **(tta_data["user"] or {})}
     format_data["menu_name"] = menu_name
     
-
     if menu_data.get("function"):
         format_data, menu_data = await process_custom_function("function", format_data, menu_data, custom_module)
     if menu_data.get("keyboard"):
