@@ -1,4 +1,4 @@
-VERSION="0.6.8.3"
+VERSION="0.6.8.4"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -75,8 +75,10 @@ def start(token, json_file, database, debug=False):
                 callback=callback
             )
             await state.set_state(Form.waiting_for_input)
-        
-        await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
+        try:
+            await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
+        except:
+            await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"],parse_mode=None )
 
     
     # Обработчик команд

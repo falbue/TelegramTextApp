@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import json
@@ -71,6 +71,10 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None): # с
             if callback_data.startswith("url:"): # кнопка ссылка
                 url = callback_data[4:]
                 button = InlineKeyboardButton(text=button_text, url=url)
+
+            elif callback_data.startswith("app:"): # кнопка ссылка
+                url = callback_data[4:]
+                button = InlineKeyboardButton(text=button_text, web_app=WebAppInfo(url=url))
 
             else:
                 button = InlineKeyboardButton(text=button_text, callback_data=callback_data)
