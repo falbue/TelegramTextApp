@@ -120,7 +120,7 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
     if menu_data.get(key):
         keyboard = None
         func_name = menu_data[key]
-        if menu_data.get(keyboard):
+        if menu_data.get("keyboard"):
             if "function" in menu_data["keyboard"] and key == 'keyboard':
                 func_name = menu_data["keyboard"]['function']
                 keyboard = menu_data['keyboard']

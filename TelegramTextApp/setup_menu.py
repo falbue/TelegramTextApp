@@ -100,10 +100,11 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None): # с
     
     return builder.as_markup()
 
-def create_text(menu_data, format_data): # создание текста
+def create_text(menu_data, format_data, use_markdown=True): # создание текста
     text = menu_data["text"]
     text = formatting_text(text, format_data)
-    text = markdown(text)
+    if use_markdown:
+        text = markdown(text)
     return text
 
 async def get_menu(callback, bot_input=None, menu_loading=False):
@@ -160,7 +161,9 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     if menu_data.get("popup"):
         popup = {}
         popup = menu_data.get("popup")
-        popup['text'] = create_text(popup, format_data)
+        popup['text'] = create_text(popup, format_data, False)
+        if popup.get("menu_block"):
+            menu_data["text"] = "bla"
     else: popup = None
 
     if menu_data.get("text"):

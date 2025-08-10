@@ -1,4 +1,4 @@
-VERSION="0.6.8.1"
+VERSION="0.6.8.2"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -56,7 +56,7 @@ def start(token, json_file, database, debug=False):
 
         if menu.get("popup"):
             popup = menu.get("popup")
-            if popup["size"] == "big":
+            if popup.get("size") == "big":
                 show_alert = True
             else: 
                 show_alert = False
