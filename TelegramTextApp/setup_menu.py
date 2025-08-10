@@ -113,7 +113,7 @@ async def get_menu(callback, bot_input=None, menu_loading=False):
 
 
 async def create_menu(tta_data, menu_loading=False): # получение нужного меню
-    menu_name = tta_data['menu_name']
+    menu_name = tta_data['menu_name']    
 
     menus = load_bot(level='menu')
     if "return|" in menu_name:

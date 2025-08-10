@@ -1,4 +1,4 @@
-VERSION="0.6.8.2"
+VERSION="0.6.8.3"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -15,7 +15,7 @@ template_path = os.path.join(script_dir, "template_config.json")
 
 def start(token, json_file, database, debug=False):
     logger = setup_logger(debug)
-    logger.debug("Логгирование подключено")
+    logger.info(f"Версия TTA: {VERSION}")
 
     if os.path.exists(json_file):
         logger.debug(f"Файл бота '{json_file}'существует")
@@ -49,10 +49,13 @@ def start(token, json_file, database, debug=False):
     class Form(StatesGroup):
         waiting_for_input = State()
 
-    async def processing_menu(menu, callback, state):
+    async def processing_menu(menu, callback, state, input_data=None):
         if menu.get("loading"):
             await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
-            menu = await get_menu(callback, menu_loading=True)
+            if input_data:
+                menu = await get_menu(input_data[0], input_data[1], menu_loading=True)
+            else:
+                menu = await get_menu(callback, menu_loading=True)
 
         if menu.get("popup"):
             popup = menu.get("popup")
@@ -147,7 +150,7 @@ def start(token, json_file, database, debug=False):
         input_data['input_text'] = message.text
     
         menu = await get_menu(message, input_data)
-        await processing_menu(menu, callback, state)
+        await processing_menu(menu, callback, state, [message, input_data])
     
     
     # Запуск бота
