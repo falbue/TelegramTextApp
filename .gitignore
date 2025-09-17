@@ -2,3 +2,4 @@ __pycache__/
 TelegramTextApp.egg-info
 .env
 *.db
+*.log
