@@ -6,6 +6,8 @@ from aiogram.fsm.state import State, StatesGroup
 
 import asyncio
 
+from importlib.metadata import version, PackageNotFoundError
+
 from .setup_menu import *
 from . import update_bot
 from . import config
@@ -13,11 +15,16 @@ from .utils import logger
 
 logger = logger.setup("TTA")
 
+try:
+    VERSION = version("TelegramTextApp")
+except PackageNotFoundError:
+    VERSION = "development"
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 template_path = os.path.join(script_dir, "template_config.json")
 
 def start():
-    # logger.info(f"Версия TTA: {VERSION}")
+    logger.info(f"Версия TTA: {VERSION}")
 
     if os.path.exists(config.JSON):
         pass
