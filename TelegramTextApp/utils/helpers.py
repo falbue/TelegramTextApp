@@ -6,8 +6,12 @@ import inspect
 import importlib.util
 import sys
 
-from .logger import setup_logger
 from .database import *
+from . import logger
+from .. import config
+
+logger = logger.setup("HELPERS")
+
 
 def markdown(text, full=False):  # экранирование
     if full == True: special_characters = r'*|~[]()>|_'
@@ -20,9 +24,13 @@ def markdown(text, full=False):  # экранирование
             escaped_text += char
     return escaped_text
 
-def utils_config(debug):
-    global logger
-    logger = setup_logger(debug)
+def load_json(level=None): # загрузка меню
+    filename=config.JSON
+    with open(filename, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        if level:
+            data = data[level]
+        return data
 
 
 def default_values():

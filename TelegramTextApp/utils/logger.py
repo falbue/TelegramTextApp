@@ -2,8 +2,12 @@ import logging
 import os
 import sys
 from pathlib import Path
+from .. import config
 
-def setup(DEBUG=True, name="", log_path=""):
+def setup(name=""):
+    DEBUG = config.DEBUG
+    log_path = config.LOG_PATH
+
     logger = logging.getLogger(name)
     logger.handlers.clear()
     

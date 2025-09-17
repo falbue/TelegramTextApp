@@ -1,4 +1,3 @@
-VERSION="0.6.8.4"
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
@@ -9,41 +8,35 @@ import asyncio
 
 from .setup_menu import *
 from . import update_bot
+from . import config
+from .utils import logger
+
+logger = logger.setup("TTA")
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 template_path = os.path.join(script_dir, "template_config.json")
 
-def start(token, json_file, database, debug=False):
-    logger = setup_logger(debug)
-    logger.info(f"Версия TTA: {VERSION}")
+def start():
+    # logger.info(f"Версия TTA: {VERSION}")
 
-    if os.path.exists(json_file):
-        logger.debug(f"Файл бота '{json_file}'существует")
+    if os.path.exists(config.JSON):
+        pass
     else:
         with open(template_path, 'r', encoding='utf-8') as template_file:
             template_data = json.load(template_file)
         
-        with open(json_file, 'w', encoding='utf-8') as target_file:
+        with open("bot.json", 'w', encoding='utf-8') as target_file:
             json.dump(template_data, target_file, indent=4, ensure_ascii=False)
         
-        logger.info(f"Файл бота '{json_file}' успешно создан")
+        logger.info(f"Файл бота 'bot.json' успешно создан")
 
-    TOKEN = os.getenv("BOT_TOKEN")
-    logger.debug("Токен получен")
-
-    config_db(database, debug)
     asyncio.run(create_tables())
-    logger.debug("База настроена")
 
-    utils_config(debug)
-    logger.debug("Утилиты подключены")
+    config_custom_module(get_caller_file_path())
 
-    config_json(json_file, debug, get_caller_file_path())
-    logger.debug("Бот получен")
-
-    asyncio.run(update_bot.update_bot_info(token, load_bot(), debug))
+    asyncio.run(update_bot.update_bot_info(load_json()))
     
-    bot = Bot(token=token, default=DefaultBotProperties(parse_mode="MarkdownV2"))
+    bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
     dp = Dispatcher()
     
     class Form(StatesGroup):

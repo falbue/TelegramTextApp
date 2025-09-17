@@ -2,16 +2,18 @@ import aiosqlite
 import json
 import sqlite3
 import asyncio
-from .logger import setup_logger
+import os
+from . import logger
+from .. import config 
 
+logger = logger.setup("DATABASE")
 
-def config_db(path="database.db", debug=False):
-    global DB_PATH, logger
-    logger = setup_logger(debug)
-    DB_PATH = path
+db_dir = os.path.dirname(config.DB_PATH)
+if db_dir:
+    os.makedirs(db_dir, exist_ok=True)
 
 async def SQL_request_async(query, params=(), fetch=None, jsonify_result=False):
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with aiosqlite.connect(config.DB_PATH) as db:
         async with db.cursor() as cursor:
             try:
                 await cursor.execute(query, params)
@@ -121,6 +123,7 @@ async def create_tables():
         is_approved BOOLEAN DEFAULT 1,
         role TEXT DEFAULT 'user'
     )''')
+    logger.debug("База настроена")
 
 async def extract_user_data(bot_data, update=True):  # Извлекает данные пользователя из объекта бота/сообщения
     if hasattr(bot_data, 'message'):

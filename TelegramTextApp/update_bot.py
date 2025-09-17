@@ -2,13 +2,14 @@ from aiogram import Bot
 from aiogram.types import BufferedInputFile
 from aiogram.types import BotCommand
 import aiohttp
-from .logger import setup_logger
+from .utils import logger
+from . import config
 
+logger = logger.setup("UPDATE")
+bot = Bot(token=config.TOKEN)
 
-async def update_bot_info(bot_token, bot_data, debug):
-    logger = setup_logger(debug)
-    bot = Bot(token=bot_token)
-    
+async def update_bot_info(bot_data):
+
     data = bot_data['bot']
     
     # Вспомогательная функция для скачивания изображений

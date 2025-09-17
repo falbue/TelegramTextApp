@@ -3,21 +3,16 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import json
 
-from .utils import *
+from .utils.helpers import *
+from .utils import logger
+from . import config
 
-def config_json(json_file, debug, user_custom_functions):
-    global JSON_PATH, logger, custom_module
-    logger = setup_logger(debug)
-    JSON_PATH = json_file
+logger = logger.setup("MENUS")
+JSON_PATH = config.JSON
+
+def config_custom_module(user_custom_functions):
+    global custom_module
     custom_module = load_custom_functions(user_custom_functions)
-
-def load_bot(level=None): # загрузка меню
-    filename=JSON_PATH
-    with open(filename, "r", encoding="utf-8") as f:
-        data = json.load(f)
-        if level:
-            data = data[level]
-        return data
 
 async def get_bot_data(callback, bot_input=None):
     user = await get_user(callback)
@@ -34,7 +29,7 @@ async def get_bot_data(callback, bot_input=None):
     else:
         message = callback
         command = message.text
-        commands = load_bot(level='commands')
+        commands = load_json(level='commands')
         command_data = commands.get(command.replace("/",""))
         if command_data is None:
             return None
@@ -49,7 +44,7 @@ async def get_bot_data(callback, bot_input=None):
 async def create_keyboard(menu_data, format_data=None, custom_module=None): # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
-    variable_buttons = load_bot("buttons")
+    variable_buttons = load_json("buttons")
     
     if "keyboard" in menu_data:
         rows = []  # Список для готовых строк кнопок
@@ -119,7 +114,7 @@ async def get_menu(callback, bot_input=None, menu_loading=False):
 async def create_menu(tta_data, menu_loading=False): # получение нужного меню
     menu_name = tta_data['menu_name']    
 
-    menus = load_bot(level='menu')
+    menus = load_json(level='menu')
     if "return|" in menu_name:
         menu_name = menu_name.replace("return|", "")
 
