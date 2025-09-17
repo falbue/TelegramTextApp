@@ -1,0 +1,55 @@
+{
+    "bot": {
+        "name": "Тестирование ввода",
+        "short_description": "default",
+        "description": "default\n\n@falbue"
+    },
+    "menu": {
+        "none_menu": {
+            "loading": true,
+            "text": "Меню `{menu_name}` не найдено",
+            "return": "main"
+        },
+        "tta_loading_menu": {
+            "text": "loading..."
+        },
+        "main": {
+            "row":1,
+            "text": "Выберите подходящее меню",
+            "keyboard":{
+                "default_input":"Простой ввод",
+                "processing":"Обработка ввода"
+            }
+
+        },
+
+        "default_input":{
+            "text":"Введите текст\nВы ввели: {user_text}",
+            "function":"test",
+            "input":{
+                "data":"user_text",
+                "menu":"default_input"
+            },
+            "return":"main"
+        },
+
+        "processing":{
+            "text":"Отправте сообщение, для его дальнейшей обработки\n{notification_text}",
+            "input":{
+                "data":"user_text",
+                "menu":"processing",
+                "function":"processing_input"
+            },
+            "return":"main"
+        }
+    },
+    "buttons": {
+        "return": "‹ Назад"
+    },
+    "commands": {
+        "start": {
+            "description": "🔄 Перезапуск бота",
+            "menu": "main"
+        }
+    }
+}
