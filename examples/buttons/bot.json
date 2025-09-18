@@ -20,16 +20,34 @@
             "row":1,
             "text": "Примеры различного создания кнопок",
             "keyboard":{
-                "default_custom_buttons":"Самостоятельное создание кнопок",
-                "mix_custom_buttons":"Микс ручных и дочерних кнопок"
+                "buttons":"json кнопки",
+                "custom_buttons":"Кастомные кнопки",
+                "mix_custom_buttons":"Смесь json и кастомных кнопок"
             }
         },
 
-        "default_custom_buttons":{
+        "custom_buttons":{
             "text":"Кнопки создаются в отдельной функции",
             "keyboard":"custom_buttons",
             "return":"main"
         },
+
+        "buttons":{
+            "text":"Кнопки создаются в *json* файле\nШирина клавиатуры, задается параметром `row`\n\nПеренос кнопок, осуществляется с помощью ```\n\"default|3\":\"\\Пустышка 3\"\n```",
+            "row":4,
+            "keyboard":{
+                "default|1":"Пустышка 1",
+                "default|2":"Пустышка 2",
+                "default|3":"\\Пустышка 3",
+                "default|4":"Пустышка 4",
+                "default|5":"Пустышка 5",
+                "default|6":"Пустышка 6",
+                "default|7":"Пустышка 7",
+                "default|8":"Пустышка 8"
+            }
+        },
+
+
 
         "mix_custom_buttons":{
             "text":"Кнопки, которые были заданы в *json*, а так же кнопки из функции",
