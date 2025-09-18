@@ -5,10 +5,6 @@ on:
     tags:
       - '*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Тег для сборки (должен быть в формате x.x.x.x...)'
-        required: true
 
 jobs:
   validate-tag:
@@ -20,10 +16,11 @@ jobs:
       - name: Получить версию из тега
         id: validate
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG=${GITHUB_REF#refs/tags/}
           else
-            TAG="${GITHUB_REF#refs/tags/}"
+            echo "Выбрана ветка"
+            exit 1
           fi
 
           # Проверяем формат версии (x.x.x.x...)
@@ -56,6 +53,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.x"
+
+      - name: Создать файл версии
+        run: echo "__version__ = '${{ needs.validate-tag.outputs.version }}'" > version.py
 
       - name: Установка зависимостей
         run: pip install build

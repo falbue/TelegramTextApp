@@ -1,16 +1,20 @@
 from setuptools import setup, find_packages
 import re
 
-def get_version_from_file(file_path: str, version_var: str = "VERSION"):
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
-    pattern = rf"^{version_var}\s*=\s*['\"](.*?)['\"]|{version_var}\s*=\s*([\d.]+)"
-    match = re.search(pattern, content, re.MULTILINE)
-    if match:
-        return match.group(1) or match.group(2)
-    return None
+def parse_requirements(filename):
+    with open(filename, 'r') as f:
+        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
-version = get_version_from_file("TelegramTextApp/handler.py")
+try:
+    with open('version.py', 'r') as f:
+        version_content = f.read()
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_content, re.M)
+        if version_match:
+            version = version_match.group(1)
+        else:
+            raise RuntimeError("Не удалось найти версию в version.py")
+except FileNotFoundError:
+    version = "0.0.1.dev0"
 
 setup(
     name='TelegramTextApp',
@@ -20,14 +24,7 @@ setup(
     package_data={
         "developer_application": ["*"],
     },
-    install_requires=[
-        'aiogram',
-        'aiohttp',
-        'aiosqlite',
-        'asyncio',
-        'dotenv',
-        'requests'
-    ],
+    install_requires=parse_requirements('requirements.txt'),
     description='Библиотека для создания текстовых приложений в telegram',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

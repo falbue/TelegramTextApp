@@ -1,3 +1,5 @@
 aiogram
 aiohttp
 aiosqlite
+asyncio
+dotenv

@@ -3,3 +3,4 @@ TelegramTextApp.egg-info
 .env
 *.db
 *.log
+version.py
