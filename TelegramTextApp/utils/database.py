@@ -69,7 +69,7 @@ async def SQL_request_async(query, params=(), fetch=None, jsonify_result=False):
 
 
 def SQL_request(query, params=(), fetch='one', jsonify_result=False):
-    with sqlite3.connect(DB_PATH) as conn:
+    with sqlite3.connect(config.DB_PATH) as conn:
         cursor = conn.cursor()
         try:
             cursor.execute(query, params)
