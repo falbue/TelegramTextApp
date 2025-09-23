@@ -3,27 +3,24 @@ from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-
 import asyncio
-
 from importlib.metadata import version, PackageNotFoundError
-
 from .setup_menu import *
 from . import update_bot
 from . import config
 from .utils import logger
 
-logger = logger.setup("TTA")
 
+logger = logger.setup("TTA")
 try:
     VERSION = version("TelegramTextApp")
 except PackageNotFoundError:
     VERSION = "development"
+logger.info(f"Версия TTA: {VERSION}")
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 template_path = os.path.join(script_dir, "template_config.json")
 
-logger.info(f"Версия TTA: {VERSION}")
 
 if os.path.exists(config.JSON):
     pass
@@ -36,17 +33,19 @@ else:
     
     logger.info(f"Файл бота 'bot.json' успешно создан")
 
+
 asyncio.run(create_tables())
-
 config_custom_module(get_caller_file_path())
-
 asyncio.run(update_bot.update_bot_info(load_json()))
+
 
 bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
 dp = Dispatcher()
 
+
 class Form(StatesGroup):
     waiting_for_input = State()
+
 
 async def processing_menu(menu, callback, state, input_data=None):
     if menu.get("loading"):
@@ -88,39 +87,30 @@ async def start_command(message: types.Message, state: FSMContext):
     try: # если пользователь есть, удалим старое сообщение
         message_id = await get_user(message, False)
         message_id = message_id["message_id"]
-        if message.text == "/start":
-            await bot.delete_message(chat_id=user_id, message_id=message_id)
     except:
         message_id = 0
-
 
     logger.debug(f"id: {user_id} | Команда: {message.text}")
     menu = await get_menu(message)
 
-
-    if menu:
-        print(menu)
-        try:
-            await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
-            await message.delete()
-            if menu.get("loading"):
-                menu = await get_menu(message, menu_loading=True)
+    try:
+        await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
+    except Exception as e:
+        if str(e) in ("Telegram server says - Bad Request: message to edit not found"):
+            message_id = await get_user(message)
+            await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
+        elif str(e) in ("Telegram server says - Bad Request: message can't be edited"):
+            pass
+        else:
+            logger.error(f"Ошибка: {e}")
+    finally:
+        if menu.get("loading"):
+            menu = await get_menu(message, menu_loading=True)
+            try:
                 await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
-        except Exception as e:
-            if "message is not modified" in str(e) and message.text != "/start":
-                # Это именно та ошибка, которую мы ожидаем
-                logger.debug("Сообщение не было изменено (контент и разметка идентичны)")
-                await message.delete()
-            else:
-                # Это какая-то другая ошибка
-                logger.error(f"Не удалось изменить сообщение: {e}") 
-                await message.answer(menu["text"], reply_markup=menu["keyboard"])
-                await message.delete()
-                if menu.get("loading"):
-                    message_id = await get_user(message, False)
-                    message_id = message_id["message_id"]
-                    menu = await get_menu(message, menu_loading=True)
-                    await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
+            except: pass
+        await message.delete()
+            
 
 # Обработчики нажатий на кнопки
 @dp.callback_query()
