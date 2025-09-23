@@ -93,20 +93,9 @@ def parse_bot_data(template: str, input_string: str) -> dict | None:
 
 
 def get_caller_file_path():
-    current_frame = inspect.currentframe()
-    try:
-        caller_frame = current_frame.f_back
-        if caller_frame is None:
-            return None
-        
-        grand_caller_frame = caller_frame.f_back
-        if grand_caller_frame is None:
-            return None
-        caller_file = inspect.getframeinfo(grand_caller_frame).filename
-        abs_path = os.path.abspath(caller_file)
-        return abs_path
-    finally:
-        del current_frame
+    caller_file = sys.argv[0]
+    full_path = os.path.abspath(caller_file)
+    return full_path
 
 def load_custom_functions(file_path):
     try:
