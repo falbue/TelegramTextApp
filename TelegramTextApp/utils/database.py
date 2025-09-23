@@ -132,7 +132,7 @@ async def extract_user_data(bot_data, update=True):  # Извлекает дан
     else:
         message = bot_data
         try:
-            if update and message.text == "/start":
+            if update is True:
                 message_id = message.message_id+1
             else:
                 user = await SQL_request_async('SELECT * FROM TTA WHERE telegram_id = ?', (message.chat.id,), "one")
