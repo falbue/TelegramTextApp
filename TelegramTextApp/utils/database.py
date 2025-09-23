@@ -100,7 +100,7 @@ def SQL_request(query, params=(), fetch='one', jsonify_result=False):
                 result = None
 
         except sqlite3.Error as e:
-            print(f"Ошибка SQL: {e}")
+            logger.error(f"Ошибка SQL: {e}")
             raise
 
     if jsonify_result and result is not None:
