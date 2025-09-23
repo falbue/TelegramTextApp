@@ -160,9 +160,9 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     if menu_data.get("bot_input"):
         format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
 
-    if menu_data.get("open_menu"):
-        tta_data["menu_name"] = menu_data["open_menu"]
-        return create_menu(tta_data)        
+    if menu_data.get("edit_menu"):
+        tta_data["menu_name"] = menu_data["edit_menu"]
+        return await create_menu(tta_data)
 
     if menu_data.get("popup"):
         popup = {}
@@ -174,7 +174,7 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
 
     if menu_data.get("text"):
         text = create_text(menu_data, format_data)
-    else: 
+    else: # попап не может быть применён к сообщению, которое отправляется
         popup = {"text":f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!", "size":"small", "menu_block":True}
         text = ""
     keyboard = await create_keyboard(menu_data, format_data, custom_module)
