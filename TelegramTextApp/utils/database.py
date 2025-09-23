@@ -221,3 +221,7 @@ async def get_user(bot_data, update=True):
         else:
             logger.error(f"Не удалось зарегистрировать пользователя {telegram_id}")
             return None
+
+async def get_role_id(role):
+    ids = await SQL_request_async('SELECT * FROM TTA WHERE role = ?', (role,), "all")
+    return ids

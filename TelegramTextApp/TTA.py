@@ -73,10 +73,15 @@ async def processing_menu(menu, callback, state, input_data=None):
             callback=callback
         )
         await state.set_state(Form.waiting_for_input)
+
+    if menu.get("send"):
+        logger.debug(f"Сообщение было отправлено выбранным пользователям")
+        for user in menu["send"]['ids']:
+            await bot.send_message(text=menu["send"]["text"], reply_markup=menu["send"]["keyboard"], chat_id=user["telegram_id"])
     try:
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     except:
-        await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"],parse_mode=None )
+        await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"],parse_mode=None)
 
 
 # Обработчик команд
@@ -84,11 +89,8 @@ async def processing_menu(menu, callback, state, input_data=None):
 async def start_command(message: types.Message, state: FSMContext):
     await state.clear()
     user_id = message.chat.id
-    try: # если пользователь есть, удалим старое сообщение
-        message_id = await get_user(message, False)
-        message_id = message_id["message_id"]
-    except:
-        message_id = 0
+    message_id = await get_user(message, False)
+    message_id = message_id["message_id"]
 
     logger.debug(f"id: {user_id} | Команда: {message.text}")
     menu = await get_menu(message)
@@ -97,8 +99,9 @@ async def start_command(message: types.Message, state: FSMContext):
         await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
     except Exception as e:
         if str(e) in ("Telegram server says - Bad Request: message to edit not found"):
-            message_id = await get_user(message)
             await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
+            message_id = await get_user(message)
+            message_id = message_id["message_id"]
         elif str(e) in ("Telegram server says - Bad Request: message can't be edited"):
             pass
         else:
@@ -108,7 +111,11 @@ async def start_command(message: types.Message, state: FSMContext):
             menu = await get_menu(message, menu_loading=True)
             try:
                 await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
-            except: pass
+            except Exception as e:
+                await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
+                message_id = await get_user(message)
+                message_id = message_id["message_id"]
+                logger.error(f"{e}")
         await message.delete()
             
 

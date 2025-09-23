@@ -160,9 +160,24 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     if menu_data.get("bot_input"):
         format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
 
+
     if menu_data.get("edit_menu"):
         tta_data["menu_name"] = menu_data["edit_menu"]
-        return await create_menu(tta_data)
+        return await create_menu(tta_data, menu_loading)
+
+    if menu_data.get("send_menu"):
+        send_menu = menu_data["send_menu"]
+        del menu_data["send_menu"]
+
+        tta_data['menu_name'] = send_menu["menu"]
+        menu_data["send"] = await create_menu(tta_data)
+        ids = send_menu["user"]
+        if isinstance(ids, int):
+            menu_data["send"]["ids"] = [ids]
+        elif isinstance(ids, list):
+            menu_data["send"]["ids"] = ids
+        elif isinstance(ids, str):
+            menu_data["send"]["ids"] = await get_role_id(ids)
 
     if menu_data.get("popup"):
         popup = {}
@@ -183,5 +198,6 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         loading = True
     else:
         loading = False
-    
-    return {"text":text, "keyboard":keyboard, "input":menu_input, "loading":loading, "popup":popup}
+
+    send = menu_data.get("send", False)    
+    return {"text":text, "keyboard":keyboard, "input":menu_input, "loading":loading, "popup":popup, "send":send}

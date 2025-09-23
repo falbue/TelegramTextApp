@@ -128,11 +128,15 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
         
         if custom_func and callable(custom_func):
             try:
+
                 result = await asyncio.to_thread(custom_func, format_data)
 
                 if result:
                     if result.get("edit_menu"):
                         return None, result
+                    if result.get("send_menu"):
+                        menu_data["send_menu"] = result["send_menu"]
+                        return None, menu_data
                 
                 if key in ("function", "bot_input") and isinstance(result, dict):
                     format_data = {**format_data, **(result or {})}
