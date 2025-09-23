@@ -116,6 +116,12 @@ async def start_command(message: types.Message, state: FSMContext):
                 message_id = await get_user(message)
                 message_id = message_id["message_id"]
                 logger.error(f"{e}")
+
+        if menu.get("send"):
+            logger.debug(f"Сообщение было отправлено выбранным пользователям")
+            for user in menu["send"]['ids']:
+                await bot.send_message(text=menu["send"]["text"], reply_markup=menu["send"]["keyboard"], chat_id=user["telegram_id"])
+
         await message.delete()
             
 

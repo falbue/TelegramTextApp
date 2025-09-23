@@ -145,7 +145,6 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         menu_data["bot_input"] = tta_data["bot_input"].get("function")
 
     format_data = parse_bot_data(template, menu_name)
-    format_data["callback"] = tta_data["callback"]
 
     if tta_data.get('bot_input'):
         bot_input = tta_data["bot_input"]
