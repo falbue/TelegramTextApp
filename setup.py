@@ -1,24 +1,24 @@
-from setuptools import setup, find_packages
+import os
 import re
+from setuptools import setup, find_packages
+
+def get_version():
+    version_file = os.path.join(os.path.dirname(__file__), "version.py")
+    if os.path.exists(version_file):
+        with open(version_file, "r") as f:
+            content = f.read()
+            match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", content, re.M)
+            if match:
+                return match.group(1)
+    return "development"
 
 def parse_requirements(filename):
     with open(filename, 'r') as f:
         return [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
-try:
-    with open('version.py', 'r') as f:
-        version_content = f.read()
-        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_content, re.M)
-        if version_match:
-            version = version_match.group(1)
-        else:
-            raise RuntimeError("Не удалось найти версию в version.py")
-except FileNotFoundError:
-    version = "0.0.1.dev0"
-
 setup(
     name='TelegramTextApp',
-    version=version,
+    version=get_version(),
     packages=find_packages(where="."),
     include_package_data=True,
     package_data={
