@@ -160,6 +160,10 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     if menu_data.get("bot_input"):
         format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
 
+    if menu_data.get("open_menu"):
+        tta_data["menu_name"] = menu_data["open_menu"]
+        return create_menu(tta_data)        
+
     if menu_data.get("popup"):
         popup = {}
         popup = menu_data.get("popup")
