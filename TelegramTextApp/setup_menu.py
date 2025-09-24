@@ -45,7 +45,6 @@ async def get_bot_data(callback, bot_input=None):
 async def create_keyboard(menu_data, format_data=None, custom_module=None): # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
-    variable_buttons = load_json("buttons")
     
     if "keyboard" in menu_data:
         rows = []  # Список для готовых строк кнопок
@@ -104,7 +103,7 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None): # с
     
     if "return" in menu_data: # Добавляем кнопку возврата если нужно
         return_builder.button(
-            text=variable_buttons['return'],
+            text=format_data["variables"]["tta_return"],
             callback_data=formatting_text(f"return|{menu_data['return']}", format_data)
         )
         builder.row(*return_builder.buttons)  # Кнопка возврата всегда в новой строке
@@ -124,7 +123,8 @@ async def get_menu(callback, bot_input=None, menu_loading=False):
 
 
 async def create_menu(tta_data, menu_loading=False): # получение нужного меню
-    menu_name = tta_data['menu_name']    
+    menu_name = tta_data['menu_name']
+    variables = load_json("variables")
 
     menus = load_json(level='menu')
     if "return|" in menu_name:
@@ -150,7 +150,7 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
 
     if menu_data.get("loading") and menu_loading == False:
         if menu_data["loading"] == True:
-            text = "Загрузка..."
+            text = variables["tta_loading"]
         else:
             text = menu_data["loading"]
         text = markdown(text)
@@ -162,6 +162,7 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         menu_data["bot_input"] = tta_data["bot_input"].get("function")
 
     format_data = parse_bot_data(template, menu_name)
+    format_data["variables"] = variables
 
     if tta_data.get('bot_input'):
         bot_input = tta_data["bot_input"]

@@ -7,7 +7,6 @@
 
 	"menu":{
 		"none_menu":{
-			"loading":true,
 			"text":"Меню `{menu_name}` не найдено",
 			"return":"main"
 		},
@@ -19,9 +18,10 @@
 	},
 
 
-	"buttons":{
-		"return":"‹ Назад"
-	},
+	"variables": {
+        "tta_return": "‹ Назад",
+        "tta_loading":"loading..."
+    },
 
 
 	"commands":{
