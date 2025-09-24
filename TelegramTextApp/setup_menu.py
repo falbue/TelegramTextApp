@@ -138,8 +138,14 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         menu_data = menus.get("none_menu")
 
     if menu_data.get("loading") and menu_loading == False:
-        menu_data = menus.get("tta_loading_menu")
-        menu_data['loading'] = True
+        if menu_data["loading"] == True:
+            text = "Загрузка..."
+        else:
+            text = menu_data["loading"]
+        text = markdown(text)
+        return {"text":text, "keyboard":None, "loading":True}
+
+
 
     if tta_data.get("bot_input"):
         menu_data["bot_input"] = tta_data["bot_input"].get("function")
@@ -193,10 +199,6 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         text = ""
     keyboard = await create_keyboard(menu_data, format_data, custom_module)
     menu_input = menu_data.get("input", None)
-    if menu_loading == False and menu_data.get("loading"):
-        loading = True
-    else:
-        loading = False
 
     send = menu_data.get("send", False)    
-    return {"text":text, "keyboard":keyboard, "input":menu_input, "loading":loading, "popup":popup, "send":send}
+    return {"text":text, "keyboard":keyboard, "input":menu_input, "popup":popup, "send":send}

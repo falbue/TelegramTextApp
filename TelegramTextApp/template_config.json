@@ -12,10 +12,6 @@
 			"return":"main"
 		},
 
-		"tta_loading_menu":{
-			"text":"loading..."
-		},
-
 		"main":{
 			"text":"default text"
 		}
