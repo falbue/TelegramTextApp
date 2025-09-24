@@ -71,8 +71,9 @@
     },
 
 
-    "buttons": {
-        "return": "‹ Назад"
+    "variables": {
+        "tta_return": "‹ Назад",
+        "tta_loading":"loading..."
     },
 
 

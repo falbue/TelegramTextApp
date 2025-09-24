@@ -10,9 +10,7 @@
             "text": "Меню `{menu_name}` не найдено",
             "return": "main"
         },
-        "tta_loading_menu": {
-            "text": "loading..."
-        },
+
         "main": {
             "row":1,
             "text": "Выберите подходящее меню",
@@ -24,6 +22,7 @@
         },
 
         "default_input":{
+            "loading":true,
             "text":"Введите текст\nВы ввели: {user_text}",
             "function":"test",
             "input":{
@@ -34,6 +33,7 @@
         },
 
         "processing":{
+            "loading":"Данные пользователя обрабатываются",
             "text":"Отправте сообщение, для его дальнейшей обработки\n{notification_text}",
             "input":{
                 "data":"user_text",
@@ -43,8 +43,9 @@
             "return":"main"
         }
     },
-    "buttons": {
-        "return": "‹ Назад"
+    "variables": {
+        "tta_return": "‹ Назад",
+        "tta_loading":"loading..."
     },
     "commands": {
         "start": {
