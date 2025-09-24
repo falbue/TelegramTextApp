@@ -12,9 +12,6 @@
             "text": "Меню `{menu_name}` не найдено",
             "return": "main"
         },
-        "tta_loading_menu": {
-            "text": "Загрузка..."
-        },
 
         "main": {
             "row":1,
@@ -22,7 +19,9 @@
             "keyboard":{
                 "buttons":"json кнопки",
                 "custom_buttons":"Кастомные кнопки",
-                "mix_custom_buttons":"Смесь json и кастомных кнопок"
+                "mix_custom_buttons":"Смесь json и кастомных кнопок",
+                "telegram_buttons":"Специальные кнопки",
+                "role:admin|admin":"Админка"
             }
         },
 
@@ -44,6 +43,15 @@
                 "default|6":"Пустышка 6",
                 "default|7":"Пустышка 7",
                 "default|8":"Пустышка 8"
+            },
+            "return":"main"
+        },
+
+        "telegram_buttons":{
+            "text":"Специальные кнопки",
+            "keyboard":{
+                "app:https://example.com":"Приложение",
+                "url:https://example.com":"Ссылка"
             },
             "return":"main"
         },
