@@ -1,5 +1,6 @@
 import TelegramTextApp
 import json
+import time
 
 if __name__ == "__main__":
     TelegramTextApp.start()
@@ -9,5 +10,6 @@ def test(tta_data):
         return {"user_text":""}
 
 def processing_input(tta_data):
+    time.sleep(1)
     print(f'Сохранение введённых данных: {tta_data["user_text"]}')
     return {"notification_text":"Данные успешно сохранены"}
