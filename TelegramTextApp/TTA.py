@@ -98,12 +98,10 @@ async def start_command(message: types.Message, state: FSMContext):
     try:
         await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
     except Exception as e:
-        if str(e) in ("Telegram server says - Bad Request: message to edit not found"):
+        if str(e) in ("Telegram server says - Bad Request: message to edit not found", "Telegram server says - Bad Request: message can't be edited"):
             await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
             message_id = await get_user(message)
             message_id = message_id["message_id"]
-        elif str(e) in ("Telegram server says - Bad Request: message can't be edited"):
-            pass
         else:
             logger.error(f"Ошибка: {e}")
     finally:
