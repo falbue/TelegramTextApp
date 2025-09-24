@@ -12,7 +12,7 @@ db_dir = os.path.dirname(config.DB_PATH)
 if db_dir:
     os.makedirs(db_dir, exist_ok=True)
 
-async def SQL_request_async(query, params=(), fetch=None, jsonify_result=False):
+async def SQL_request_async(query, params=(), fetch='one', jsonify_result=False):
     async with aiosqlite.connect(config.DB_PATH) as db:
         async with db.cursor() as cursor:
             try:

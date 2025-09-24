@@ -68,9 +68,20 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None): # с
                 url = callback_data[4:]
                 button = InlineKeyboardButton(text=button_text, url=url)
 
-            elif callback_data.startswith("app:"): # кнопка ссылка
+            elif callback_data.startswith("app:"): # кнопка приложение
                 url = callback_data[4:]
                 button = InlineKeyboardButton(text=button_text, web_app=WebAppInfo(url=url))
+
+            elif callback_data.startswith("role:"): # роль кнопке
+                role = callback_data.split("|")[0]
+                role = role.split(":")[1]
+                callback_data = callback_data.replace(f"role:{role}|", "")
+
+                user_role = await SQL_request_async("SELECT role FROM TTA WHERE id=?", (format_data["id"],))
+                user_role = user_role["role"]
+                if user_role == role:
+                    button = InlineKeyboardButton(text=button_text, callback_data=callback_data)
+                else: continue
 
             else:
                 button = InlineKeyboardButton(text=button_text, callback_data=callback_data)
