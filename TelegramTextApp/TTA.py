@@ -47,7 +47,7 @@ class Form(StatesGroup):
     waiting_for_input = State()
 
 
-async def processing_menu(menu, callback, state, input_data=None):
+async def processing_menu(menu, callback, state, input_data=None): # обработчик сообщений
     if menu.get("loading"):
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
         if input_data:
@@ -84,8 +84,8 @@ async def processing_menu(menu, callback, state, input_data=None):
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"],parse_mode=None)
 
 
-# Обработчик команд
-@dp.message(lambda message: message.text and message.text.startswith('/'))
+
+@dp.message(lambda message: message.text and message.text.startswith('/')) # Обработчик команд
 async def start_command(message: types.Message, state: FSMContext):
     await state.clear()
     user_id = message.chat.id
@@ -102,6 +102,7 @@ async def start_command(message: types.Message, state: FSMContext):
             await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
             message_id = await get_user(message)
             message_id = message_id["message_id"]
+            logger.error(f"Ошибка: {e}")
         else:
             logger.error(f"Ошибка: {e}")
     finally:
@@ -123,8 +124,8 @@ async def start_command(message: types.Message, state: FSMContext):
         await message.delete()
             
 
-# Обработчики нажатий на кнопки
-@dp.callback_query()
+
+@dp.callback_query() # Обработчики нажатий на кнопки
 async def handle_callback(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
     data = callback.data
@@ -140,7 +141,7 @@ async def handle_callback(callback: types.CallbackQuery, state: FSMContext):
 
     
 
-@dp.message(Form.waiting_for_input)
+@dp.message(Form.waiting_for_input) # обработчик введённого текста
 async def handle_text_input(message: types.Message, state: FSMContext):
     await message.delete()
 
