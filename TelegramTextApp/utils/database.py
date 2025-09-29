@@ -169,7 +169,7 @@ async def create_user(bot_data):
         user_data['last_name'],
         user_data['username'],
         user_data['message_id']
-            )
+            ), None
         )
         return True
     except Exception as e:
@@ -213,11 +213,7 @@ async def get_user(bot_data, update=True):
     else:
         if await create_user(bot_data):
             logger.info(f"Зарегистрирован новый пользователь: {telegram_id}")
-            return await SQL_request_async(
-                'SELECT * FROM TTA WHERE telegram_id = ?', 
-                (telegram_id,), 
-                "one"
-            )
+            return await SQL_request_async('SELECT * FROM TTA WHERE telegram_id = ?', (telegram_id,))
         else:
             logger.error(f"Не удалось зарегистрировать пользователя {telegram_id}")
             return None
