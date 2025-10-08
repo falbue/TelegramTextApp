@@ -10,7 +10,7 @@ from .database import *
 from . import logger
 from .. import config
 
-logger = logger.setup("HELPERS")
+logger = logger.setup("UTILS")
 
 
 def markdown(text, full=False):  # экранирование
