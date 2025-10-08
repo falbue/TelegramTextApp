@@ -32,6 +32,12 @@ def load_json(level=None): # загрузка меню
             data = data[level]
         return data
 
+def print_json(data): # удобный вывод json
+    if isinstance(data, (dict, list)):
+        text = ( json.dumps(data, indent=4, ensure_ascii=False))
+    else:
+        text = ( str(data))
+        print(text)
 
 def default_values():
     data = {"number": random.randint(1, 100)}
