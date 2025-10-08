@@ -102,7 +102,7 @@ async def start_command(message: types.Message, state: FSMContext):
             await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
             message_id = await get_user(message)
             message_id = message_id["message_id"]
-            logger.error(f"Ошибка: {e}")
+            logger.error(f"Обработанная ошибка: {e}")
         else:
             logger.error(f"Ошибка: {e}")
     finally:
