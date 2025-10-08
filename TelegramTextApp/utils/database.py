@@ -133,7 +133,10 @@ async def extract_user_data(bot_data, update=True):  # Извлекает дан
         message = bot_data
         try:
             if update is True:
-                message_id = message.message_id+1
+                message_id = message.message_id
+                if message.text.startswith('/'):
+                    logger.debug("Обновление сообщения пользователя")
+                    message_id = message.message_id+1
             else:
                 user = await SQL_request_async('SELECT * FROM TTA WHERE telegram_id = ?', (message.chat.id,), "one")
                 message_id = user["message_id"]
@@ -176,7 +179,7 @@ async def create_user(bot_data):
         logger.error(f"Ошибка SQL при регистрации: {e}")
         return False
 
-async def update_user_data(bot_data, update=True):
+async def update_user_data(bot_data, update):
     """Обновляет данные пользователя в базе данных."""
     user_data = await extract_user_data(bot_data, update)
     try:
@@ -196,12 +199,12 @@ async def update_user_data(bot_data, update=True):
                 user_data['username'],
                 user_data['message_id'],
                 user_data['telegram_id'],
-            )
+            ), None
         )
     except Exception as e:
         logger.error(f"Не удалось обновить данные пользователя: {e}")
 
-async def get_user(bot_data, update=True):
+async def get_user(bot_data, update=False):
     """Возвращает пользователя, создает нового при отсутствии."""
     user_data = await extract_user_data(bot_data)
     telegram_id = user_data['telegram_id']

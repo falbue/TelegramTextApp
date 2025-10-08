@@ -48,6 +48,7 @@ class Form(StatesGroup):
 
 
 async def processing_menu(menu, callback, state, input_data=None): # обработчик сообщений
+    message_id = await get_user(callback.message, update=True)
     if menu.get("loading"):
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
         if input_data:
@@ -89,7 +90,7 @@ async def processing_menu(menu, callback, state, input_data=None): # обраб�
 async def start_command(message: types.Message, state: FSMContext):
     await state.clear()
     user_id = message.chat.id
-    message_id = await get_user(message, False)
+    message_id = await get_user(message)
     message_id = message_id["message_id"]
 
     logger.debug(f"id: {user_id} | Команда: {message.text}")
@@ -98,11 +99,13 @@ async def start_command(message: types.Message, state: FSMContext):
     try:
         await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
     except Exception as e:
-        if str(e) in ("Telegram server says - Bad Request: message to edit not found", "Telegram server says - Bad Request: message can't be edited"):
+        if str(e) in ("Telegram server says - Bad Request: message to edit not found"):
             await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
-            message_id = await get_user(message)
+            message_id = await get_user(message, update=True)
             message_id = message_id["message_id"]
             logger.error(f"Обработанная ошибка: {e}")
+        elif str(e) in ("Telegram server says - Bad Request: message can't be edited", "Telegram server says - Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message"):
+            pass
         else:
             logger.error(f"Ошибка: {e}")
     finally:
@@ -111,10 +114,13 @@ async def start_command(message: types.Message, state: FSMContext):
             try:
                 await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
             except Exception as e:
-                await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
-                message_id = await get_user(message)
-                message_id = message_id["message_id"]
-                logger.error(f"{e}")
+                if str(e) in ("Telegram server says - Bad Request: message can't be edited"):
+                    pass
+                else:
+                    await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
+                    message_id = await get_user(message, update=True)
+                    message_id = message_id["message_id"]
+                    logger.error(f"{e}")
 
         if menu.get("send"):
             logger.debug(f"Сообщение было отправлено выбранным пользователям")
