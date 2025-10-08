@@ -157,25 +157,22 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
         return {"text":text, "keyboard":None, "loading":True}
 
 
+    format_data = parse_bot_data(template, menu_name)
+    format_data = {**format_data, **(tta_data["user"] or {})}
+    format_data["menu_name"] = menu_name
+    format_data["variables"] = variables
 
     if tta_data.get("bot_input"):
         menu_data["bot_input"] = tta_data["bot_input"].get("function")
-
-    format_data = parse_bot_data(template, menu_name)
-    format_data["variables"] = variables
-
-    if tta_data.get('bot_input'):
         bot_input = tta_data["bot_input"]
         format_data[bot_input["data"]] = bot_input.get("input_text", None)
-    format_data = {**format_data, **(tta_data["user"] or {})}
-    format_data["menu_name"] = menu_name
+        format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
+    
     
     if menu_data.get("function"):
         format_data, menu_data = await process_custom_function("function", format_data, menu_data, custom_module)
     if menu_data.get("keyboard"):
         format_data, menu_data = await process_custom_function("keyboard", format_data, menu_data, custom_module)
-    if menu_data.get("bot_input"):
-        format_data, menu_data = await process_custom_function("bot_input", format_data, menu_data, custom_module)
 
 
     if menu_data.get("edit_menu"):
