@@ -3,7 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import json
 
-from .utils.helpers import *
+from .utils.utils import *
 from .utils import logger
 from . import config
 
