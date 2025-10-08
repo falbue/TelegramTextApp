@@ -33,11 +33,15 @@ def load_json(level=None): # загрузка меню
         return data
 
 def print_json(data): # удобный вывод json
-    if isinstance(data, (dict, list)):
-        text = ( json.dumps(data, indent=4, ensure_ascii=False))
-    else:
-        text = ( str(data))
+    try:
+        if isinstance(data, (dict, list)):
+            text = ( json.dumps(data, indent=4, ensure_ascii=False))
+        else:
+            print(type(data))
+            text = ( str(data))
         print(text)
+    except Exception as e:
+        logger.error(f"Ошибка при выводе json: {e}")
 
 def default_values():
     data = {"number": random.randint(1, 100)}
