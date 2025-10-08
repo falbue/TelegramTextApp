@@ -10,7 +10,7 @@ def get_version():
             match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", content, re.M)
             if match:
                 return match.group(1)
-    return "development"
+    return "0.0.1.dev0"
 
 def parse_requirements(filename):
     with open(filename, 'r') as f:
