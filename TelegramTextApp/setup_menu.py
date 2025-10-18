@@ -42,36 +42,45 @@ async def get_bot_data(callback, bot_input=None):
 
     return tta_data
 
-async def create_keyboard(menu_data, format_data=None, custom_module=None): # создание клавиатуры
+async def create_keyboard(menu_data, format_data=None, custom_module=None, current_page_index=0): # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
-    
+
     if "keyboard" in menu_data:
-        rows = []  # Список для готовых строк кнопок
-        current_row = []  # Текущая формируемая строка
-        max_in_row = menu_data.get("row", 2)  # Максимум кнопок в строке
+        keyboard_items = list(menu_data["keyboard"].items())
+        pagination_limit = menu_data.get("pagination", 10)
+        if pagination_limit == None:
+            pagination_limit = 1000
+
+        pages = []
+        for i in range(0, len(keyboard_items), pagination_limit):
+            pages.append(keyboard_items[i:i + pagination_limit])
+
+        page_items = pages[current_page_index]
+
+        rows = []
+        current_row = []
+        max_in_row = menu_data.get("row", 2)
 
         if isinstance(menu_data["keyboard"], str):
             return None
 
-        for callback_data, button_text in menu_data["keyboard"].items():
+        for callback_data, button_text in page_items:
             force_new_line = False
             if button_text.startswith('\\'):
-                button_text = button_text[1:]  # Удаляем символ переноса
+                button_text = button_text[1:]
                 force_new_line = True
-            
+
             button_text = formatting_text(button_text, format_data)
             callback_data = formatting_text(callback_data, format_data)
-            
-            if callback_data.startswith("url:"): # кнопка ссылка
+
+            if callback_data.startswith("url:"):
                 url = callback_data[4:]
                 button = InlineKeyboardButton(text=button_text, url=url)
-
-            elif callback_data.startswith("app:"): # кнопка приложение
+            elif callback_data.startswith("app:"):
                 url = callback_data[4:]
                 button = InlineKeyboardButton(text=button_text, web_app=WebAppInfo(url=url))
-
-            elif callback_data.startswith("role:"): # роль кнопке
+            elif callback_data.startswith("role:"):
                 role = callback_data.split("|")[0]
                 role = role.split(":")[1]
                 callback_data = callback_data.replace(f"role:{role}|", "")
@@ -80,34 +89,74 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None): # с
                 user_role = user_role["role"]
                 if user_role == role:
                     button = InlineKeyboardButton(text=button_text, callback_data=callback_data)
-                else: continue
-
+                else:
+                    continue
             else:
                 button = InlineKeyboardButton(text=button_text, callback_data=callback_data)
-            
-            if len(current_row) >= max_in_row: # Проверяем необходимость завершения текущей строки
+
+            if len(current_row) >= max_in_row:
                 rows.append(current_row)
                 current_row = []
-            
-            if force_new_line and current_row: # Обрабатываем принудительный перенос
+
+            if force_new_line and current_row:
                 rows.append(current_row)
                 current_row = []
-            
+
             current_row.append(button)
-        
-        if current_row: # Добавляем последнюю строку
+
+        if current_row:
             rows.append(current_row)
 
-        for row in rows: # Собираем клавиатуру из подготовленных строк
+        for row in rows:
             builder.row(*row)
-    
-    if "return" in menu_data: # Добавляем кнопку возврата если нужно
+
+        # Пагинация с отображением 5-7 страниц
+        if len(pages) > 1 and pagination_limit != None:
+            nav_row = []
+            total_pages = len(pages)
+            current_page_num = current_page_index + 1
+        
+            # Максимум 6 кнопок с номерами страниц
+            max_visible_pages = 6
+            start_page = 1
+            end_page = total_pages
+        
+            # Если страниц слишком много, ограничиваем диапазон
+            if total_pages > max_visible_pages:
+                half_window = max_visible_pages // 2  # 3
+                start_page = max(1, current_page_num - half_window)
+                end_page = start_page + max_visible_pages - 1
+                if end_page > total_pages:
+                    end_page = total_pages
+                    start_page = max(1, end_page - max_visible_pages + 1)
+        
+            # Кнопка "◀️" (предыдущая страница)
+            if current_page_index > 0:
+                nav_row.append(InlineKeyboardButton(text=format_data["variables"]["tta_pagination_back"], callback_data=f'pg{current_page_index - 1}|{format_data["menu_name"]}'))
+        
+            # Кнопки номеров страниц
+            for page_num in range(start_page, end_page + 1):
+                btn_callback = f'pg{page_num - 1}|{format_data["menu_name"]}'
+                btn_text = str(page_num)
+                if page_num == current_page_num:
+                    btn_text = f"• {btn_text} •"  # Текущая страница
+                    nav_row.append(InlineKeyboardButton(text=btn_text, callback_data="placeholder"))
+                else:
+                    nav_row.append(InlineKeyboardButton(text=btn_text, callback_data=btn_callback))
+        
+            # Кнопка "▶️" (следующая страница)
+            if current_page_index < len(pages) - 1:
+                nav_row.append(InlineKeyboardButton(text=format_data["variables"]["tta_pagination_next"], callback_data=f'pg{current_page_index + 1}|{format_data["menu_name"]}'))
+        
+            builder.row(*nav_row)
+
+    if "return" in menu_data:
         return_builder.button(
             text=format_data["variables"]["tta_return"],
             callback_data=formatting_text(f"return|{menu_data['return']}", format_data)
         )
-        builder.row(*return_builder.buttons)  # Кнопка возврата всегда в новой строке
-    
+        builder.row(*return_builder.buttons)
+
     return builder.as_markup()
 
 def create_text(menu_data, format_data, use_markdown=True): # создание текста
