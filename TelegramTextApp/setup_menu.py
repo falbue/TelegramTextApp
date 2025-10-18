@@ -179,12 +179,20 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     if "return|" in menu_name:
         menu_name = menu_name.replace("return|", "")
 
+    if menu_name.startswith("pg"):
+        page = menu_name.split("|")[0]
+        menu_name = menu_name.replace(f"{page}|", "")
+        page = int(page.replace("pg", ""))
+    else:
+        page = 0
+
+
     menu_data = menus.get(menu_name.split("|")[0])
     template = menu_name
 
+
     if "|" in menu_name:
         prefix = menu_name.split("|")[0] + "|"
-        
         for key in menus:
             if key.startswith(prefix):
                 menu_data = (menus.get(key))
@@ -204,7 +212,6 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
             text = menu_data["loading"]
         text = markdown(text)
         return {"text":text, "keyboard":None, "loading":True}
-
 
     format_data = parse_bot_data(template, menu_name)
     format_data = {**format_data, **(tta_data["user"] or {})}
@@ -255,7 +262,7 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     else: # попап не может быть применён к сообщению, которое отправляется
         popup = {"text":f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!", "size":"small", "menu_block":True}
         text = ""
-    keyboard = await create_keyboard(menu_data, format_data, custom_module)
+    keyboard = await create_keyboard(menu_data, format_data, custom_module, page)
     menu_input = menu_data.get("input", None)
 
     send = menu_data.get("send", False)    
