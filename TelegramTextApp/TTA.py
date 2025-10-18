@@ -141,6 +141,9 @@ async def handle_callback(callback: types.CallbackQuery, state: FSMContext):
     if data == 'notification':
         await callback.message.delete()
         return
+    if data == 'placeholder':
+        await callback.answer("")
+        return
 
     menu = await get_menu(callback)
     await processing_menu(menu, callback, state)
