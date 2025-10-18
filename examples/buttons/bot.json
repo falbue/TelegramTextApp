@@ -21,7 +21,9 @@
                 "custom_buttons":"Кастомные кнопки",
                 "mix_custom_buttons":"Смесь json и кастомных кнопок",
                 "telegram_buttons":"Специальные кнопки",
-                "role:admin|admin":"Админка"
+                "role:admin|admin":"Админка",
+                "pagination":"Пагинация",
+                "placeholder":"Пустышка"
             }
         },
 
@@ -67,13 +69,34 @@
                 "default|3":"Пустышка 3"
             },
             "return":"main"
+        },
+
+        "pagination":{
+            "text":"Пагинация включена автоматически. По умолчанию `10`\nЧто бы указать своё значение, укажите в параметрах меню `\"pagination\": 4`\nДля отключение пагинации, укажите `none`",
+            "pagination":4,
+            "keyboard":{
+                "default|1":"Пустышка 1",
+                "default|2":"Пустышка 2",
+                "default|3":"Пустышка 3",
+                "default|4":"Пустышка 4",
+                "default|5":"Пустышка 5",
+                "default|6":"Пустышка 6",
+                "default|7":"Пустышка 7",
+                "default|8":"Пустышка 8",
+                "default|9":"Пустышка 9",
+                "default|10":"Пустышка 10",
+                "default|11":"Пустышка 11"
+            },
+            "return":"main"
         }
     },
 
 
     "variables": {
         "tta_return": "‹ Назад",
-        "tta_loading":"loading..."
+        "tta_loading":"Загрузка...",
+        "tta_pagination_back": "‹",
+        "tta_pagination_next": "›"
     },
 
 
