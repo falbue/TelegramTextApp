@@ -6,6 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 import asyncio
 from importlib.metadata import version, PackageNotFoundError
 from .setup_menu import *
+from .inline_mode import *
 from . import update_bot
 from . import config
 from .utils import logger
@@ -164,6 +165,24 @@ async def handle_text_input(message: types.Message, state: FSMContext):
 
     menu = await get_menu(message, input_data)
     await processing_menu(menu, callback, state, [message, input_data])
+
+@dp.inline_query()
+async def inline_query_handler(inline_query: types.InlineQuery):
+
+    query = inline_query.query
+    user_id = inline_query.from_user.id
+    logger.debug(f"id: {user_id} | Запрос: {query}")
+
+    result = await get_inline_result(inline_query)
+    
+    try:
+        await inline_query.answer(result[0], switch_pm_text=result[1], switch_pm_parameter=result[2])
+    except Exception as e:
+        if str(e) == "Telegram server says - Bad Request: query is too old and response timeout expired or query ID is invalid":
+            pass
+        else:
+            logger.error(f"Возникла ошибка при inline запросе: {e}")
+
     
     
 def start():
