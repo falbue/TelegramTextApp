@@ -156,9 +156,9 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None, curre
 
     return builder.as_markup()
 
-def create_text(menu_data, format_data, use_markdown=True): # создание текста
-    text = menu_data["text"]
-    text = formatting_text(text, format_data)
+def create_text(text, format_data=None, use_markdown=True): # создание текста
+    if format_data:
+        text = formatting_text(text, format_data)
     if use_markdown:
         text = markdown(text)
     return text
@@ -249,13 +249,13 @@ async def create_menu(tta_data, menu_loading=False): # получение нуж
     if menu_data.get("popup"):
         popup = {}
         popup = menu_data.get("popup")
-        popup['text'] = create_text(popup, format_data, False)
+        popup['text'] = create_text(popup["text"], format_data, False)
         if popup.get("menu_block"):
             menu_data["text"] = "bla"
     else: popup = None
 
     if menu_data.get("text"):
-        text = create_text(menu_data, format_data)
+        text = create_text(menu_data["text"], format_data)
     else: # попап не может быть применён к сообщению, которое отправляется
         popup = {"text":f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!", "size":"small", "menu_block":True}
         text = ""
