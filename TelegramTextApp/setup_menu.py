@@ -66,6 +66,9 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None, curre
             return None
 
         for callback_data, button_text in page_items:
+            if len(callback_data) > 64:
+                logger.error(f"Не удалось добавить кнопку '{button_text}'. Название меню слишком длинное: {callback_data}")
+                continue
             force_new_line = False
             if button_text.startswith('\\'):
                 button_text = button_text[1:]
