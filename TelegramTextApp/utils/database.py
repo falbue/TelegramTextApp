@@ -8,6 +8,7 @@ from .. import config
 
 logger = logger.setup("DATABASE")
 
+DB_PATH = config.DB_PATH
 db_dir = os.path.dirname(config.DB_PATH)
 if db_dir:
     os.makedirs(db_dir, exist_ok=True)
