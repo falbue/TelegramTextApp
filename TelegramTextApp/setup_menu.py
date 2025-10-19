@@ -10,11 +10,11 @@ from . import config
 logger = logger.setup("MENUS")
 JSON_PATH = config.JSON
 
-def config_custom_module(user_custom_functions):
+def config_custom_module(user_custom_functions): # настройка библиотеки пользователя
     global custom_module
     custom_module = load_custom_functions(user_custom_functions)
 
-async def get_bot_data(callback, bot_input=None):
+async def get_bot_data(callback, bot_input=None): # получение данных от бота
     user = await get_user(callback)
 
     tta_data = {}
@@ -23,10 +23,10 @@ async def get_bot_data(callback, bot_input=None):
         tta_data['bot_input'] = bot_input
         message = callback
 
-    elif hasattr(callback, 'message'):
+    elif hasattr(callback, 'message'): # кнопка
         menu_name = callback.data 
         message = callback.message
-    else:
+    else: # команда
         message = callback
         command = message.text
         commands = load_json(level='commands')
@@ -52,7 +52,7 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None, curre
         if pagination_limit == None:
             pagination_limit = 1000
 
-        pages = []
+        pages = [] # получение списка страниц для пагинации
         for i in range(0, len(keyboard_items), pagination_limit):
             pages.append(keyboard_items[i:i + pagination_limit])
 
@@ -110,28 +110,25 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None, curre
         for row in rows:
             builder.row(*row)
 
-        # Пагинация с отображением 5-7 страниц
+        # Пагинация с отображением 5-6 страниц
         if len(pages) > 1 and pagination_limit != None:
             nav_row = []
             total_pages = len(pages)
             current_page_num = current_page_index + 1
         
-            # Максимум 6 кнопок с номерами страниц
             max_visible_pages = 6
             start_page = 1
             end_page = total_pages
         
-            # Если страниц слишком много, ограничиваем диапазон
-            if total_pages > max_visible_pages:
-                half_window = max_visible_pages // 2  # 3
+            if total_pages > max_visible_pages: # ограничение диапозона
+                half_window = max_visible_pages // 2
                 start_page = max(1, current_page_num - half_window)
                 end_page = start_page + max_visible_pages - 1
                 if end_page > total_pages:
                     end_page = total_pages
                     start_page = max(1, end_page - max_visible_pages + 1)
         
-            # Кнопка "◀️" (предыдущая страница)
-            if current_page_index > 0:
+            if current_page_index > 0: # предыдущая страница
                 nav_row.append(InlineKeyboardButton(text=format_data["variables"]["tta_pagination_back"], callback_data=f'pg{current_page_index - 1}|{format_data["menu_name"]}'))
         
             # Кнопки номеров страниц
@@ -144,8 +141,7 @@ async def create_keyboard(menu_data, format_data=None, custom_module=None, curre
                 else:
                     nav_row.append(InlineKeyboardButton(text=btn_text, callback_data=btn_callback))
         
-            # Кнопка "▶️" (следующая страница)
-            if current_page_index < len(pages) - 1:
+            if current_page_index < len(pages) - 1: # следующая страница
                 nav_row.append(InlineKeyboardButton(text=format_data["variables"]["tta_pagination_next"], callback_data=f'pg{current_page_index + 1}|{format_data["menu_name"]}'))
         
             builder.row(*nav_row)
