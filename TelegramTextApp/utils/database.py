@@ -13,63 +13,61 @@ if db_dir:
     os.makedirs(db_dir, exist_ok=True)
 
 async def SQL_request_async(query, params=(), fetch='one', jsonify_result=False):
-    async with aiosqlite.connect(config.DB_PATH) as db:
-        async with db.cursor() as cursor:
-            try:
-                await cursor.execute(query, params)
-                
-                if fetch == 'all':
-                    rows = await cursor.fetchall()
-                    if rows:
-                        columns = [desc[0] for desc in cursor.description]
-                        result = []
-                        for row in rows:
-                            processed_row = {}
-                            for i, col in enumerate(columns):
-                                if isinstance(row[i], str) and row[i].startswith('{'):
-                                    try:
-                                        processed_row[col] = json.loads(row[i])
-                                    except json.JSONDecodeError:
-                                        processed_row[col] = row[i]
-                                else:
-                                    processed_row[col] = row[i]
-                            result.append(processed_row)
-                    else:
-                        result = []
-                
-                elif fetch == 'one':
-                    row = await cursor.fetchone()
-                    if row:
-                        columns = [desc[0] for desc in cursor.description]
-                        result = {}
-                        for i, col in enumerate(columns):
-                            if isinstance(row[i], str) and row[i].startswith('{'):
-                                try:
-                                    result[col] = json.loads(row[i])
-                                except json.JSONDecodeError:
-                                    result[col] = row[i]
-                            else:
-                                result[col] = row[i]
-                    else:
-                        result = None
-                
-                else:  # Для запросов без выборки (INSERT/UPDATE/DELETE)
-                    await db.commit()
-                    result = None
-                    
-            except sqlite3.Error as e:
-                await db.rollback()
-                logger.error(f"Ошибка SQL: {e}")
-                raise
+    def _parse_json_if_needed(value):
+        if isinstance(value, str):
+            value = value.strip()
+            if value.startswith(('{', '[')):
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+        return value
 
-    # Преобразование в JSON при необходимости
+    async with aiosqlite.connect(DB_PATH) as conn:
+        cursor = await conn.cursor()
+        try:
+            await cursor.execute(query, params)
+
+            if fetch == 'all':
+                rows = await cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                result = [
+                    {col: _parse_json_if_needed(row[i]) for i, col in enumerate(columns)}
+                    for row in rows
+                ]
+
+            elif fetch == 'one':
+                row = await cursor.fetchone()
+                if row:
+                    columns = [desc[0] for desc in cursor.description]
+                    result = {col: _parse_json_if_needed(row[i]) for i, col in enumerate(columns)}
+                else:
+                    result = None
+            else:
+                await conn.commit()
+                result = None
+
+        except Exception as e:
+            print(f"Ошибка SQL: {e}")
+            raise
+
     if jsonify_result and result is not None:
         return json.dumps(result, ensure_ascii=False, indent=2)
     return result
 
 
 def SQL_request(query, params=(), fetch='one', jsonify_result=False):
-    with sqlite3.connect(config.DB_PATH) as conn:
+    def _parse_json_if_needed(value):
+        if isinstance(value, str):
+            value = value.strip()
+            if value.startswith(('{', '[')):
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+        return value
+
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         try:
             cursor.execute(query, params)
@@ -78,10 +76,7 @@ def SQL_request(query, params=(), fetch='one', jsonify_result=False):
                 rows = cursor.fetchall()
                 columns = [desc[0] for desc in cursor.description]
                 result = [
-                    {
-                        col: json.loads(row[i]) if isinstance(row[i], str) and row[i].startswith('{') else row[i]
-                        for i, col in enumerate(columns)
-                    }
+                    {col: _parse_json_if_needed(row[i]) for i, col in enumerate(columns)}
                     for row in rows
                 ]
 
@@ -89,10 +84,7 @@ def SQL_request(query, params=(), fetch='one', jsonify_result=False):
                 row = cursor.fetchone()
                 if row:
                     columns = [desc[0] for desc in cursor.description]
-                    result = {
-                        col: json.loads(row[i]) if isinstance(row[i], str) and row[i].startswith('{') else row[i]
-                        for i, col in enumerate(columns)
-                    }
+                    result = {col: _parse_json_if_needed(row[i]) for i, col in enumerate(columns)}
                 else:
                     result = None
             else:
@@ -100,7 +92,7 @@ def SQL_request(query, params=(), fetch='one', jsonify_result=False):
                 result = None
 
         except sqlite3.Error as e:
-            logger.error(f"Ошибка SQL: {e}")
+            print(f"Ошибка SQL: {e}")
             raise
 
     if jsonify_result and result is not None:
