@@ -5,10 +5,8 @@ import json
 
 from .utils.utils import *
 from .utils import logger
-from . import config
 
 logger = logger.setup("MENUS")
-JSON_PATH = config.JSON
 
 def config_custom_module(user_custom_functions): # настройка библиотеки пользователя
     global custom_module
