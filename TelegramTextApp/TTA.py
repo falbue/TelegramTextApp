@@ -1,5 +1,4 @@
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -26,12 +25,12 @@ template_path = os.path.join(script_dir, "template_config.json")
 if os.path.exists(config.JSON):
     pass
 else:
-    with open(template_path, 'r', encoding='utf-8') as template_file:
+    with open(template_path, "r", encoding="utf-8") as template_file:
         template_data = json.load(template_file)
-    
-    with open("bot.json", 'w', encoding='utf-8') as target_file:
+
+    with open("bot.json", "w", encoding="utf-8") as target_file:
         json.dump(template_data, target_file, indent=4, ensure_ascii=False)
-    
+
     logger.info(f"Файл бота 'bot.json' успешно создан")
 
 
@@ -48,7 +47,9 @@ class Form(StatesGroup):
     waiting_for_input = State()
 
 
-async def processing_menu(menu, callback, state, input_data=None): # обработчик сообщений
+async def processing_menu(
+    menu, callback, state, input_data=None
+):  # обработчик сообщений
     message_id = await get_user(callback.message, update=True)
     if menu.get("loading"):
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
@@ -61,7 +62,7 @@ async def processing_menu(menu, callback, state, input_data=None): # обраб�
         popup = menu.get("popup")
         if popup.get("size") == "big":
             show_alert = True
-        else: 
+        else:
             show_alert = False
         await callback.answer(popup["text"], show_alert=show_alert)
         if popup.get("menu_block"):
@@ -70,24 +71,29 @@ async def processing_menu(menu, callback, state, input_data=None): # обраб�
     if menu.get("input"):
         logger.debug("Ожидание ввода...")
         await state.update_data(
-            current_menu=menu,
-            message_id=callback.message.message_id,
-            callback=callback
+            current_menu=menu, message_id=callback.message.message_id, callback=callback
         )
         await state.set_state(Form.waiting_for_input)
 
     if menu.get("send"):
         logger.debug(f"Сообщение было отправлено выбранным пользователям")
-        for user in menu["send"]['ids']:
-            await bot.send_message(text=menu["send"]["text"], reply_markup=menu["send"]["keyboard"], chat_id=user["telegram_id"])
+        for user in menu["send"]["ids"]:
+            await bot.send_message(
+                text=menu["send"]["text"],
+                reply_markup=menu["send"]["keyboard"],
+                chat_id=user["telegram_id"],
+            )
     try:
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     except:
-        await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"],parse_mode=None)
+        await callback.message.edit_text(
+            menu["text"], reply_markup=menu["keyboard"], parse_mode=None
+        )
 
 
-
-@dp.message(lambda message: message.text and message.text.startswith('/')) # Обработчик команд
+@dp.message(
+    lambda message: message.text and message.text.startswith("/")
+)  # Обработчик команд
 async def start_command(message: types.Message, state: FSMContext):
     await state.clear()
     user_id = message.chat.id
@@ -98,14 +104,24 @@ async def start_command(message: types.Message, state: FSMContext):
     menu = await get_menu(message)
 
     try:
-        await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
+        await bot.edit_message_text(
+            menu["text"],
+            reply_markup=menu["keyboard"],
+            chat_id=user_id,
+            message_id=message_id,
+        )
     except Exception as e:
         if str(e) in ("Telegram server says - Bad Request: message to edit not found"):
-            await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
+            await bot.send_message(
+                text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id
+            )
             message_id = await get_user(message, update=True)
             message_id = message_id["message_id"]
             logger.error(f"Обработанная ошибка: {e}")
-        elif str(e) in ("Telegram server says - Bad Request: message can't be edited", "Telegram server says - Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message"):
+        elif str(e) in (
+            "Telegram server says - Bad Request: message can't be edited",
+            "Telegram server says - Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message",
+        ):
             pass
         else:
             logger.error(f"Ошибка: {e}")
@@ -113,82 +129,99 @@ async def start_command(message: types.Message, state: FSMContext):
         if menu.get("loading"):
             menu = await get_menu(message, menu_loading=True)
             try:
-                await bot.edit_message_text(menu["text"], reply_markup=menu["keyboard"], chat_id=user_id, message_id=message_id)
+                await bot.edit_message_text(
+                    menu["text"],
+                    reply_markup=menu["keyboard"],
+                    chat_id=user_id,
+                    message_id=message_id,
+                )
             except Exception as e:
-                if str(e) in ("Telegram server says - Bad Request: message can't be edited"):
+                if str(e) in (
+                    "Telegram server says - Bad Request: message can't be edited"
+                ):
                     pass
                 else:
-                    await bot.send_message(text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id)
+                    await bot.send_message(
+                        text=menu["text"],
+                        reply_markup=menu["keyboard"],
+                        chat_id=user_id,
+                    )
                     message_id = await get_user(message, update=True)
                     message_id = message_id["message_id"]
                     logger.error(f"{e}")
 
         if menu.get("send"):
             logger.debug(f"Сообщение было отправлено выбранным пользователям")
-            for user in menu["send"]['ids']:
-                await bot.send_message(text=menu["send"]["text"], reply_markup=menu["send"]["keyboard"], chat_id=user["telegram_id"])
+            for user in menu["send"]["ids"]:
+                await bot.send_message(
+                    text=menu["send"]["text"],
+                    reply_markup=menu["send"]["keyboard"],
+                    chat_id=user["telegram_id"],
+                )
 
         await message.delete()
-            
 
 
-@dp.callback_query() # Обработчики нажатий на кнопки
+@dp.callback_query()  # Обработчики нажатий на кнопки
 async def handle_callback(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
     data = callback.data
     user_id = callback.message.chat.id
     logger.debug(f"id: {user_id} | Кнопка: {data}")
 
-    if data == 'notification':
+    if data == "notification":
         await callback.message.delete()
         return
-    if data == 'placeholder':
+    if data == "placeholder":
         await callback.answer("")
         return
 
     menu = await get_menu(callback)
     await processing_menu(menu, callback, state)
 
-    
 
-@dp.message(Form.waiting_for_input) # обработчик введённого текста
+@dp.message(Form.waiting_for_input)  # обработчик введённого текста
 async def handle_text_input(message: types.Message, state: FSMContext):
     await message.delete()
 
     data = await state.get_data()
     await state.clear()
     menu = data.get("current_menu")
-    callback = data.get('callback')
+    callback = data.get("callback")
 
-    input_data = menu['input']
-    input_data['input_text'] = message.text
+    input_data = menu["input"]
+    input_data["input_text"] = message.text
 
     menu = await get_menu(message, input_data)
     await processing_menu(menu, callback, state, [message, input_data])
 
+
 @dp.inline_query()
 async def inline_query_handler(inline_query: types.InlineQuery):
-
     query = inline_query.query
     user_id = inline_query.from_user.id
     logger.debug(f"id: {user_id} | Запрос: {query}")
 
     result = await get_inline_result(inline_query)
-    
+
     try:
-        await inline_query.answer(result[0], switch_pm_text=result[1], switch_pm_parameter=result[2])
+        await inline_query.answer(
+            result[0], switch_pm_text=result[1], switch_pm_parameter=result[2]
+        )
     except Exception as e:
-        if str(e) == "Telegram server says - Bad Request: query is too old and response timeout expired or query ID is invalid":
+        if (
+            str(e)
+            == "Telegram server says - Bad Request: query is too old and response timeout expired or query ID is invalid"
+        ):
             pass
         else:
             logger.error(f"Возникла ошибка при inline запросе: {e}")
 
-    
-    
+
 def start():
     # Запуск бота
     async def main():
         await dp.start_polling(bot)
-    
+
     logger.info("Бот запущен")
     asyncio.run(main())
