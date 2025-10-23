@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-env_path = Path('.') / '.env'
+env_path = Path(".") / ".env"
 if env_path.exists():
     load_dotenv(dotenv_path=env_path)
 else:
@@ -13,10 +13,10 @@ LOG_PATH=data
 BOT_JSON=bot.json
 DEBUG=True
 """
-    
-    with open(env_path, 'w', encoding='utf-8') as f:
+
+    with open(env_path, "w", encoding="utf-8") as f:
         f.write(env_template)
-    
+
     raise RuntimeError(
         "Файл .env не найден и был создан автоматически.\n"
         "Пожалуйста, настройте его перед запуском:\n"

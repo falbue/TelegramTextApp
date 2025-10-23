@@ -4,7 +4,7 @@ import sys
 from .. import config
 
 
-def setup(name: str=""):
+def setup(name: str = ""):
     DEBUG = config.DEBUG
     log_path = config.LOG_PATH
 

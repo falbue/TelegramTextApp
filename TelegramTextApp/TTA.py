@@ -4,6 +4,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 import asyncio
 from importlib.metadata import version, PackageNotFoundError
+import os
+import json
+
 from .setup_menu import *
 from .inline_mode import *
 from . import update_bot
@@ -31,7 +34,7 @@ else:
     with open("bot.json", "w", encoding="utf-8") as target_file:
         json.dump(template_data, target_file, indent=4, ensure_ascii=False)
 
-    logger.info(f"Файл бота 'bot.json' успешно создан")
+    logger.info("Файл бота 'bot.json' успешно создан")
 
 
 asyncio.run(create_tables())
@@ -76,7 +79,7 @@ async def processing_menu(
         await state.set_state(Form.waiting_for_input)
 
     if menu.get("send"):
-        logger.debug(f"Сообщение было отправлено выбранным пользователям")
+        logger.debug("Сообщение было отправлено выбранным пользователям")
         for user in menu["send"]["ids"]:
             await bot.send_message(
                 text=menu["send"]["text"],
@@ -151,7 +154,7 @@ async def start_command(message: types.Message, state: FSMContext):
                     logger.error(f"{e}")
 
         if menu.get("send"):
-            logger.debug(f"Сообщение было отправлено выбранным пользователям")
+            logger.debug("Сообщение было отправлено выбранным пользователям")
             for user in menu["send"]["ids"]:
                 await bot.send_message(
                     text=menu["send"]["text"],
