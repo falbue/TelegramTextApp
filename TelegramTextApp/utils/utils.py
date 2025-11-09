@@ -7,7 +7,7 @@ import re
 import sys
 
 from .. import config
-from . import logger
+from .utils import logger
 
 logger = logger.setup("UTILS")
 
@@ -28,7 +28,7 @@ def markdown(text: str, full: bool = False) -> str:  # экранировани�
 def load_json(level: str | None = None) -> dict[str, object]:
     filename = config.JSON
     with open(filename, "r", encoding="utf-8") as f:
-        data: dict[str, object] = json.load(f)
+        data = json.load(f)
         if level is not None:
             data = data[level]
         return data
@@ -116,8 +116,11 @@ def load_custom_functions(file_path):
     try:
         module_name = file_path.split("\\")[-1].replace(".py", "")
 
-        # Загружаем модуль динамически
         spec = importlib.util.spec_from_file_location(module_name, file_path)
+        if spec is None or spec.loader is None:
+            logger.error(f"Не удалось создать spec или loader для модуля: {file_path}")
+            return None
+
         custom_module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = custom_module
         spec.loader.exec_module(custom_module)
@@ -145,6 +148,11 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
         if custom_func and callable(custom_func):
             try:
                 result = await asyncio.to_thread(custom_func, format_data)
+                if not isinstance(result, dict):
+                    logger.error(
+                        f"Функция {func_name} должна возвращать словарь, получено: {type(result)}"
+                    )
+                    return format_data, menu_data
 
                 if result:
                     if result.get("edit_menu"):
