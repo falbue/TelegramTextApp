@@ -12,6 +12,7 @@ from .utils.utils import (
 from .utils.database import SQL_request_async as SQL, get_user, get_role_id
 from .utils.logger import setup as setup_logger
 
+
 logger = setup_logger("MENUS")
 
 
@@ -294,22 +295,29 @@ async def create_menu(menu_context, menu_loading=False):
         send_menu = menu_data["send_menu"]
         del menu_data["send_menu"]
 
-        menu_context["menu_name"] = send_menu["menu"]
-        menu_data["send"] = await create_menu(menu_context)
-        ids = send_menu["user"]
-        if isinstance(ids, int):
-            menu_data["send"]["ids"] = [ids]
-        elif isinstance(ids, list):
-            menu_data["send"]["ids"] = ids
-        elif isinstance(ids, str):
-            menu_data["send"]["ids"] = await get_role_id(ids)
+        if isinstance(menu_data, dict):
+            if isinstance(send_menu, dict):
+                menu_context["menu_name"] = send_menu.get("menu")
+                raw_menu_data = await create_menu(menu_context, menu_loading)
+                menu_data["send"] = raw_menu_data  # type: ignore
+                ids = send_menu.get("user")
+                if isinstance(ids, int):
+                    menu_data["send"]["ids"] = [ids]
+                elif isinstance(ids, list):
+                    menu_data["send"]["ids"] = ids
+                elif isinstance(ids, str):
+                    menu_data["send"]["ids"] = await get_role_id(ids)
+            else:
+                raise Exception("send_menu должен быть словарём!")
+        else:
+            raise Exception("Меню для отправки должно быть словарём!")
 
     if menu_data.get("popup"):
         popup = menu_data.get("popup")
         if isinstance(popup, dict):
             popup["text"] = create_text(popup.get("text"), format_data, False)
             if popup.get("menu_block"):
-                menu_data["text"] = "None"
+                menu_data["text"] = "None"  # type: ignore
     else:
         popup = None
 
