@@ -7,9 +7,9 @@ import re
 import sys
 
 from .. import config
-from .utils import logger
+from .logger import setup as setup_logger
 
-logger = logger.setup("UTILS")
+logger = setup_logger("UTILS")
 
 
 def markdown(text: str, full: bool = False) -> str:  # экранирование

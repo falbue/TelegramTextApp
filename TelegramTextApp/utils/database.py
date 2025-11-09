@@ -4,10 +4,10 @@ import sqlite3
 from typing import overload, Literal, Any
 
 import os
-from .utils import logger
+from .logger import setup as setup_logger
 from .. import config
 
-logger = logger.setup("DATABASE")  # type: ignore
+logger = setup_logger("DATABASE")
 
 DB_PATH = config.DB_PATH
 db_dir = os.path.dirname(DB_PATH)

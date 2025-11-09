@@ -251,7 +251,7 @@ async def inline_query_handler(inline_query: types.InlineQuery):
             logger.error(f"Возникла ошибка при inline запросе: {e}")
 
 
-def start():
+def start() -> None:
     # Запуск бота
     async def main():
         await dp.start_polling(bot)
