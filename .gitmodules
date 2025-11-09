@@ -1,0 +1,3 @@
+[submodule "TelegramTextApp.wiki.git"]
+	path = TelegramTextApp.wiki
+	url = https://github.com/falbue/TelegramTextApp.wiki.git
