@@ -1,20 +1,37 @@
 import aiosqlite
 import json
 import sqlite3
+from typing import overload, Literal, Any
 
 import os
-from . import logger
+from .utils import logger
 from .. import config
 
-logger = logger.setup("DATABASE")
+logger = logger.setup("DATABASE")  # type: ignore
 
 DB_PATH = config.DB_PATH
-db_dir = os.path.dirname(config.DB_PATH)
+db_dir = os.path.dirname(DB_PATH)
 if db_dir:
     os.makedirs(db_dir, exist_ok=True)
 
 
-async def SQL_request_async(query, params=(), fetch="one", jsonify_result=False):
+@overload
+async def SQL_request_async(
+    query: str, params: tuple = ..., fetch: Literal["one"] = ...
+) -> dict[str, Any] | None: ...
+@overload
+async def SQL_request_async(
+    query: str, params: tuple = ..., fetch: Literal["all"] = ...
+) -> list[dict[str, Any]]: ...
+@overload
+async def SQL_request_async(
+    query: str, params: tuple = ..., fetch: str = ...
+) -> None: ...
+
+
+async def SQL_request_async(
+    query, params=(), fetch="one"
+) -> dict[str, str] | list[dict[str, str]] | None:
     def _parse_json_if_needed(value):
         if isinstance(value, str):
             value = value.strip()
@@ -59,12 +76,12 @@ async def SQL_request_async(query, params=(), fetch="one", jsonify_result=False)
             print(f"Ошибка SQL: {e}")
             raise
 
-    if jsonify_result and result is not None:
-        return json.dumps(result, ensure_ascii=False, indent=2)
     return result
 
 
-def SQL_request(query, params=(), fetch="one", jsonify_result=False):
+def SQL_request(
+    query, params=(), fetch="one"
+) -> dict[str, Any] | list[dict[str, Any]] | None:
     def _parse_json_if_needed(value):
         if isinstance(value, str):
             value = value.strip()
@@ -109,8 +126,6 @@ def SQL_request(query, params=(), fetch="one", jsonify_result=False):
             print(f"Ошибка SQL: {e}")
             raise
 
-    if jsonify_result and result is not None:
-        return json.dumps(result, ensure_ascii=False, indent=2)
     return result
 
 
@@ -150,7 +165,7 @@ async def extract_user_data(
                 user = await SQL_request_async(
                     "SELECT * FROM TTA WHERE telegram_id = ?", (message.chat.id,), "one"
                 )
-                message_id = user["message_id"]
+                message_id = user.get("message_id") if user else message.message_id
         except Exception as e:
             logger.error(f"Ошибка при обработке данных пользователя: {e}")
             message_id = message.message_id
@@ -186,7 +201,7 @@ async def create_user(bot_data):
                 user_data["username"],
                 user_data["message_id"],
             ),
-            None,
+            "",
         )
         return True
     except Exception as e:
@@ -215,7 +230,7 @@ async def update_user_data(bot_data, update):
                 user_data["message_id"],
                 user_data["telegram_id"],
             ),
-            None,
+            "",
         )
     except Exception as e:
         logger.error(f"Не удалось обновить данные пользователя: {e}")

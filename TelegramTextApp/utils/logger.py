@@ -4,10 +4,9 @@ import sys
 from .. import config
 
 
-def setup(name: str = ""):
-    DEBUG = config.DEBUG
-    log_path = config.LOG_PATH
-
+def setup(
+    name: str = "", DEBUG: bool = config.DEBUG, log_path: str = config.LOG_PATH
+) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.handlers.clear()
 
