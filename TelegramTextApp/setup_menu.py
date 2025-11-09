@@ -10,9 +10,9 @@ from .utils.utils import (
     process_custom_function,
 )
 from .utils.database import SQL_request_async as SQL, get_user, get_role_id
-from .utils import logger
+from .utils.logger import setup as setup_logger
 
-logger = logger.setup("MENUS")
+logger = setup_logger("MENUS")
 
 
 def config_custom_module(user_custom_functions):  # настройка библиотеки пользователя
@@ -23,10 +23,10 @@ def config_custom_module(user_custom_functions):  # настройка библ�
 async def get_bot_data(callback, bot_input=None):  # получение данных от бота
     user = await get_user(callback)
 
-    tta_data = {}
+    menu_context = {}
     if bot_input:
         menu_name = bot_input["menu"]
-        tta_data["bot_input"] = bot_input
+        menu_context["bot_input"] = bot_input
         message = callback
 
     elif hasattr(callback, "message"):  # кнопка
@@ -34,23 +34,38 @@ async def get_bot_data(callback, bot_input=None):  # получение данн
         message = callback.message
     else:  # команда
         message = callback
-        command = message.text
-        commands = load_json(level="commands")
-        command_data = commands.get(command.replace("/", ""))
+        command = message.text or ""
+        commands = load_json(level="commands") or {}
+
+        if not isinstance(commands, dict):
+            try:
+                commands = dict(commands)
+            except Exception:
+                commands = {}
+
+        command_key = command.replace("/", "")
+        command_data = commands.get(command_key)
         if command_data is None:
             return None
-        menu_name = command_data.get("menu")
 
-    tta_data["menu_name"] = menu_name
-    tta_data["telegram_id"] = message.chat.id
-    tta_data["user"] = user
-    tta_data["callback"] = callback
+        if isinstance(command_data, dict):
+            menu_name = command_data.get("menu")
+        else:
+            menu_name = getattr(command_data, "menu", None)
 
-    return tta_data
+        if menu_name is None:
+            return None
+
+    menu_context["menu_name"] = menu_name
+    menu_context["telegram_id"] = message.chat.id
+    menu_context["user"] = user
+    menu_context["callback"] = callback
+
+    return menu_context
 
 
 async def create_keyboard(
-    menu_data, format_data=None, custom_module=None, current_page_index=0
+    menu_data, format_data, custom_module=None, current_page_index=0
 ):  # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
@@ -102,9 +117,9 @@ async def create_keyboard(
                 callback_data = callback_data.replace(f"role:{role}|", "")
 
                 user_role = await SQL(
-                    "SELECT role FROM TTA WHERE id=?", (format_data["id"],)
+                    "SELECT role FROM TTA WHERE id=?", (format_data.get("id"),)
                 )
-                user_role = user_role["role"]
+                user_role = user_role.get("role") if user_role else None
                 if user_role == role:
                     button = InlineKeyboardButton(
                         text=button_text, callback_data=callback_data
@@ -192,7 +207,7 @@ async def create_keyboard(
     return builder.as_markup()
 
 
-def create_text(text, format_data=None, use_markdown=True):  # создание текста
+def create_text(text, format_data=None, use_markdown=True) -> str:  # создание текста
     if format_data:
         text = formatting_text(text, format_data)
     if use_markdown:
@@ -201,12 +216,12 @@ def create_text(text, format_data=None, use_markdown=True):  # создание 
 
 
 async def get_menu(callback, bot_input=None, menu_loading=False):
-    tta_data = await get_bot_data(callback, bot_input)
-    return await create_menu(tta_data, menu_loading)
+    menu_context = await get_bot_data(callback, bot_input)
+    return await create_menu(menu_context, menu_loading)
 
 
-async def create_menu(tta_data, menu_loading=False):  # получение нужного меню
-    menu_name = tta_data["menu_name"]
+async def create_menu(menu_context, menu_loading=False):
+    menu_name = menu_context["menu_name"]
     variables = load_json("variables")
 
     menus = load_json(level="menu")
@@ -237,22 +252,26 @@ async def create_menu(tta_data, menu_loading=False):  # получение ну�
     if not menu_data:
         menu_data = menus.get("none_menu")
 
+    if menu_data is None:
+        raise Exception(f"Меню {menu_name} не найдено в файле меню!")
+
     if menu_data.get("loading") and menu_loading is False:
         if menu_data["loading"] is True:
             text = variables["tta_loading"]
         else:
             text = menu_data["loading"]
-        text = markdown(text)
+        text = markdown(str(text))
         return {"text": text, "keyboard": None, "loading": True}
 
-    format_data = parse_bot_data(template, menu_name)
-    format_data = {**format_data, **(tta_data["user"] or {})}
+    format_data = dict(parse_bot_data(template, menu_name) or {})
+    user_data = menu_context.get("user") or {}
+    format_data.update(user_data)
     format_data["menu_name"] = menu_name
     format_data["variables"] = variables
 
-    if tta_data.get("bot_input"):
-        menu_data["bot_input"] = tta_data["bot_input"].get("function")
-        bot_input = tta_data["bot_input"]
+    if menu_context.get("bot_input"):
+        menu_data["bot_input"] = menu_context["bot_input"].get("function")
+        bot_input = menu_context["bot_input"]
         format_data[bot_input["data"]] = bot_input.get("input_text", None)
         format_data, menu_data = await process_custom_function(
             "bot_input", format_data, menu_data, custom_module
@@ -268,15 +287,15 @@ async def create_menu(tta_data, menu_loading=False):  # получение ну�
         )
 
     if menu_data.get("edit_menu"):
-        tta_data["menu_name"] = menu_data["edit_menu"]
-        return await create_menu(tta_data, menu_loading)
+        menu_context["menu_name"] = menu_data["edit_menu"]
+        return await create_menu(menu_context, menu_loading)
 
     if menu_data.get("send_menu"):
         send_menu = menu_data["send_menu"]
         del menu_data["send_menu"]
 
-        tta_data["menu_name"] = send_menu["menu"]
-        menu_data["send"] = await create_menu(tta_data)
+        menu_context["menu_name"] = send_menu["menu"]
+        menu_data["send"] = await create_menu(menu_context)
         ids = send_menu["user"]
         if isinstance(ids, int):
             menu_data["send"]["ids"] = [ids]
@@ -286,11 +305,11 @@ async def create_menu(tta_data, menu_loading=False):  # получение ну�
             menu_data["send"]["ids"] = await get_role_id(ids)
 
     if menu_data.get("popup"):
-        popup = {}
         popup = menu_data.get("popup")
-        popup["text"] = create_text(popup["text"], format_data, False)
-        if popup.get("menu_block"):
-            menu_data["text"] = "bla"
+        if isinstance(popup, dict):
+            popup["text"] = create_text(popup.get("text"), format_data, False)
+            if popup.get("menu_block"):
+                menu_data["text"] = "None"
     else:
         popup = None
 

@@ -236,7 +236,7 @@ async def update_user_data(bot_data, update):
         logger.error(f"Не удалось обновить данные пользователя: {e}")
 
 
-async def get_user(bot_data, update=False):
+async def get_user(bot_data, update=False) -> dict[str, Any] | None:
     """Возвращает пользователя, создает нового при отсутствии."""
     user_data = await extract_user_data(bot_data)
     telegram_id = user_data["telegram_id"]

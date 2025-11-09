@@ -26,10 +26,6 @@ DEBUG=True
     )
 
 TOKEN = os.getenv("TOKEN")
-
-if TOKEN is None or TOKEN == "":
-    raise RuntimeError("Укажите TOKEN бота в .env файле")
-
 DB_PATH: str = os.getenv("DB_PATH", "data/database.db")
 LOG_PATH: str = os.getenv("LOG_PATH", "data")
 DEBUG: bool = os.getenv("DEBUG", "False").lower() in ["true", "1"]

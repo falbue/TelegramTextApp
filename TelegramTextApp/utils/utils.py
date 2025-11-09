@@ -25,7 +25,9 @@ def markdown(text: str, full: bool = False) -> str:  # экранировани�
     return escaped_text
 
 
-def load_json(level: str | None = None) -> dict[str, object]:
+def load_json(
+    level: str | None = None,
+) -> dict[str, dict[str, str]] | dict[str, dict[str, dict[str, str]]]:
     filename = config.JSON
     with open(filename, "r", encoding="utf-8") as f:
         data = json.load(f)

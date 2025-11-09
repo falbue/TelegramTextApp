@@ -7,14 +7,22 @@ from importlib.metadata import version, PackageNotFoundError
 import os
 import json
 
-from .setup_menu import *
-from .inline_mode import *
+from .setup_menu import (
+    config_custom_module,
+    load_json,
+    get_user,
+    get_menu,
+)
+from .inline_mode import get_inline_result
 from . import update_bot
 from . import config
-from .utils import logger
+
+from .utils.logger import setup as logger_setup
+from .utils.database import create_tables
+from .utils.utils import get_caller_file_path
 
 
-logger = logger.setup("TTA")
+logger = logger_setup("TTA")
 try:
     VERSION = version("TelegramTextApp")
 except PackageNotFoundError:
@@ -42,6 +50,9 @@ config_custom_module(get_caller_file_path())
 asyncio.run(update_bot.update_bot_info(load_json()))
 
 
+if config.TOKEN is None or config.TOKEN == "":
+    raise RuntimeError("Укажите TOKEN бота в .env файле")
+
 bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
 dp = Dispatcher()
 
@@ -53,7 +64,7 @@ class Form(StatesGroup):
 async def processing_menu(
     menu, callback, state, input_data=None
 ):  # обработчик сообщений
-    message_id = await get_user(callback.message, update=True)
+    await get_user(callback.message, update=True)
     if menu.get("loading"):
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
         if input_data:
@@ -63,13 +74,14 @@ async def processing_menu(
 
     if menu.get("popup"):
         popup = menu.get("popup")
-        if popup.get("size") == "big":
-            show_alert = True
-        else:
-            show_alert = False
-        await callback.answer(popup["text"], show_alert=show_alert)
-        if popup.get("menu_block"):
-            return
+        if isinstance(popup, dict):
+            if popup.get("size") == "big":
+                show_alert = True
+            else:
+                show_alert = False
+            await callback.answer(popup["text"], show_alert=show_alert)
+            if popup.get("menu_block") is True:
+                return
 
     if menu.get("input"):
         logger.debug("Ожидание ввода...")
@@ -88,7 +100,8 @@ async def processing_menu(
             )
     try:
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
-    except:
+    except Exception as e:
+        logger.error(f"Ошибка при обновлении меню: {e}")
         await callback.message.edit_text(
             menu["text"], reply_markup=menu["keyboard"], parse_mode=None
         )
@@ -101,7 +114,8 @@ async def start_command(message: types.Message, state: FSMContext):
     await state.clear()
     user_id = message.chat.id
     message_id = await get_user(message)
-    message_id = message_id["message_id"]
+    if message_id is not None:
+        message_id = message_id["message_id"]
 
     logger.debug(f"id: {user_id} | Команда: {message.text}")
     menu = await get_menu(message)
@@ -119,7 +133,8 @@ async def start_command(message: types.Message, state: FSMContext):
                 text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id
             )
             message_id = await get_user(message, update=True)
-            message_id = message_id["message_id"]
+            if message_id is not None:
+                message_id = message_id["message_id"]
             logger.error(f"Обработанная ошибка: {e}")
         elif str(e) in (
             "Telegram server says - Bad Request: message can't be edited",
@@ -150,7 +165,8 @@ async def start_command(message: types.Message, state: FSMContext):
                         chat_id=user_id,
                     )
                     message_id = await get_user(message, update=True)
-                    message_id = message_id["message_id"]
+                    if message_id is not None:
+                        message_id = message_id["message_id"]
                     logger.error(f"{e}")
 
         if menu.get("send"):
@@ -169,11 +185,16 @@ async def start_command(message: types.Message, state: FSMContext):
 async def handle_callback(callback: types.CallbackQuery, state: FSMContext):
     await state.clear()
     data = callback.data
-    user_id = callback.message.chat.id
+    user_id = (
+        callback.message.chat.id
+        if callback.message and callback.message.chat
+        else callback.from_user.id
+    )
     logger.debug(f"id: {user_id} | Кнопка: {data}")
 
     if data == "notification":
-        await callback.message.delete()
+        if callback.message:
+            await callback.message.delete()  # type: ignore
         return
     if data == "placeholder":
         await callback.answer("")
@@ -192,11 +213,17 @@ async def handle_text_input(message: types.Message, state: FSMContext):
     menu = data.get("current_menu")
     callback = data.get("callback")
 
-    input_data = menu["input"]
-    input_data["input_text"] = message.text
+    if isinstance(menu, dict):
+        if menu.get("input"):
+            input_data = menu["input"]
+            input_data["input_text"] = message.text
 
-    menu = await get_menu(message, input_data)
-    await processing_menu(menu, callback, state, [message, input_data])
+            menu = await get_menu(message, input_data)
+            await processing_menu(menu, callback, state, [message, input_data])
+        else:
+            logger.error("Меню ввода не найдено или оно некорректно")
+    else:
+        logger.error("Текущего меню не найдено или оно некорректно")
 
 
 @dp.inline_query()
@@ -205,11 +232,14 @@ async def inline_query_handler(inline_query: types.InlineQuery):
     user_id = inline_query.from_user.id
     logger.debug(f"id: {user_id} | Запрос: {query}")
 
-    result = await get_inline_result(inline_query)
-
+    result, switch_pm_text, switch_pm_param = await get_inline_result(inline_query)
+    if result is None:
+        return
     try:
         await inline_query.answer(
-            result[0], switch_pm_text=result[1], switch_pm_parameter=result[2]
+            result,
+            switch_pm_text=str(switch_pm_text),
+            switch_pm_parameter=str(switch_pm_param),
         )
     except Exception as e:
         if (
