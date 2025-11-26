@@ -104,15 +104,7 @@ async def create_keyboard(
             button_text = formatting_text(button_text, format_data)
             callback_data = formatting_text(callback_data, format_data)
 
-            if callback_data.startswith("url:"):
-                url = callback_data[4:]
-                button = InlineKeyboardButton(text=button_text, url=url)
-            elif callback_data.startswith("app:"):
-                url = callback_data[4:]
-                button = InlineKeyboardButton(
-                    text=button_text, web_app=WebAppInfo(url=url)
-                )
-            elif callback_data.startswith("role:"):
+            if callback_data.startswith("role:"):
                 role = callback_data.split("|")[0]
                 role = role.split(":")[1]
                 callback_data = callback_data.replace(f"role:{role}|", "")
@@ -122,11 +114,22 @@ async def create_keyboard(
                 )
                 user_role = user_role.get("role") if user_role else None
                 if user_role == role:
-                    button = InlineKeyboardButton(
-                        text=button_text, callback_data=callback_data
-                    )
+                    if callback_data.startswith("url:"):
+                        url = callback_data[4:]
+                        button = InlineKeyboardButton(text=button_text, url=url)
+                    elif callback_data.startswith("app:"):
+                        url = callback_data[4:]
+                        button = InlineKeyboardButton(
+                            text=button_text, web_app=WebAppInfo(url=url)
+                        )
+                    else:
+                        button = InlineKeyboardButton(
+                            text=button_text, callback_data=callback_data
+                        )
+
                 else:
                     continue
+
             else:
                 button = InlineKeyboardButton(
                     text=button_text, callback_data=callback_data
