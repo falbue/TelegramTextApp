@@ -13,7 +13,6 @@ from .setup_menu import (
     get_user,
     get_menu,
 )
-from .inline_mode import get_inline_result
 from . import update_bot
 from . import config
 
