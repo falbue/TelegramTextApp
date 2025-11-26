@@ -1,7 +1,7 @@
 import TelegramTextApp
 
 if __name__ == "__main__":
-    TelegramTextApp.start()
+    TelegramTextApp.start()  # type: ignore
 
 
 def custom_buttons(tta_data):
