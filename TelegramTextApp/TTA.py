@@ -226,31 +226,6 @@ async def handle_text_input(message: types.Message, state: FSMContext):
         logger.error("Текущего меню не найдено или оно некорректно")
 
 
-@dp.inline_query()
-async def inline_query_handler(inline_query: types.InlineQuery):
-    query = inline_query.query
-    user_id = inline_query.from_user.id
-    logger.debug(f"id: {user_id} | Запрос: {query}")
-
-    result, switch_pm_text, switch_pm_param = await get_inline_result(inline_query)
-    if result is None:
-        return
-    try:
-        await inline_query.answer(
-            result,
-            switch_pm_text=str(switch_pm_text),
-            switch_pm_parameter=str(switch_pm_param),
-        )
-    except Exception as e:
-        if (
-            str(e)
-            == "Telegram server says - Bad Request: query is too old and response timeout expired or query ID is invalid"
-        ):
-            pass
-        else:
-            logger.error(f"Возникла ошибка при inline запросе: {e}")
-
-
 def start() -> None:
     # Запуск бота
     async def main():
