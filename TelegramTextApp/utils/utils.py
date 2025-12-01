@@ -53,8 +53,12 @@ def default_values():
     return data
 
 
-def formatting_text(text, format_data=None):  # форматирование текста
-    values = {**default_values(), **(format_data or {})}
+def formatting_text(text, format_data):  # форматирование текста
+    values = {
+        **default_values(),
+        **(format_data or {}),
+        **format_data.get("variables", {}),
+    }
 
     start = text.find("{")
     while start != -1:
