@@ -24,7 +24,7 @@ jobs:
             exit 1
           fi
           
-          # Проверяем, является ли тег публикацией в PyPI (только числа, любой длины)
+          # Проверяем, является ли тег публикацией в PyPI (только числа и точки)
           if [[ "$TAG" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
             PUBLISH="true"
           else
@@ -32,7 +32,7 @@ jobs:
           fi
           
           # Проверяем, является ли релиз пререлизом (начинается с alpha- или beta-)
-          if [[ "$TAG" =~ ^(alpha|beta)-.* ]]; then
+          if [[ "$TAG" =~ ^(alpha|beta)- ]]; then
             SHOULD_CREATE="true"
             PRERELEASE="true"
           # Проверяем, является ли релиз обычным (3 сегмента и меньше, только числа)
@@ -44,6 +44,7 @@ jobs:
             PRERELEASE="false"
           fi
           
+          echo "DEBUG: tag=$TAG, publish=$PUBLISH, should_create=$SHOULD_CREATE" >&2
           echo "should-create-release=$SHOULD_CREATE" >> $GITHUB_OUTPUT
           echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
           echo "version=$TAG" >> $GITHUB_OUTPUT
