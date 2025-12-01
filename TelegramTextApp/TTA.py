@@ -79,7 +79,7 @@ async def processing_menu(
             else:
                 show_alert = False
             await callback.answer(popup["text"], show_alert=show_alert)
-            if popup.get("menu_block") is True:
+            if popup.get("blocked") is True:
                 return
 
     if menu.get("input"):

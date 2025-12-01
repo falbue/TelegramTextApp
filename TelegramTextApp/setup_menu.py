@@ -322,7 +322,7 @@ async def create_menu(menu_context, menu_loading=False):
         popup = menu_data.get("popup")
         if isinstance(popup, dict):
             popup["text"] = create_text(popup.get("text"), format_data, False)
-            if popup.get("menu_block"):
+            if popup.get("blocked") is True:
                 menu_data["text"] = "None"  # type: ignore
     else:
         popup = None
