@@ -151,7 +151,7 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
             try:
                 result = await asyncio.to_thread(custom_func, format_data)
                 if not isinstance(result, dict):
-                    logger.error(
+                    logger.warning(
                         f"Функция {func_name} должна возвращать словарь, получено: {type(result)}"
                     )
                     return format_data, menu_data

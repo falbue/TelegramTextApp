@@ -301,6 +301,9 @@ async def create_menu(menu_context, menu_loading=False):
         if isinstance(menu_data, dict):
             if isinstance(send_menu, dict):
                 menu_context["menu_name"] = send_menu.get("menu")
+                menu_context["menu_name"] = formatting_text(
+                    menu_context["menu_name"], format_data
+                )
                 raw_menu_data = await create_menu(menu_context, menu_loading)
                 menu_data["send"] = raw_menu_data  # type: ignore
                 ids = send_menu.get("user")
