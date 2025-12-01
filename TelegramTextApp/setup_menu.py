@@ -306,13 +306,17 @@ async def create_menu(menu_context, menu_loading=False):
                 )
                 raw_menu_data = await create_menu(menu_context, menu_loading)
                 menu_data["send"] = raw_menu_data  # type: ignore
-                ids = send_menu.get("user")
+                ids = send_menu.get("id")
                 if isinstance(ids, int):
                     menu_data["send"]["ids"] = [ids]
                 elif isinstance(ids, list):
                     menu_data["send"]["ids"] = ids
                 elif isinstance(ids, str):
-                    menu_data["send"]["ids"] = await get_role_id(ids)
+                    if ids.startswith("{"):
+                        ids = formatting_text(ids, format_data)
+                        menu_data["send"]["ids"] = [ids]
+                    else:
+                        menu_data["send"]["ids"] = await get_role_id(ids)
             else:
                 raise Exception("send_menu должен быть словарём!")
         else:
