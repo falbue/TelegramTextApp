@@ -12,7 +12,7 @@ jobs:
     outputs:
       version: ${{ steps.validate.outputs.version }}
       should-create-release: ${{ steps.validate.outputs.should-create-release }}
-      prerelease: ${{ steps.validate.outputs.prerelease }}
+
     steps:
       - name: Получить версию из тега
         id: validate
@@ -23,37 +23,32 @@ jobs:
             echo "Выбрана ветка"
             exit 1
           fi
-          
-          # Проверяем, является ли тег публикацией в PyPI (только числа и точки)
-          if [[ "$TAG" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
-            PUBLISH="true"
-          else
-            PUBLISH="false"
+
+          # формат версии (x.x.x.x...)
+          if [[ ! "$TAG" =~ ^[0-9]+(\.[0-9]+)+$ ]]; then
+            echo "::error::Тег должен быть в формате x.x.x.x..."
+            exit 1
           fi
+
+          # количество сегментов
+          SEGMENTS=$(echo "$TAG" | tr '.' '\n' | wc -l)
           
-          # Проверяем, является ли релиз пререлизом (начинается с alpha- или beta-)
-          if [[ "$TAG" =~ ^(alpha|beta)- ]]; then
-            SHOULD_CREATE="true"
-            PRERELEASE="true"
-          # Проверяем, является ли релиз обычным (3 сегмента и меньше, только числа)
-          elif [[ "$TAG" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
-            SHOULD_CREATE="true"
-            PRERELEASE="false"
+          # релиз только если сегментов не больше 3
+          if [ "$SEGMENTS" -le 3 ]; then
+            echo "should-create-release=true" >> $GITHUB_OUTPUT
           else
-            SHOULD_CREATE="false"
-            PRERELEASE="false"
+            echo "should-create-release=false" >> $GITHUB_OUTPUT
+
           fi
-          
-          echo "DEBUG: tag=$TAG, publish=$PUBLISH, should_create=$SHOULD_CREATE" >&2
-          echo "should-create-release=$SHOULD_CREATE" >> $GITHUB_OUTPUT
-          echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
+
+
+
           echo "version=$TAG" >> $GITHUB_OUTPUT
-          echo "publish=$PUBLISH" >> $GITHUB_OUTPUT
-          
+
   publish:
     runs-on: ubuntu-latest
     needs: validate-tag
-    if: ${{ needs.validate-tag.outputs.publish == 'true'}}
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -90,6 +85,6 @@ jobs:
           tag_name: ${{ needs.validate-tag.outputs.version }}
           name: Релиз ${{ needs.validate-tag.outputs.version }}
           generate_release_notes: true
-          prerelease: ${{ needs.validate-tag.outputs.prerelease }}
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
