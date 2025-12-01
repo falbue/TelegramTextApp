@@ -23,33 +23,32 @@ jobs:
             echo "Выбрана ветка"
             exit 1
           fi
-
-          # По умолчанию
-          SHOULD_CREATE="false"
-          PRERELEASE="false"
-
+          
+          # Проверяем, является ли тег публикацией в PyPI (только числа, любой длины)
           if [[ "$TAG" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
             PUBLISH="true"
           else
             PUBLISH="false"
           fi
-
-          if [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            SHOULD_CREATE="true"
-            PRERELEASE="false"
-          elif [[ "$TAG" =~ ^(alpha|beta)-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          
+          # Проверяем, является ли релиз пререлизом (начинается с alpha- или beta-)
+          if [[ "$TAG" =~ ^(alpha|beta)-.* ]]; then
             SHOULD_CREATE="true"
             PRERELEASE="true"
+          # Проверяем, является ли релиз обычным (3 сегмента и меньше, только числа)
+          elif [[ "$TAG" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
+            SHOULD_CREATE="true"
+            PRERELEASE="false"
           else
             SHOULD_CREATE="false"
             PRERELEASE="false"
           fi
-
+          
           echo "should-create-release=$SHOULD_CREATE" >> $GITHUB_OUTPUT
           echo "prerelease=$PRERELEASE" >> $GITHUB_OUTPUT
           echo "version=$TAG" >> $GITHUB_OUTPUT
           echo "publish=$PUBLISH" >> $GITHUB_OUTPUT
-
+          
   publish:
     runs-on: ubuntu-latest
     needs: validate-tag
