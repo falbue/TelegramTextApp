@@ -10,42 +10,38 @@
             "text": "Меню `{menu_name}` не найдено",
             "return": "main"
         },
-
         "main": {
-            "row":1,
+            "row": 1,
             "text": "Выберите подходящее меню",
-            "keyboard":{
-                "default_input":"Простой ввод",
-                "processing":"Обработка ввода"
+            "keyboard": {
+                "default_input": "Простой ввод",
+                "processing": "Обработка ввода"
             }
-
         },
-
-        "default_input":{
-            "loading":true,
-            "text":"Введите текст\nВы ввели: {user_text}",
-            "function":"test",
-            "input":{
-                "data":"user_text",
-                "menu":"default_input"
+        "default_input": {
+            "loading": true,
+            "text": "Введите текст\nВы ввели: {user_text}",
+            "function": "test",
+            "input": {
+                "data": "user_text",
+                "menu": "default_input"
             },
-            "return":"main"
+            "return": "main"
         },
-
-        "processing":{
-            "loading":"Данные пользователя обрабатываются",
-            "text":"Отправте сообщение, для его дальнейшей обработки\n{notification_text}",
-            "input":{
-                "data":"user_text",
-                "menu":"processing",
-                "function":"processing_input"
+        "processing": {
+            "loading": "Данные пользователя обрабатываются",
+            "text": "Отправте сообщение, для его дальнейшей обработки\n{notification_text}",
+            "input": {
+                "data": "user_text",
+                "menu": "processing",
+                "function": "processing_input"
             },
-            "return":"main"
+            "return": "main"
         }
     },
     "variables": {
         "tta_return": "‹ Назад",
-        "tta_loading":"Загрузка...",
+        "tta_loading": "Загрузка...",
         "tta_pagination_back": "‹",
         "tta_pagination_next": "›"
     },
