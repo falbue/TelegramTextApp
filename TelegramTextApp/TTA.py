@@ -90,13 +90,13 @@ async def processing_menu(
         await state.set_state(Form.waiting_for_input)
 
     if menu.get("send"):
-        logger.debug("Сообщение было отправлено выбранным пользователям")
         for user in menu["send"]["ids"]:
             await bot.send_message(
                 text=menu["send"]["text"],
                 reply_markup=menu["send"]["keyboard"],
-                chat_id=user["telegram_id"],
+                chat_id=user,
             )
+        logger.debug("Сообщение было отправлено выбранным пользователям")
     try:
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     except Exception as e:
