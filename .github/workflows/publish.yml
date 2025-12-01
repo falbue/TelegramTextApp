@@ -24,16 +24,19 @@ jobs:
             exit 1
           fi
 
-          # По умолчанию не создавать релиз
+          # По умолчанию
           SHOULD_CREATE="false"
           PRERELEASE="false"
 
-          # Чисто цифровой тег вида 1.2.3 — обычный релиз
+          if [[ "$TAG" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            PUBLISH="true"
+          else
+            PUBLISH="false"
+          fi
+
           if [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             SHOULD_CREATE="true"
             PRERELEASE="false"
-
-          # Теги alpha-1.2.3 или beta-1.2.3 — пререлиз
           elif [[ "$TAG" =~ ^(alpha|beta)-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             SHOULD_CREATE="true"
             PRERELEASE="true"
