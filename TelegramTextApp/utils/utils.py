@@ -5,11 +5,14 @@ import os
 import random
 import re
 import sys
+from typing import TypeAlias
 
 from .. import config
 from .logger import setup as setup_logger
 
 logger = setup_logger("UTILS")
+
+Json: TypeAlias = dict[str, str] | dict[str, dict[str, str]]
 
 
 def markdown(text: str, full: bool = False) -> str:  # экранирование
@@ -27,7 +30,7 @@ def markdown(text: str, full: bool = False) -> str:  # экранировани�
 
 def load_json(
     level: str | None = None,
-) -> dict[str, dict[str, str]] | dict[str, dict[str, dict[str, str]]]:
+) -> dict[str, Json]:
     filename = config.JSON
     with open(filename, "r", encoding="utf-8") as f:
         data = json.load(f)

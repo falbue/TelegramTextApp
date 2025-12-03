@@ -66,12 +66,14 @@ async def get_bot_data(callback, bot_input=None):  # получение данн
 
 
 async def create_keyboard(
-    menu_data, format_data, custom_module=None, current_page_index=0
+    menu_data, format_data, current_page_index=0
 ):  # создание клавиатуры
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
 
-    if "keyboard" in menu_data:
+    if "keyboard" in menu_data and not (
+        isinstance(menu_data["keyboard"], dict) and len(menu_data["keyboard"]) == 0
+    ):
         keyboard_items = list(menu_data["keyboard"].items())
         pagination_limit = menu_data.get("pagination", 10)
         if pagination_limit is None:
@@ -273,6 +275,14 @@ async def create_menu(menu_context, menu_loading=False):
     format_data["menu_name"] = menu_name
     format_data["variables"] = variables
 
+    if menu_data.get("input"):
+        input_data = menu_data.get("input")
+        if isinstance(input_data, dict):
+            if input_data.get("menu"):
+                menu_data["input"]["menu"] = formatting_text(  # type: ignore
+                    input_data.get("menu"), format_data
+                )
+
     if menu_context.get("bot_input"):
         menu_data["bot_input"] = menu_context["bot_input"].get("function")
         bot_input = menu_context["bot_input"]
@@ -340,7 +350,10 @@ async def create_menu(menu_context, menu_loading=False):
             "menu_block": True,
         }
         text = ""
-    keyboard = await create_keyboard(menu_data, format_data, custom_module, page)
+    if menu_data.get("keyboard") or menu_data.get("return"):
+        keyboard = await create_keyboard(menu_data, format_data, page)
+    else:
+        keyboard = None
     menu_input = menu_data.get("input", None)
 
     send = menu_data.get("send", False)
