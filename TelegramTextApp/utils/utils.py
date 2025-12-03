@@ -2,7 +2,6 @@ import asyncio
 import importlib.util
 import json
 import os
-import random
 import re
 import sys
 from typing import TypeAlias
@@ -51,17 +50,19 @@ def print_json(data):  # удобный вывод json
         logger.error(f"Ошибка при выводе json: {e}")
 
 
-def default_values():
-    data = {"number": random.randint(1, 100)}
-    return data
+def flatten_dict(d, parent_key="", sep="."):
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
 
 
 def formatting_text(text, format_data):  # форматирование текста
-    values = {
-        **default_values(),
-        **(format_data or {}),
-        **format_data.get("variables", {}),
-    }
+    values = flatten_dict(format_data)
 
     start = text.find("{")
     while start != -1:
@@ -157,6 +158,7 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
         if custom_func and callable(custom_func):
             try:
                 result = await asyncio.to_thread(custom_func, format_data)
+                format_data[custom_func.__name__] = result
                 if not isinstance(result, dict):
                     logger.warning(
                         f"Функция {func_name} должна возвращать словарь, получено: {type(result)}"
