@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+from dotenv import dotenv_values
 
 env_path = Path(".") / ".env"
 if env_path.exists():
@@ -39,6 +40,8 @@ ENV = {
     "JSON": JSON,
 }
 
-for key, value in os.environ.items():
+for key, value in dotenv_values(env_path).items():
+    if not key:
+        continue
     if key not in ENV:
         ENV[key] = value

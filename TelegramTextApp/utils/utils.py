@@ -62,6 +62,7 @@ def flatten_dict(d, parent_key="", sep="."):
 
 
 def formatting_text(text, format_data):  # форматирование текста
+    format_data["env"] = config.ENV
     values = flatten_dict(format_data)
 
     start = text.find("{")
