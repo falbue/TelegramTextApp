@@ -9,7 +9,7 @@ else:
     env_template = """TOKEN=
 DB_PATH=data/database.db
 LOG_PATH=data
-BOT_JSON=bot.json
+JSON=bot.json
 DEBUG=True
 """
 
@@ -28,5 +28,17 @@ DEBUG=True
 TOKEN = os.getenv("TOKEN")
 DB_PATH: str = os.getenv("DB_PATH", "data/database.db")
 LOG_PATH: str = os.getenv("LOG_PATH", "data")
-DEBUG: bool = os.getenv("DEBUG", "False").lower() in ["true", "1"]
-JSON: str = os.getenv("BOT_JSON", "bot.json")
+DEBUG: bool = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+JSON: str = os.getenv("JSON", "bot.json")
+
+ENV = {
+    "TOKEN": TOKEN,
+    "DB_PATH": DB_PATH,
+    "LOG_PATH": LOG_PATH,
+    "DEBUG": DEBUG,
+    "JSON": JSON,
+}
+
+for key, value in os.environ.items():
+    if key not in ENV:
+        ENV[key] = value
