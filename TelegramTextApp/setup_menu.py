@@ -35,7 +35,7 @@ async def get_bot_data(callback, bot_input=None):  # получение данн
         message = callback.message
     else:  # команда
         message = callback
-        command = message.text or ""
+        command = message.text.split("@")[0] or ""
         commands = load_json(level="commands") or {}
 
         if not isinstance(commands, dict):
