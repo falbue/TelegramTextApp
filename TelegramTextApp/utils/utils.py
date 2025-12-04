@@ -78,7 +78,7 @@ def formatting_text(text, format_data):  # форматирование текс
             text = text[:start] + replacement + text[end + 1 :]
             start = start + len(replacement)
         else:
-            if key == "notification_text":
+            if key == "error.message":
                 not_found_wrapper = ""
             else:
                 not_found_wrapper = f"`{{{key}}}`"
@@ -181,9 +181,13 @@ async def process_custom_function(key, format_data, menu_data, custom_module):
                 if result:
                     if result.get("edit_menu"):
                         return None, result
-                    if result.get("send_menu"):
+                    elif result.get("send_menu"):
                         menu_data["send_menu"] = result["send_menu"]
                         return None, menu_data
+                    elif result.get("error"):
+                        menu_data["error"] = result["error"]
+                        format_data["error"] = result["error"]
+                        return format_data, menu_data
 
                 if key in ("function", "bot_input") and isinstance(result, dict):
                     format_data = {**format_data, **(result or {})}

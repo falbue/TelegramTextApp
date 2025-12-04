@@ -221,12 +221,12 @@ def create_text(text, format_data=None, use_markdown=True) -> str:  # созда
     return text
 
 
-async def get_menu(callback, bot_input=None, menu_loading=False):
+async def get_menu(callback, bot_input=None, menu_loading=False, error={}):
     menu_context = await get_bot_data(callback, bot_input)
-    return await create_menu(menu_context, menu_loading)
+    return await create_menu(menu_context, menu_loading, error)
 
 
-async def create_menu(menu_context, menu_loading=False):
+async def create_menu(menu_context, menu_loading=False, error={}):
     menu_name = menu_context["menu_name"]
     variables = load_json("variables")
 
@@ -274,6 +274,7 @@ async def create_menu(menu_context, menu_loading=False):
     format_data.update(user_data)
     format_data["menu_name"] = menu_name
     format_data["variables"] = variables
+    format_data["error"] = error
 
     if menu_data.get("input"):
         input_data = menu_data.get("input")
@@ -365,4 +366,5 @@ async def create_menu(menu_context, menu_loading=False):
         "input": menu_input,
         "popup": popup,
         "send": send,
+        "error": menu_data.get("error"),
     }
