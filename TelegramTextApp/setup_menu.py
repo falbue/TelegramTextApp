@@ -334,6 +334,10 @@ async def create_menu(menu_context, menu_loading=False, error={}):
                 if isinstance(ids, int):
                     menu_data["send"]["ids"] = [ids]
                 elif isinstance(ids, list):
+                    raw_ids = []
+                    for uid in ids:
+                        raw_ids.append(formatting_text(uid, format_data))
+                    ids = raw_ids
                     menu_data["send"]["ids"] = ids
                 elif isinstance(ids, str):
                     if ids.startswith("{"):
