@@ -296,6 +296,7 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         format_data, menu_data = await process_custom_function(
             "function", format_data, menu_data, custom_module
         )
+
     if menu_data.get("keyboard"):
         format_data, menu_data = await process_custom_function(
             "keyboard", format_data, menu_data, custom_module
@@ -312,11 +313,23 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         if isinstance(menu_data, dict):
             if isinstance(send_menu, dict):
                 menu_context["menu_name"] = send_menu.get("menu")
-                menu_context["menu_name"] = formatting_text(
-                    menu_context["menu_name"], format_data
-                )
-                raw_menu_data = await create_menu(menu_context, menu_loading)
-                menu_data["send"] = raw_menu_data  # type: ignore
+                if menu_context["menu_name"] is None:
+                    menu_data["send"] = {  # type: ignore
+                        "text": formatting_text(send_menu["text"], format_data),
+                        "keyboard": await create_keyboard(
+                            {
+                                "keyboard": {
+                                    "notification": "{variables.tta_notification}"
+                                }
+                            },
+                            format_data,
+                        ),
+                    }
+                else:
+                    menu_context["menu_name"] = formatting_text(
+                        menu_context["menu_name"], format_data
+                    )
+                    menu_data["send"] = await create_menu(menu_context, menu_loading)
                 ids = send_menu.get("id")
                 if isinstance(ids, int):
                     menu_data["send"]["ids"] = [ids]
