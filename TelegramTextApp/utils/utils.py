@@ -99,21 +99,33 @@ def is_template_match(template: str, input_string: str) -> bool:
 
 def parse_bot_data(template: str, input_string: str) -> dict | None:
     """Извлекает данные из строки по шаблону и возвращает словарь."""
-    if not is_template_match(template, input_string):
-        return None  # Если шаблон не подходит, возвращаем None
-
-    # Извлекаем имена полей из шаблона
     fields = re.findall(r"\{(.*?)\}", template)
 
-    # Заменяем {field} на (?P<field>.*?) для именованных групп
-    pattern = re.sub(r"\{.*?\}", "(.*?)", template)
-    pattern = re.escape(pattern)
-    for field in fields:
-        pattern = pattern.replace(re.escape("(.*?)"), f"(?P<{field}>.*?)", 1)
-    pattern = "^" + pattern + "$"
+    if not fields:
+        return {} if is_template_match(template, input_string) else None
 
-    match = re.match(pattern, input_string)
-    return match.groupdict() if match else None
+    template_parts = re.split(r"\{.*?\}", template)
+    escaped_parts = [re.escape(part) for part in template_parts if part]
+
+    if escaped_parts:
+        separator_pattern = "|".join(escaped_parts)
+        if separator_pattern:  # Проверяем, что есть разделители
+            input_parts = re.split(separator_pattern, input_string)
+            input_parts = [part for part in input_parts if part != ""]
+        else:
+            input_parts = [input_string] if input_string else []
+    else:
+        input_parts = [input_string] if input_string else []
+
+    result = {}
+
+    for i, field in enumerate(fields):
+        if i < len(input_parts):
+            result[field] = input_parts[i]
+        else:
+            result[field] = None
+
+    return result
 
 
 def get_caller_file_path():
