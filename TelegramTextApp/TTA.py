@@ -103,7 +103,12 @@ async def processing_menu(
     try:
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     except Exception as e:
-        logger.error(f"Ошибка при обновлении меню: {e}")
+        if str(e) in (
+            "Telegram server says - Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message"
+        ):
+            return
+        else:
+            logger.error(f"Ошибка при обновлении меню: {e}")
         await callback.message.edit_text(
             menu["text"], reply_markup=menu["keyboard"], parse_mode=None
         )
