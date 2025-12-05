@@ -72,6 +72,7 @@ def formatting_text(text, format_data):  # форматирование текс
             break
 
         key = text[start + 1 : end]
+        key = key.replace(" ", "")
 
         if key in values:
             replacement = str(values[key])
@@ -80,6 +81,14 @@ def formatting_text(text, format_data):  # форматирование текс
         else:
             if key == "error.message":
                 not_found_wrapper = ""
+            elif len(key.split("|")) > 1:
+                key_parts = key.split("|")
+                key = key_parts[0]
+                key_type = key_parts[1]
+                if key_type == "hide":
+                    not_found_wrapper = ""
+                else:
+                    not_found_wrapper = f"`{{{key}}}`"
             else:
                 not_found_wrapper = f"`{{{key}}}`"
             text = text[:start] + not_found_wrapper + text[end + 1 :]
