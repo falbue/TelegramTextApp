@@ -13,12 +13,12 @@ from .setup_menu import (
     get_user,
     get_menu,
 )
-from . import update_bot
 from . import config
 
 from .utils.logger import setup as logger_setup
 from .utils.database import create_tables
 from .utils.utils import get_caller_file_path
+from .update_bot import update_bot_info
 
 
 logger = logger_setup("TTA")
@@ -38,15 +38,14 @@ else:
     with open(template_path, "r", encoding="utf-8") as template_file:
         template_data = json.load(template_file)
 
-    with open("bot.json", "w", encoding="utf-8") as target_file:
+    with open(config.JSON, "w", encoding="utf-8") as target_file:
         json.dump(template_data, target_file, indent=4, ensure_ascii=False)
 
-    logger.info("Файл бота 'bot.json' успешно создан")
+    logger.info(f"Файл бота {config.JSON} создан")
 
 
 asyncio.run(create_tables())
 config_custom_module(get_caller_file_path())
-asyncio.run(update_bot.update_bot_info(load_json()))
 
 
 if config.TOKEN is None or config.TOKEN == "":
@@ -245,6 +244,7 @@ async def handle_text_input(message: types.Message, state: FSMContext):
 def start() -> None:
     # Запуск бота
     async def main():
+        await update_bot_info(load_json(), bot)
         await dp.start_polling(bot)
 
     logger.info("Бот запущен")
