@@ -1,4 +1,4 @@
-from aiogram.types import InlineKeyboardButton, WebAppInfo
+from aiogram.types import InlineKeyboardButton, WebAppInfo, CopyTextButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from .utils.utils import (
@@ -107,30 +107,32 @@ async def create_keyboard(
             callback_data = formatting_text(callback_data, format_data)
 
             if callback_data.startswith("role:"):
-                role = callback_data.split("|")[0]
-                role = role.split(":")[1]
-                callback_data = callback_data.replace(f"role:{role}|", "")
+                button_role = callback_data.split("|")[0]
+                button_role = button_role.split(":")[1]
+                callback_data = callback_data.replace(f"role:{button_role}|", "")
 
                 user_role = await SQL(
                     "SELECT role FROM TTA WHERE id=?", (format_data.get("id"),)
                 )
                 user_role = user_role.get("role") if user_role else None
-                if user_role == role:
-                    if callback_data.startswith("url:"):
-                        url = callback_data[4:]
-                        button = InlineKeyboardButton(text=button_text, url=url)
-                    elif callback_data.startswith("app:"):
-                        url = callback_data[4:]
-                        button = InlineKeyboardButton(
-                            text=button_text, web_app=WebAppInfo(url=url)
-                        )
-                    else:
-                        button = InlineKeyboardButton(
-                            text=button_text, callback_data=callback_data
-                        )
+            else:
+                user_role = None
+                button_role = None
 
-                else:
-                    continue
+            if callback_data.startswith("url:"):
+                url = callback_data[4:]
+                button = InlineKeyboardButton(text=button_text, url=url)
+            elif callback_data.startswith("app:"):
+                url = callback_data[4:]
+                button = InlineKeyboardButton(
+                    text=button_text, web_app=WebAppInfo(url=url)
+                )
+            elif callback_data.startswith("copy:"):
+                print(callback_data)
+                copy = callback_data[5:]
+                copy_data = CopyTextButton(text=copy)
+                button = InlineKeyboardButton(text=button_text, copy_text=copy_data)
+                print("Србатывает")
 
             else:
                 button = InlineKeyboardButton(
@@ -145,7 +147,8 @@ async def create_keyboard(
                 rows.append(current_row)
                 current_row = []
 
-            current_row.append(button)
+            if button_role is None or button_role == user_role:
+                current_row.append(button)
 
         if current_row:
             rows.append(current_row)
