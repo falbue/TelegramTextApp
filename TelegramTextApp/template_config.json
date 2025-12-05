@@ -1,35 +1,29 @@
 {
-	"bot":{
-		"name":"Name",
-		"short_description":"default",
-		"description":"default\n\n@falbue"
+	"bot": {
+		"name": "Name",
+		"short_description": "default",
+		"description": "default\n\n@falbue"
 	},
-
-	"menu":{
-		"none_menu":{
-			"text":"Меню `{menu_name}` не найдено",
-			"return":"main"
+	"menu": {
+		"none_menu": {
+			"text": "Меню `{menu_name}` не найдено",
+			"return": "main"
 		},
-
-		"main":{
-			"text":"default text"
+		"main": {
+			"text": "default text"
 		}
-		
 	},
-
-
 	"variables": {
-        "tta_return": "‹ Назад",
-        "tta_loading":"Загрузка...",
-        "tta_pagination_back": "‹",
-        "tta_pagination_next": "›"
-    },
-
-
-	"commands":{
-		"start":{
-			"description":"🔄 Перезапуск бота",
-			"menu":"main"
+		"tta_return": "‹ Назад",
+		"tta_loading": "Загрузка...",
+		"tta_pagination_back": "‹",
+		"tta_pagination_next": "›",
+		"tta_notification": "Прочитано ✅"
+	},
+	"commands": {
+		"start": {
+			"description": "🔄 Перезапуск бота",
+			"menu": "main"
 		}
 	}
 }
