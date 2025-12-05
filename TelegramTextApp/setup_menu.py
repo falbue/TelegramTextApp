@@ -306,49 +306,41 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         menu_context["menu_name"] = menu_data["edit_menu"]
         return await create_menu(menu_context, menu_loading)
 
-    if menu_data.get("send_menu"):
-        send_menu = menu_data["send_menu"]
-        del menu_data["send_menu"]
+    send = {}
+    if menu_data.get("send"):
+        send_menu = menu_data["send"]
 
-        if isinstance(menu_data, dict):
-            if isinstance(send_menu, dict):
-                menu_context["menu_name"] = send_menu.get("menu")
-                if menu_context["menu_name"] is None:
-                    menu_data["send"] = {  # type: ignore
-                        "text": formatting_text(send_menu["text"], format_data),
-                        "keyboard": await create_keyboard(
-                            {
-                                "keyboard": {
-                                    "notification": "{variables.tta_notification}"
-                                }
-                            },
-                            format_data,
-                        ),
-                    }
-                else:
-                    menu_context["menu_name"] = formatting_text(
-                        menu_context["menu_name"], format_data
-                    )
-                    menu_data["send"] = await create_menu(menu_context, menu_loading)
-                ids = send_menu.get("id")
-                if isinstance(ids, int):
-                    menu_data["send"]["ids"] = [ids]
-                elif isinstance(ids, list):
-                    raw_ids = []
-                    for uid in ids:
-                        raw_ids.append(formatting_text(uid, format_data))
-                    ids = raw_ids
-                    menu_data["send"]["ids"] = ids
-                elif isinstance(ids, str):
-                    if ids.startswith("{"):
-                        ids = formatting_text(ids, format_data)
-                        menu_data["send"]["ids"] = [ids]
-                    else:
-                        menu_data["send"]["ids"] = await get_role_id(ids)
+        if isinstance(send_menu, dict):
+            if send_menu.get("text"):
+                send["send"] = {  # type: ignore
+                    "text": formatting_text(send_menu["text"], format_data),
+                    "keyboard": await create_keyboard(
+                        {"keyboard": {"notification": "{variables.tta_notification}"}},
+                        format_data,
+                    ),
+                }
             else:
-                raise Exception("send_menu должен быть словарём!")
+                menu_context["menu_name"] = formatting_text(
+                    menu_context["menu_name"], format_data
+                )
+                send["send"] = await create_menu(menu_context, menu_loading)
+            ids = send_menu.get("id")
+            if isinstance(ids, int):
+                send["send"]["ids"] = [ids]
+            elif isinstance(ids, list):
+                raw_ids = []
+                for uid in ids:
+                    raw_ids.append(formatting_text(uid, format_data))
+                ids = raw_ids
+                send["send"]["ids"] = ids
+            elif isinstance(ids, str):
+                if ids.startswith("{"):
+                    ids = formatting_text(ids, format_data)
+                    send["send"]["ids"] = [ids]
+                else:
+                    send["send"]["ids"] = await get_role_id(ids)
         else:
-            raise Exception("Меню для отправки должно быть словарём!")
+            raise Exception("send должен быть словарём!")
 
     if menu_data.get("popup"):
         popup = menu_data.get("popup")
@@ -376,12 +368,11 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         keyboard = None
     menu_input = menu_data.get("input", None)
 
-    send = menu_data.get("send", False)
     return {
         "text": text,
         "keyboard": keyboard,
         "input": menu_input,
         "popup": popup,
-        "send": send,
+        "send": send.get("send", None),
         "error": menu_data.get("error"),
     }
