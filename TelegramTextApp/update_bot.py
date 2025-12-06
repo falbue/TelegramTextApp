@@ -58,6 +58,7 @@ async def update_bot_info(bot_data, bot):
             commands = [
                 BotCommand(command=name, description=cmd_data["description"])
                 for name, cmd_data in bot_data.get("commands").items()
+                if cmd_data.get("visible", True)
             ]
             await bot.set_my_commands(commands=commands)
             logger.info("✅ Команды бота обновлены")
