@@ -45,3 +45,5 @@ for key, value in dotenv_values(env_path).items():
         continue
     if key not in ENV:
         ENV[key] = value
+
+globals().update({key: value for key, value in ENV.items()})

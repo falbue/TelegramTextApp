@@ -150,7 +150,7 @@ async def start_command(message: types.Message, state: FSMContext):
         ):
             pass
         else:
-            logger.error(f"Ошибка: {e}")
+            logger.error(f"Ошибка при обработке команды: {e}")
     finally:
         if menu.get("loading"):
             menu = await get_menu(message, menu_loading=True)
