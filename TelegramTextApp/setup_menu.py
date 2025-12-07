@@ -51,6 +51,10 @@ async def get_bot_data(callback, bot_input=None):  # получение данн
 
         if isinstance(command_data, dict):
             menu_name = command_data.get("menu")
+            delete_command = command_data.get("delete", True)
+            update_message = command_data.get("update", True)
+            menu_context["delete_command"] = delete_command
+            menu_context["update_message"] = update_message
         else:
             menu_name = getattr(command_data, "menu", None)
 
@@ -378,4 +382,6 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         "popup": popup,
         "send": send.get("send", None),
         "error": menu_data.get("error"),
+        "delete_command": menu_context.get("delete_command", True),
+        "update_message": menu_context.get("update_message", True),
     }

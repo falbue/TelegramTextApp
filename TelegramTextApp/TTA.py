@@ -129,12 +129,17 @@ async def start_command(message: types.Message, state: FSMContext):
     menu = await get_menu(message)
 
     try:
-        await bot.edit_message_text(
-            menu["text"],
-            reply_markup=menu["keyboard"],
-            chat_id=user_id,
-            message_id=message_id,
-        )
+        if menu.get("update_message", True) is True:
+            await bot.edit_message_text(
+                menu["text"],
+                reply_markup=menu["keyboard"],
+                chat_id=user_id,
+                message_id=message_id,
+            )
+        else:
+            await bot.send_message(
+                text=menu["text"], reply_markup=menu["keyboard"], chat_id=user_id
+            )
     except Exception as e:
         if str(e) in ("Telegram server says - Bad Request: message to edit not found"):
             await bot.send_message(
@@ -185,8 +190,8 @@ async def start_command(message: types.Message, state: FSMContext):
                     reply_markup=menu["send"]["keyboard"],
                     chat_id=user["telegram_id"],
                 )
-
-        await message.delete()
+        if menu.get("delete_command") is True:
+            await message.delete()
 
 
 @dp.callback_query()  # Обработчики нажатий на кнопки
