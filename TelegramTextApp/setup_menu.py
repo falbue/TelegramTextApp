@@ -21,13 +21,13 @@ def config_custom_module(user_custom_functions):  # настройка библ�
     custom_module = load_custom_functions(user_custom_functions)
 
 
-async def get_bot_data(callback, bot_input=None):  # получение данных от бота
+async def get_bot_data(callback, user_input=None):  # получение данных от бота
     user = await get_user(callback)
 
     menu_context = {}
-    if bot_input:
-        menu_name = bot_input["menu"]
-        menu_context["bot_input"] = bot_input
+    if user_input:
+        menu_name = user_input["menu"]
+        menu_context["user_input"] = user_input
         message = callback
 
     elif hasattr(callback, "message"):  # кнопка
@@ -64,7 +64,6 @@ async def get_bot_data(callback, bot_input=None):  # получение данн
     menu_context["menu_name"] = menu_name
     menu_context["telegram_id"] = message.chat.id
     menu_context["user"] = user
-    menu_context["callback"] = callback
 
     return menu_context
 
@@ -228,8 +227,8 @@ def create_text(text, format_data=None, use_markdown=True) -> str:  # созда
     return text
 
 
-async def get_menu(callback, bot_input=None, menu_loading=False, error={}):
-    menu_context = await get_bot_data(callback, bot_input)
+async def get_menu(callback, user_input=None, menu_loading=False, error={}):
+    menu_context = await get_bot_data(callback, user_input)
     return await create_menu(menu_context, menu_loading, error)
 
 
@@ -248,19 +247,23 @@ async def create_menu(menu_context, menu_loading=False, error={}):
     else:
         page = 0
 
-    menu_data = menus.get(menu_name.split("|")[0])
-    template = menu_name
+    def create_menu_data(menu_name) -> tuple[dict, str]:
+        menu_data = menus.get(menu_name.split("|")[0])
+        template = ""
 
-    if "|" in menu_name:
-        prefix = menu_name.split("|")[0] + "|"
-        for key in menus:
-            if key.startswith(prefix):
-                menu_data = menus.get(key)
-                template = key
-                break
+        if "|" in menu_name:
+            prefix = menu_name.split("|")[0] + "|"
+            for key in menus:
+                if key.startswith(prefix):
+                    menu_data = menus.get(key)
+                    template = key
+                    break
+        if menu_data:
+            return menu_data, template
+        else:
+            return {}, ""
 
-    if menu_loading is False:
-        logger.debug(f"Открываемое меню: {menu_name}")
+    menu_data, template = create_menu_data(menu_name)
 
     if not menu_data:
         menu_data = menus.get("none_menu")
@@ -276,34 +279,33 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         text = markdown(str(text))
         return {"text": text, "keyboard": None, "loading": True}
 
-    format_data = dict(parse_bot_data(template, menu_name) or {})
-    user_data = menu_context.get("user") or {}
-    format_data.update(user_data)
+    format_data = {}
+    format_data["template"] = parse_bot_data(template, menu_name) or {}
+    format_data["user"] = menu_context.get("user") or {}
     format_data["menu_name"] = menu_name
     format_data["bot"] = load_json(level="bot")
     format_data["variables"] = variables
     format_data["error"] = error
 
-    if menu_data.get("input"):
-        input_data = menu_data.get("input")
-        if isinstance(input_data, dict):
-            if input_data.get("menu"):
-                menu_data["input"]["menu"] = formatting_text(  # type: ignore
-                    input_data.get("menu"), format_data
-                )
+    if menu_context.get("user_input"):  # обработка ввода пользователя/ полная пизда
+        input_text = menu_context["user_input"]["input_text"]
+        data = menu_context["user_input"]["data"]
+        format_data["template"][str(data)] = input_text
+        format_data["template"].update(menu_context["user_input"].get("template", {}))
 
-    if menu_context.get("bot_input"):
-        menu_data["bot_input"] = menu_context["bot_input"].get("function")
-        bot_input = menu_context["bot_input"]
-        format_data[bot_input["data"]] = bot_input.get("input_text", None)
         format_data, menu_data = await process_custom_function(
-            "bot_input", format_data, menu_data, custom_module
+            "function", format_data, menu_context["user_input"], custom_module
         )
+        menu_name = formatting_text(menu_name, format_data)
+        menu_data, template = create_menu_data(menu_name)
 
     if menu_data.get("function"):
+        print(f"Функция меню обнаружена у меню {menu_name}")
         format_data, menu_data = await process_custom_function(
             "function", format_data, menu_data, custom_module
         )
+    if menu_loading is False:
+        logger.debug(f"Открываемое меню: {menu_name}")
 
     if menu_data.get("keyboard"):
         format_data, menu_data = await process_custom_function(
@@ -378,7 +380,10 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         keyboard = await create_keyboard(menu_data, format_data, page)
     else:
         keyboard = None
+
     menu_input = menu_data.get("input", None)
+    if menu_input and isinstance(menu_input, dict):
+        menu_input["template"] = format_data["template"]
 
     return {
         "text": text,

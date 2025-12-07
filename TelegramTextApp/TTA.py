@@ -230,7 +230,7 @@ async def handle_text_input(message: types.Message, state: FSMContext):
         if current_menu.get("input"):
             input_data = current_menu["input"]
             input_data["input_text"] = message.text
-            menu = await get_menu(message, input_data)
+            menu = await get_menu(message, user_input=input_data)
             if menu.get("error"):
                 await state.update_data(
                     current_menu=current_menu,
