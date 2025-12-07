@@ -280,6 +280,7 @@ async def create_menu(menu_context, menu_loading=False, error={}):
     user_data = menu_context.get("user") or {}
     format_data.update(user_data)
     format_data["menu_name"] = menu_name
+    format_data["bot"] = load_json(level="bot")
     format_data["variables"] = variables
     format_data["error"] = error
 
@@ -361,7 +362,11 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         popup = None
 
     if menu_data.get("text"):
-        text = create_text(menu_data["text"], format_data)
+        text = menu_data["text"]
+        font_style = format_data.get("bot", {}).get("font_style", "").lower()
+        if font_style == "bold":
+            text = f"*{text}*"
+        text = create_text(text, format_data)
     else:  # попап не может быть применён к сообщению, которое отправляется
         popup = {
             "text": f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!",
