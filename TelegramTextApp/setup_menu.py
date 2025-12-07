@@ -329,7 +329,7 @@ async def create_menu(menu_context, menu_loading=False, error={}):
                 }
             else:
                 menu_context["menu_name"] = formatting_text(
-                    menu_context["menu_name"], format_data
+                    send_menu["menu"], format_data
                 )
                 send["send"] = await create_menu(menu_context, menu_loading)
             ids = send_menu.get("id")
