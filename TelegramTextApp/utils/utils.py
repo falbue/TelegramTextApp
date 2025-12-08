@@ -14,10 +14,15 @@ logger = setup_logger("UTILS")
 Json: TypeAlias = dict[str, str] | dict[str, dict[str, str]]
 
 
-def markdown(text: str, full: bool = False) -> str:  # экранирование
+def markdown(text: str, full: bool = False) -> str:
+    """Экранирует специальные символы Markdown в тексте
+    Если указан full=True, экранирует все специальные символы Markdown
+    Иначе экранирует только основные символы Markdown (#+-={}.!)
+    """
     if full is True:
         special_characters = r"*|~[]()>|_"
-    special_characters = r"#+-={}.!"
+    else:
+        special_characters = r"#+-={}.!"
     escaped_text = ""
     for char in text:
         if char in special_characters:
@@ -30,6 +35,7 @@ def markdown(text: str, full: bool = False) -> str:  # экранировани�
 def load_json(
     level: str | None = None,
 ) -> dict[str, Json]:
+    # загрузка json файла с указанием уровня
     filename = config.JSON
     with open(filename, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -51,6 +57,7 @@ def print_json(data):  # удобный вывод json
 
 
 def flatten_dict(d, parent_key="", sep="."):
+    # Функция для "сплющивания" вложенных словарей.
     items = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
@@ -100,40 +107,28 @@ def formatting_text(text, format_data):  # форматирование текс
 
 
 def is_template_match(template: str, input_string: str) -> bool:
-    """Проверяет, соответствует ли текст шаблону (без учета динамических частей)."""
-    # Экранируем все спецсимволы, кроме {.*?} (они заменяются на .*?)
-    pattern = re.escape(template)
-    pattern = re.sub(r"\\\{.*?\\\}", ".*?", pattern)  # Заменяем \{...\} на .*?
-    return bool(re.fullmatch(pattern, input_string))
+    pattern = re.sub(r"\{.*?\}", ".*?", re.escape(template))
+    full_pattern = f"^{pattern}$"
+    return bool(re.match(full_pattern, input_string))
 
 
-def parse_bot_data(template: str, input_string: str) -> dict | None:
-    """Извлекает данные из строки по шаблону и возвращает словарь."""
-    fields = re.findall(r"\{(.*?)\}", template)
+def get_params(template: str, input_string: str) -> dict[str, str]:
+    field_names = re.findall(r"\{(\w+)\}", template)
 
-    if not fields:
+    if not field_names:
         return {} if is_template_match(template, input_string) else None
+    escaped = re.escape(template)
+    pattern = escaped
+    for name in field_names:
+        pattern = pattern.replace(rf"\{{{name}\}}", r"(.+?)", 1)
 
-    template_parts = re.split(r"\{.*?\}", template)
-    escaped_parts = [re.escape(part) for part in template_parts if part]
-
-    if escaped_parts:
-        separator_pattern = "|".join(escaped_parts)
-        if separator_pattern:  # Проверяем, что есть разделители
-            input_parts = re.split(separator_pattern, input_string)
-            input_parts = [part for part in input_parts if part != ""]
-        else:
-            input_parts = [input_string] if input_string else []
-    else:
-        input_parts = [input_string] if input_string else []
+    match = re.fullmatch(pattern, input_string)
+    if not match:
+        return {}
 
     result = {}
-
-    for i, field in enumerate(fields):
-        if i < len(input_parts):
-            result[field] = input_parts[i]
-        else:
-            result[field] = None
+    for i, name in enumerate(field_names):
+        result[name] = match.group(i + 1)
 
     return result
 
@@ -156,72 +151,25 @@ def load_custom_functions(file_path):
         custom_module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = custom_module
         spec.loader.exec_module(custom_module)
-
-        logger.debug(f"Успешно загружен модуль: {file_path}")
         return custom_module
     except Exception as e:
         logger.error(f"Ошибка загрузки модуля {file_path}: {e}")
         return None
 
 
-async def process_custom_function(key, format_data, menu_data, custom_module):
-    if menu_data.get(key):
-        keyboard = None
-        func_name = menu_data[key]
-        if menu_data.get("keyboard"):
-            if "function" in menu_data["keyboard"] and key == "keyboard":
-                func_name = menu_data["keyboard"]["function"]
-                keyboard = menu_data["keyboard"]
-        if not isinstance(func_name, str):
-            return format_data, menu_data
-        logger.debug(f"Выполнение функции: {func_name}")
-        custom_func = getattr(custom_module, func_name, None)
-
-        if custom_func and callable(custom_func):
-            try:
-                result = await asyncio.to_thread(custom_func, format_data)
-                format_data[custom_func.__name__] = result
-                if not isinstance(result, dict):
-                    logger.warning(
-                        f"Функция {func_name} должна возвращать словарь, получено: {type(result)}"
-                    )
-                    return format_data, menu_data
-
-                if result:
-                    if result.get("edit_menu"):
-                        return None, result
-                    elif result.get("send_menu"):
-                        menu_data["send_menu"] = result["send_menu"]
-                        return None, menu_data
-                    elif result.get("error"):
-                        menu_data["error"] = result["error"]
-                        format_data["error"] = result["error"]
-                        return format_data, menu_data
-
-                if key in ("function", "bot_input") and isinstance(result, dict):
-                    format_data = {**format_data, **(result or {})}
-                elif key == "keyboard" and isinstance(result, dict):
-                    if keyboard:
-                        menu_data["keyboard"] = replace_dict_element(keyboard, result)
-                    else:
-                        menu_data["keyboard"] = result
-
-            except Exception as e:
-                logger.error(f"Ошибка при вызове функции {func_name}: {e}")
-    return format_data, menu_data
-
-
-def replace_dict_element(data, new_values):
-    if isinstance(data, dict):
-        new_data = {}
-        for key, value in data.items():
-            if key == "function":
-                if isinstance(new_values, dict):
-                    for k, v in new_values.items():
-                        new_data[k] = v
-                else:
-                    new_data[key] = new_values
-            else:
-                new_data[key] = replace_dict_element(value, new_values)
-        return new_data
-    return data
+async def function(func_name: str, format_data: dict):
+    custom_module = load_custom_functions(get_caller_file_path())
+    logger.debug(f"Выполнение функции: {func_name}")
+    custom_func = getattr(custom_module, func_name, None)
+    if custom_func and callable(custom_func):
+        try:
+            result = await asyncio.to_thread(custom_func, format_data)
+            format_data[custom_func.__name__] = result
+            if not isinstance(result, dict):
+                logger.warning(
+                    f"Функция {func_name} должна возвращать словарь,получено: {type(result)}"
+                )
+                return format_data
+        except Exception as e:
+            logger.error(f"Ошибка при вызове функции {func_name}: {e}")
+    return format_data

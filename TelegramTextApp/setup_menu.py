@@ -2,12 +2,11 @@ from aiogram.types import InlineKeyboardButton, WebAppInfo, CopyTextButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from .utils.utils import (
-    load_custom_functions,
     load_json,
     formatting_text,
     markdown,
-    parse_bot_data,
-    process_custom_function,
+    function,
+    get_params,
 )
 from .utils.database import SQL_request_async as SQL, get_user, get_role_id
 from .utils.logger import setup as setup_logger
@@ -16,18 +15,12 @@ from .utils.logger import setup as setup_logger
 logger = setup_logger("MENUS")
 
 
-def config_custom_module(user_custom_functions):  # настройка библиотеки пользователя
-    global custom_module
-    custom_module = load_custom_functions(user_custom_functions)
-
-
-async def get_bot_data(callback, user_input=None):  # получение данных от бота
-    user = await get_user(callback)
-
-    menu_context = {}
-    if user_input:
+async def create_context(callback, user_input=None):
+    # создание контекста, для настройки меню
+    context = {}
+    if user_input:  # обработка ввода пользователя
         menu_name = user_input["menu"]
-        menu_context["user_input"] = user_input
+        context["user_input"] = user_input
         message = callback
 
     elif hasattr(callback, "message"):  # кнопка
@@ -53,19 +46,19 @@ async def get_bot_data(callback, user_input=None):  # получение дан�
             menu_name = command_data.get("menu")
             delete_command = command_data.get("delete", True)
             update_message = command_data.get("update", True)
-            menu_context["delete_command"] = delete_command
-            menu_context["update_message"] = update_message
+            context["delete_command"] = delete_command
+            context["update_message"] = update_message
         else:
             menu_name = getattr(command_data, "menu", None)
 
         if menu_name is None:
             return None
 
-    menu_context["menu_name"] = menu_name
-    menu_context["telegram_id"] = message.chat.id
-    menu_context["user"] = user
+    context["menu_name"] = menu_name
+    context["telegram_id"] = message.chat.id
+    context["user"] = await get_user(callback)
 
-    return menu_context
+    return context
 
 
 async def create_keyboard(
@@ -74,13 +67,18 @@ async def create_keyboard(
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
 
+    if menu_data.get("keyboard"):
+        if isinstance(menu_data["keyboard"], str):
+            func_data = await function(menu_data["keyboard"], format_data)
+            menu_data["keyboard"] = func_data.get("keyboard", {})
+
     if "keyboard" in menu_data and not (
         isinstance(menu_data["keyboard"], dict) and len(menu_data["keyboard"]) == 0
     ):
         keyboard_items = list(menu_data["keyboard"].items())
         pagination_limit = menu_data.get("pagination", 10)
         if pagination_limit is None:
-            pagination_limit = 1000
+            pagination_limit = 50
 
         pages = []  # получение списка страниц для пагинации
         for i in range(0, len(keyboard_items), pagination_limit):
@@ -228,97 +226,82 @@ def create_text(text, format_data=None, use_markdown=True) -> str:  # созда
 
 
 async def get_menu(callback, user_input=None, menu_loading=False, error={}):
-    menu_context = await get_bot_data(callback, user_input)
+    menu_context = await create_context(callback, user_input)
     return await create_menu(menu_context, menu_loading, error)
 
 
-async def create_menu(menu_context, menu_loading=False, error={}):
-    menu_name = menu_context["menu_name"]
-    variables = load_json("variables")
-
-    menus = load_json(level="menu")
-    if "return|" in menu_name:
-        menu_name = menu_name.replace("return|", "")
-
-    if menu_name.startswith("pg"):
-        page = menu_name.split("|")[0]
-        menu_name = menu_name.replace(f"{page}|", "")
+def create_raw_menu(name) -> dict:
+    if "return|" in name:
+        name = name.replace("return|", "")
+    if name.startswith("pg"):
+        page = name.split("|")[0]
+        name = name.replace(f"{page}|", "")
         page = int(page.replace("pg", ""))
     else:
         page = 0
+    return {"name": name, "page": page}
 
-    def create_menu_data(menu_name) -> tuple[dict, str]:
-        menu_data = menus.get(menu_name.split("|")[0])
-        template = ""
 
-        if "|" in menu_name:
-            prefix = menu_name.split("|")[0] + "|"
-            for key in menus:
-                if key.startswith(prefix):
-                    menu_data = menus.get(key)
-                    template = key
-                    break
-        if menu_data:
-            return menu_data, template
-        else:
-            return {}, ""
+def get_parameters(name) -> tuple[dict, str]:
+    menus = load_json(level="menu")
+    data = menus.get(name.split("|")[0])
+    template = ""
+    if "|" in name:
+        prefix = name.split("|")[0] + "|"
+        for key in menus:
+            if key.startswith(prefix):
+                data = menus.get(key)
+                template = key
+                break
+    if data:
+        return data, template
+    else:
+        return {}, ""
 
-    menu_data, template = create_menu_data(menu_name)
 
-    if not menu_data:
-        menu_data = menus.get("none_menu")
+async def create_menu(context, loading=False, error={}):
+    menu_name = context["menu_name"]
+    variables = load_json("variables")
 
-    if menu_data is None:
-        raise Exception(f"Меню {menu_name} не найдено в файле меню!")
+    raw_menu = create_raw_menu(menu_name)
+    parameters, template = get_parameters(raw_menu["name"])
 
-    if menu_data.get("loading") and menu_loading is False:
-        if menu_data["loading"] is True:
-            text = variables["tta_loading"]
-        else:
-            text = menu_data["loading"]
-        text = markdown(str(text))
-        return {"text": text, "keyboard": None, "loading": True}
+    if not parameters:  # изменить, что бы работало с raw_menu
+        return {
+            "popup": {
+                "text": f"Меню {menu_name} не найдено!",
+                "size": "big",
+                "blocked": True,
+            }
+        }
+
+    if parameters.get("loading") and loading is False:
+        if parameters["loading"] is True:
+            raw_menu["text"] = variables.get("loading", "Loading...")
+        elif isinstance(parameters["loading"], str):
+            raw_menu["text"] = parameters["loading"]
+        return {
+            "text": create_text(raw_menu["text"], False),
+            "keyboard": None,
+            "loading": True,
+        }
 
     format_data = {}
-    format_data["template"] = parse_bot_data(template, menu_name) or {}
-    format_data["user"] = menu_context.get("user") or {}
+    format_data["params"] = get_params(template, menu_name)
+    format_data["user"] = parameters.get("user") or {}
     format_data["menu_name"] = menu_name
     format_data["bot"] = load_json(level="bot")
     format_data["variables"] = variables
     format_data["error"] = error
 
-    if menu_context.get("user_input"):  # обработка ввода пользователя/ полная пизда
-        input_text = menu_context["user_input"]["input_text"]
-        data = menu_context["user_input"]["data"]
-        format_data["template"][str(data)] = input_text
-        format_data["template"].update(menu_context["user_input"].get("template", {}))
-
-        format_data, menu_data = await process_custom_function(
-            "function", format_data, menu_context["user_input"], custom_module
-        )
-        menu_name = formatting_text(menu_name, format_data)
-        menu_data, template = create_menu_data(menu_name)
-
-    if menu_data.get("function"):
-        print(f"Функция меню обнаружена у меню {menu_name}")
-        format_data, menu_data = await process_custom_function(
-            "function", format_data, menu_data, custom_module
-        )
-    if menu_loading is False:
-        logger.debug(f"Открываемое меню: {menu_name}")
-
-    if menu_data.get("keyboard"):
-        format_data, menu_data = await process_custom_function(
-            "keyboard", format_data, menu_data, custom_module
-        )
-
-    if menu_data.get("edit_menu"):
-        menu_context["menu_name"] = menu_data["edit_menu"]
-        return await create_menu(menu_context, menu_loading)
+    if parameters.get("function"):
+        func_data = await function(parameters["function"], format_data)
+        if func_data.get("error"):
+            format_data["error"] = func_data["error"]
 
     send = {}
-    if menu_data.get("send"):
-        send_menu = menu_data["send"]
+    if parameters.get("send"):
+        send_menu = parameters["send"]
 
         if isinstance(send_menu, dict):
             if send_menu.get("text"):
@@ -330,10 +313,8 @@ async def create_menu(menu_context, menu_loading=False, error={}):
                     ),
                 }
             else:
-                menu_context["menu_name"] = formatting_text(
-                    send_menu["menu"], format_data
-                )
-                send["send"] = await create_menu(menu_context, menu_loading)
+                context["menu_name"] = formatting_text(send_menu["menu"], format_data)
+                send["send"] = await create_menu(context, loading)
             ids = send_menu.get("id")
             if isinstance(ids, int):
                 send["send"]["ids"] = [ids]
@@ -352,46 +333,47 @@ async def create_menu(menu_context, menu_loading=False, error={}):
         else:
             raise Exception("send должен быть словарём!")
 
-    if menu_data.get("popup"):
-        popup = menu_data.get("popup")
+    if parameters.get("text"):
+        raw_menu["text"] = parameters["text"]
+        font_style = format_data.get("bot", {}).get("font_style", "").lower()
+        if font_style == "bold":
+            raw_menu["text"] = f"*{raw_menu['text']}*"
+    else:  # попап не может быть применён к сообщению, которое отправляется
+        parameters["popup"] = {
+            "text": f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!",
+            "size": "big",
+            "blocked": True,
+        }
+        raw_menu["text"] = ""
+
+    def create_popup(popup: dict | str, blocked: bool = False, size: str = "small"):
         if isinstance(popup, dict):
             popup["text"] = create_text(popup.get("text"), format_data, False)
             if popup.get("blocked") is True:
-                menu_data["text"] = "None"  # type: ignore
+                raw_menu["text"] = ""
         elif isinstance(popup, str):
             popup = {"text": create_text(popup, format_data, False)}
-    else:
-        popup = None
 
-    if menu_data.get("text"):
-        text = menu_data["text"]
-        font_style = format_data.get("bot", {}).get("font_style", "").lower()
-        if font_style == "bold":
-            text = f"*{text}*"
-        text = create_text(text, format_data)
-    else:  # попап не может быть применён к сообщению, которое отправляется
-        popup = {
-            "text": f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!",
-            "size": "small",
-            "menu_block": True,
-        }
-        text = ""
-    if menu_data.get("keyboard") or menu_data.get("return"):
-        keyboard = await create_keyboard(menu_data, format_data, page)
+    popup = parameters.get("popup", None)
+    if popup:
+        popup = create_popup(parameters["popup"])
+
+    if parameters.get("keyboard") or parameters.get("return"):
+        keyboard = await create_keyboard(parameters, format_data, raw_menu["page"])
     else:
         keyboard = None
 
-    menu_input = menu_data.get("input", None)
+    menu_input = parameters.get("input", None)
     if menu_input and isinstance(menu_input, dict):
-        menu_input["template"] = format_data["template"]
+        menu_input["template"] = format_data["params"]
 
     return {
-        "text": text,
+        "text": create_text(raw_menu["text"], format_data),
         "keyboard": keyboard,
         "input": menu_input,
         "popup": popup,
         "send": send.get("send", None),
-        "error": menu_data.get("error"),
-        "delete_command": menu_context.get("delete_command", True),
-        "update_message": menu_context.get("update_message", True),
+        "error": format_data.get("error"),
+        "delete_command": context.get("delete_command", True),
+        "update_message": context.get("update_message", True),
     }

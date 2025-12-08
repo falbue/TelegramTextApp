@@ -8,7 +8,6 @@ import os
 import json
 
 from .setup_menu import (
-    config_custom_module,
     load_json,
     get_user,
     get_menu,
@@ -17,7 +16,6 @@ from . import config
 
 from .utils.logger import setup as logger_setup
 from .utils.database import create_tables
-from .utils.utils import get_caller_file_path
 from .update_bot import update_bot_info
 
 
@@ -45,7 +43,6 @@ else:
 
 
 asyncio.run(create_tables())
-config_custom_module(get_caller_file_path())
 
 
 if config.TOKEN is None or config.TOKEN == "":
