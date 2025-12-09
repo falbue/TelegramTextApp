@@ -17,6 +17,7 @@ from . import config
 from .utils.logger import setup as logger_setup
 from .utils.database import create_tables
 from .update_bot import update_bot_info
+from .utils import utils
 
 
 logger = logger_setup("TTA")
@@ -220,17 +221,17 @@ async def handle_text_input(message: types.Message, state: FSMContext):
 
     data = await state.get_data()
     await state.clear()
-    current_menu = data.get("current_menu")
+    menu = data.get("current_menu")
     callback = data.get("callback")
 
-    if isinstance(current_menu, dict):
-        if current_menu.get("input"):
-            input_data = current_menu["input"]
+    if isinstance(menu, dict):
+        if menu.get("input"):
+            input_data = menu["input"]
             input_data["input_text"] = message.text
             menu = await get_menu(message, user_input=input_data)
             if menu.get("error"):
                 await state.update_data(
-                    current_menu=current_menu,
+                    current_menu=menu,
                     message_id=message,
                     callback=callback,
                 )
@@ -246,7 +247,7 @@ async def handle_text_input(message: types.Message, state: FSMContext):
 def start() -> None:
     # Запуск бота
     async def main():
-        await update_bot_info(load_json(), bot)
+        await update_bot_info(await load_json(), bot)
         await dp.start_polling(bot)
 
     logger.info("Бот запущен")

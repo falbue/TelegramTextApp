@@ -5,6 +5,8 @@ import os
 import re
 import sys
 from typing import TypeAlias
+import types
+import copy
 
 from .. import config
 from .logger import setup as setup_logger
@@ -14,7 +16,7 @@ logger = setup_logger("UTILS")
 Json: TypeAlias = dict[str, str] | dict[str, dict[str, str]]
 
 
-def markdown(text: str, full: bool = False) -> str:
+async def markdown(text: str, full: bool = False) -> str:
     """Экранирует специальные символы Markdown в тексте
     Если указан full=True, экранирует все специальные символы Markdown
     Иначе экранирует только основные символы Markdown (#+-={}.!)
@@ -32,7 +34,7 @@ def markdown(text: str, full: bool = False) -> str:
     return escaped_text
 
 
-def load_json(
+async def load_json(
     level: str | None = None,
 ) -> dict[str, Json]:
     # загрузка json файла с указанием уровня
@@ -44,7 +46,14 @@ def load_json(
         return data
 
 
-def print_json(data):  # удобный вывод json
+async def dict_to_namespace(d):
+    for key, value in d.items():
+        if isinstance(value, dict):
+            d[key] = await dict_to_namespace(value)
+    return types.SimpleNamespace(**d)
+
+
+async def print_json(data):  # удобный вывод json
     try:
         if isinstance(data, (dict, list)):
             text = json.dumps(data, indent=4, ensure_ascii=False)
@@ -56,24 +65,27 @@ def print_json(data):  # удобный вывод json
         logger.error(f"Ошибка при выводе json: {e}")
 
 
-def flatten_dict(d, parent_key="", sep="."):
+async def flatten_dict(d, parent_key="", sep=".") -> dict:
     # Функция для "сплющивания" вложенных словарей.
     items = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
         if isinstance(v, dict):
-            if k == "template":
-                items.extend(flatten_dict(v, "", sep=sep).items())
+            if k == "params":
+                flattened = await flatten_dict(v, "", sep=sep)
+                items.extend(flattened.items())
             else:
-                items.extend(flatten_dict(v, new_key, sep=sep).items())
+                flattened = await flatten_dict(v, new_key, sep=sep)
+                items.extend(flattened.items())
         else:
             items.append((new_key, v))
     return dict(items)
 
 
-def formatting_text(text, format_data):  # форматирование текста
-    format_data["env"] = config.ENV
-    values = flatten_dict(format_data)
+async def formatting_text(text, format_data):  # форматирование текста
+    data = copy.deepcopy(format_data)
+    data["env"] = config.ENV
+    values = await flatten_dict(data)
 
     start = text.find("{")
     while start != -1:
@@ -106,17 +118,17 @@ def formatting_text(text, format_data):  # форматирование текс
     return text
 
 
-def is_template_match(template: str, input_string: str) -> bool:
+async def is_template_match(template: str, input_string: str) -> bool:
     pattern = re.sub(r"\{.*?\}", ".*?", re.escape(template))
     full_pattern = f"^{pattern}$"
     return bool(re.match(full_pattern, input_string))
 
 
-def get_params(template: str, input_string: str) -> dict[str, str]:
+async def get_params(template: str, input_string: str) -> dict[str, str] | None:
     field_names = re.findall(r"\{(\w+)\}", template)
 
     if not field_names:
-        return {} if is_template_match(template, input_string) else None
+        return {} if await is_template_match(template, input_string) else None
     escaped = re.escape(template)
     pattern = escaped
     for name in field_names:
@@ -133,13 +145,13 @@ def get_params(template: str, input_string: str) -> dict[str, str]:
     return result
 
 
-def get_caller_file_path():
+async def get_caller_file_path():
     caller_file = sys.argv[0]
     full_path = os.path.abspath(caller_file)
     return full_path
 
 
-def load_custom_functions(file_path):
+async def load_custom_functions(file_path):
     try:
         module_name = file_path.split("\\")[-1].replace(".py", "")
 
@@ -158,18 +170,21 @@ def load_custom_functions(file_path):
 
 
 async def function(func_name: str, format_data: dict):
-    custom_module = load_custom_functions(get_caller_file_path())
+    custom_module = await load_custom_functions(await get_caller_file_path())
     logger.debug(f"Выполнение функции: {func_name}")
     custom_func = getattr(custom_module, func_name, None)
     if custom_func and callable(custom_func):
         try:
-            result = await asyncio.to_thread(custom_func, format_data)
-            format_data[custom_func.__name__] = result
+            tta = copy.deepcopy(format_data)
+            tta.update(format_data["params"])
+            del tta["params"]
+            tta = await dict_to_namespace(tta)
+            result = await asyncio.to_thread(custom_func, tta)
             if not isinstance(result, dict):
                 logger.warning(
                     f"Функция {func_name} должна возвращать словарь,получено: {type(result)}"
                 )
-                return format_data
+            return result
         except Exception as e:
             logger.error(f"Ошибка при вызове функции {func_name}: {e}")
-    return format_data
+    return None
