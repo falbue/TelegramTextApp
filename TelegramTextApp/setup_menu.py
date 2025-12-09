@@ -72,6 +72,8 @@ async def create_keyboard(
             func_data = await function(menu_data["keyboard"], format_data)
             if isinstance(func_data, dict):
                 menu_data["keyboard"] = func_data.get("keyboard", {})
+            else:
+                menu_data["keyboard"] = {"error": "Ошибка функции генерации клавиатуры"}
 
     if "keyboard" in menu_data and not (
         isinstance(menu_data["keyboard"], dict) and len(menu_data["keyboard"]) == 0
@@ -114,7 +116,7 @@ async def create_keyboard(
                 callback_data = callback_data.replace(f"role:{button_role}|", "")
 
                 user_role = await SQL(
-                    "SELECT role FROM TTA WHERE id=?", (format_data.get("id"),)
+                    "SELECT role FROM TTA WHERE id=?", (format_data["user"].get("id"),)
                 )
                 user_role = user_role.get("role") if user_role else None
             else:
