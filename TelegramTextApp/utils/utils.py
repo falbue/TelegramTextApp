@@ -46,11 +46,15 @@ async def load_json(
         return data
 
 
+class TelegramTextApp(types.SimpleNamespace):
+    pass
+
+
 async def dict_to_namespace(d):
     for key, value in d.items():
         if isinstance(value, dict):
             d[key] = await dict_to_namespace(value)
-    return types.SimpleNamespace(**d)
+    return TelegramTextApp(**d)
 
 
 async def print_json(data):  # удобный вывод json
@@ -75,7 +79,7 @@ async def flatten_dict(d, parent_key="", sep=".") -> dict:
                 flattened = await flatten_dict(v, "", sep=sep)
                 items.extend(flattened.items())
             else:
-                flattened = await flatten_dict(v, new_key, sep=sep)
+                flattened = await flatten_dict(v, f"{new_key}", sep=sep)
                 items.extend(flattened.items())
         else:
             items.append((new_key, v))
@@ -179,11 +183,13 @@ async def function(func_name: str, format_data: dict):
             tta.update(format_data["params"])
             del tta["params"]
             tta = await dict_to_namespace(tta)
-            result = await asyncio.to_thread(custom_func, tta)
+            result = {}
+            result[custom_func.__name__] = await asyncio.to_thread(custom_func, tta)
             if not isinstance(result, dict):
                 logger.warning(
                     f"Функция {func_name} должна возвращать словарь,получено: {type(result)}"
                 )
+                return None
             return result
         except Exception as e:
             logger.error(f"Ошибка при вызове функции {func_name}: {e}")

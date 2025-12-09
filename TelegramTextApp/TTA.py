@@ -17,8 +17,6 @@ from . import config
 from .utils.logger import setup as logger_setup
 from .utils.database import create_tables
 from .update_bot import update_bot_info
-from .utils import utils
-
 
 logger = logger_setup("TTA")
 try:

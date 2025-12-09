@@ -56,7 +56,6 @@ async def create_context(callback, user_input=None):
             return None
 
     context["menu_name"] = menu_name
-    context["telegram_id"] = message.chat.id
     context["user"] = await get_user(callback)
 
     return context
@@ -267,11 +266,10 @@ async def get_parameters(name) -> tuple[dict, str]:
 
 async def create_menu(context, loading=False, error={}) -> dict:
     menu_name = context["menu_name"]
-    logger.debug(f"Создание меню: {menu_name}")
     variables = await load_json("variables")
-
     raw_menu = await create_raw_menu(menu_name)
     parameters, template = await get_parameters(raw_menu["name"])
+    logger.debug(f"Создание меню: {raw_menu['name']}")
 
     if not parameters:
         return {
@@ -295,9 +293,9 @@ async def create_menu(context, loading=False, error={}) -> dict:
 
     format_data = {}
     format_data["params"] = context.get("params", {})
-    format_data["params"].update(await get_params(template, menu_name) or {})
-    format_data["user"] = parameters.get("user") or {}
-    format_data["menu_name"] = menu_name
+    format_data["params"].update(await get_params(template, raw_menu["name"]) or {})
+    format_data["user"] = context.get("user") or {}
+    format_data["menu_name"] = raw_menu["name"]
     format_data["bot"] = await load_json(level="bot")
     format_data["variables"] = variables
     format_data["error"] = error
@@ -308,6 +306,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
             if func_data.get("error"):
                 format_data["error"].update(func_data["error"])
                 del func_data["error"]
+                return False
             else:
                 format_data["params"].update(func_data)
 
@@ -316,7 +315,9 @@ async def create_menu(context, loading=False, error={}) -> dict:
         format_data["params"][input_param] = context["user_input"].get("input_text", "")
         if context["user_input"].get("function"):
             logger.debug("Вызов функции после ввода пользователя")
-            await call_function(context["user_input"]["function"], format_data)
+            result = await call_function(context["user_input"]["function"], format_data)
+            if result is False:
+                return {"error": format_data["error"]}
             del context["user_input"]
 
     if parameters.get("function"):
