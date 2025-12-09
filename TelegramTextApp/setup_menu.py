@@ -71,7 +71,7 @@ async def create_keyboard(
         if isinstance(menu_data["keyboard"], str):
             func_data = await function(menu_data["keyboard"], format_data)
             if isinstance(func_data, dict):
-                menu_data["keyboard"] = func_data.get("keyboard", {})
+                menu_data["keyboard"] = func_data
             else:
                 menu_data["keyboard"] = {"error": "Ошибка функции генерации клавиатуры"}
 
@@ -132,11 +132,9 @@ async def create_keyboard(
                     text=button_text, web_app=WebAppInfo(url=url)
                 )
             elif callback_data.startswith("copy:"):
-                print(callback_data)
                 copy = callback_data[5:]
                 copy_data = CopyTextButton(text=copy)
                 button = InlineKeyboardButton(text=button_text, copy_text=copy_data)
-                print("Србатывает")
 
             else:
                 button = InlineKeyboardButton(
@@ -226,6 +224,9 @@ async def create_text(
     text, format_data=None, use_markdown=True
 ) -> str:  # создание текста
     if format_data:
+        font_style = format_data.get("bot", {}).get("font_style", "").lower()
+        if font_style == "bold":
+            text = f"*{text}*"
         text = await formatting_text(text, format_data)
     if use_markdown:
         text = await markdown(text)
@@ -301,25 +302,29 @@ async def create_menu(context, loading=False, error={}) -> dict:
     format_data["bot"] = await load_json(level="bot")
     format_data["variables"] = variables
     format_data["error"] = error
+    error = {}
 
     async def call_function(func_name: str, format_data: dict):
         func_data = await function(func_name, format_data)
         if isinstance(func_data, dict):
             if func_data.get("error"):
-                format_data["error"].update(func_data["error"])
-                del func_data["error"]
+                error = func_data.get("error")
+                format_data["error"].update(error)
                 return False
             else:
-                format_data["params"].update(func_data)
+                format_data["params"][func_name] = func_data
+                error = {}
 
     if context.get("user_input"):  # обработка ввода пользователя
         input_param = context["user_input"].get("data", "input_text")
+        print(context["user_input"])
         format_data["params"][input_param] = context["user_input"].get("input_text", "")
         if context["user_input"].get("function"):
             logger.debug("Вызов функции после ввода пользователя")
             result = await call_function(context["user_input"]["function"], format_data)
             if result is False:
                 return {"error": format_data["error"]}
+            format_data["params"].update(context.get("params", {}))
             del context["user_input"]
 
     if parameters.get("function"):
@@ -343,9 +348,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
                 context["menu_name"] = await formatting_text(
                     send_menu["menu"], format_data
                 )
-                send["send"] = await create_menu(
-                    context, loading, format_data.get("error", {})
-                )
+                send["send"] = await create_menu(context, loading, error)
             ids = send_menu.get("id")
             if isinstance(ids, int):
                 send["send"]["ids"] = [ids]  # type: ignore
@@ -366,9 +369,6 @@ async def create_menu(context, loading=False, error={}) -> dict:
 
     if parameters.get("text"):
         raw_menu["text"] = parameters["text"]
-        font_style = format_data.get("bot", {}).get("font_style", "").lower()
-        if font_style == "bold":
-            raw_menu["text"] = f"*{raw_menu['text']}*"
     else:
         parameters["popup"] = {
             "text": f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!",
@@ -398,6 +398,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
 
     menu_input = parameters.get("input", None)
     if menu_input and isinstance(menu_input, dict):
+        menu_input["menu"] = await formatting_text(menu_input["menu"], format_data)
         menu_input["params"] = format_data["params"]
 
     return {
@@ -406,7 +407,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
         "input": menu_input,
         "popup": popup,
         "send": send.get("send", None),
-        "error": format_data.get("error"),
+        "error": error,
         "delete_command": context.get("delete_command", True),
         "update_message": context.get("update_message", True),
     }

@@ -86,10 +86,41 @@ async def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
+async def replace_keys(data):
+    replacements = {}
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if isinstance(v, (str, int, float, bool)):
+                replacements[k] = v
+
+    def replace_recursive(obj):
+        if isinstance(obj, dict):
+            new_dict = {}
+            for k, v in obj.items():
+                resolved_key = replace_recursive(k)
+                resolved_value = replace_recursive(v)
+                new_dict[resolved_key] = resolved_value
+            return new_dict
+        elif isinstance(obj, list):
+            return [replace_recursive(item) for item in obj]
+        elif isinstance(obj, str):
+            match = re.match(r"^\{(.+)\}$", obj)
+            if match:
+                key = match.group(1)
+                if key in replacements:
+                    return replacements[key]
+            return obj
+        else:
+            return obj
+
+    return replace_recursive(data)
+
+
 async def formatting_text(text, format_data):  # форматирование текста
     data = copy.deepcopy(format_data)
     data["env"] = config.ENV
     values = await flatten_dict(data)
+    values = await replace_keys(values)
 
     start = text.find("{")
     while start != -1:
@@ -184,7 +215,7 @@ async def function(func_name: str, format_data: dict):
             del tta["params"]
             tta = await dict_to_namespace(tta)
             result = {}
-            result[custom_func.__name__] = await asyncio.to_thread(custom_func, tta)
+            result = await asyncio.to_thread(custom_func, tta)
             if not isinstance(result, dict):
                 logger.warning(
                     f"Функция {func_name} должна возвращать словарь,получено: {type(result)}"

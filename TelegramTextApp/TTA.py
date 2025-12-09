@@ -228,13 +228,14 @@ async def handle_text_input(message: types.Message, state: FSMContext):
             input_data["input_text"] = message.text
             menu = await get_menu(message, user_input=input_data)
             if menu.get("error"):
+                await state.set_state(Form.waiting_for_input)
+                menu = await get_menu(callback, error=menu.get("error"))
+                del menu["error"]
                 await state.update_data(
                     current_menu=menu,
                     message_id=message,
                     callback=callback,
                 )
-                await state.set_state(Form.waiting_for_input)
-                menu = await get_menu(callback, error=menu.get("error"))
             await processing_menu(menu, callback, state, [message, input_data])
         else:
             logger.error("Меню ввода не найдено или оно некорректно")
