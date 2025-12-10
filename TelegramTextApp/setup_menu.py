@@ -233,7 +233,9 @@ async def create_text(
     return text
 
 
-async def get_menu(callback, user_input=None, menu_loading=False, error={}):
+async def get_menu(callback, user_input=None, menu_loading=False, error=None):
+    if error is None:
+        error = {}
     menu_context = await create_context(callback, user_input)
     return await create_menu(menu_context, menu_loading, error)
 
