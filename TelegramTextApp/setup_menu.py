@@ -57,6 +57,7 @@ async def create_context(callback, user_input=None):
 
     context["menu_name"] = menu_name
     context["user"] = await get_user(callback)
+    context["callback"] = callback
 
     return context
 
@@ -317,6 +318,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
             else:
                 format_data["params"][func_name] = func_data
                 error = {}
+        format_data["user"] = await get_user(context["callback"])
 
     if context.get("user_input"):  # обработка ввода пользователя
         input_param = context["user_input"].get("data", "input_text")
