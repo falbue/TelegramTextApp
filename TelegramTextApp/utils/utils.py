@@ -154,7 +154,7 @@ async def formatting_text(text, format_data):  # форматирование т
 
 
 async def is_template_match(template: str, input_string: str) -> bool:
-    pattern = re.sub(r"\{.*?\}", ".*?", re.escape(template))
+    pattern = re.sub(r"\{[^{}]*\}", ".*?", template)
     full_pattern = f"^{pattern}$"
     return bool(re.match(full_pattern, input_string))
 
@@ -163,19 +163,30 @@ async def get_params(template: str, input_string: str) -> dict[str, str] | None:
     field_names = re.findall(r"\{(\w+)\}", template)
 
     if not field_names:
-        return {} if await is_template_match(template, input_string) else None
-    escaped = re.escape(template)
-    pattern = escaped
-    for name in field_names:
-        pattern = pattern.replace(rf"\{{{name}\}}", r"(.+?)", 1)
-
-    match = re.fullmatch(pattern, input_string)
-    if not match:
         return {}
 
+    template_parts = template.split("|")
+    input_parts = input_string.split("|")
+
     result = {}
-    for i, name in enumerate(field_names):
-        result[name] = match.group(i + 1)
+    input_idx = 0
+
+    for template_part in template_parts:
+        if template_part.startswith("{") and template_part.endswith("}"):
+            param_name = template_part[1:-1]
+            if input_idx < len(input_parts):
+                result[param_name] = input_parts[input_idx]
+                input_idx += 1
+            else:
+                result[param_name] = None
+        else:
+            if input_idx < len(input_parts) and input_parts[input_idx] == template_part:
+                input_idx += 1
+            else:
+                return None
+
+    if input_idx < len(input_parts):
+        return None
 
     return result
 
