@@ -303,6 +303,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
     format_data["variables"] = variables
     format_data["error"] = error
     error = {}
+    popup = None
 
     async def call_function(func_name: str, format_data: dict):
         func_data = await function(func_name, format_data)
@@ -317,7 +318,6 @@ async def create_menu(context, loading=False, error={}) -> dict:
 
     if context.get("user_input"):  # обработка ввода пользователя
         input_param = context["user_input"].get("data", "input_text")
-        print(context["user_input"])
         format_data["params"][input_param] = context["user_input"].get("input_text", "")
         if context["user_input"].get("function"):
             logger.debug("Вызов функции после ввода пользователя")
@@ -338,7 +338,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
         if isinstance(send_menu, dict):
             if send_menu.get("text"):
                 send["send"] = {
-                    "text": await formatting_text(send_menu["text"], format_data),
+                    "text": await create_text(send_menu["text"], format_data),
                     "keyboard": await create_keyboard(
                         {"keyboard": {"notification": "{variables.tta_notification}"}},
                         format_data,
@@ -348,7 +348,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
                 context["menu_name"] = await formatting_text(
                     send_menu["menu"], format_data
                 )
-                send["send"] = await create_menu(context, loading, error)
+                send["send"] = await create_menu(context, loading)
             ids = send_menu.get("id")
             if isinstance(ids, int):
                 send["send"]["ids"] = [ids]  # type: ignore
@@ -367,30 +367,6 @@ async def create_menu(context, loading=False, error={}) -> dict:
         else:
             raise Exception("send должен быть словарём!")
 
-    if parameters.get("text"):
-        raw_menu["text"] = parameters["text"]
-    else:
-        parameters["popup"] = {
-            "text": f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!",
-            "size": "big",
-            "blocked": True,
-        }
-        raw_menu["text"] = ""
-
-    async def create_popup(
-        popup: dict | str, blocked: bool = False, size: str = "small"
-    ):
-        if isinstance(popup, dict):
-            popup["text"] = await create_text(popup.get("text"), format_data, False)
-            if popup.get("blocked") is True:
-                raw_menu["text"] = ""
-        elif isinstance(popup, str):
-            popup = {"text": await create_text(popup, format_data, False)}
-
-    popup = parameters.get("popup", None)
-    if popup:
-        popup = await create_popup(parameters["popup"])
-
     if parameters.get("keyboard") or parameters.get("return"):
         keyboard = await create_keyboard(parameters, format_data, raw_menu["page"])
     else:
@@ -401,8 +377,27 @@ async def create_menu(context, loading=False, error={}) -> dict:
         menu_input["menu"] = await formatting_text(menu_input["menu"], format_data)
         menu_input["params"] = format_data["params"]
 
+    if parameters.get("text"):
+        raw_menu["text"] = await create_text(parameters["text"], format_data)
+    else:
+        popup = {
+            "text": f"Ошибка!\nУ открываемого меню {menu_name}, отсутсвует текст!",
+            "size": "big",
+            "blocked": True,
+        }
+        raw_menu["text"] = ""
+
+    if parameters.get("popup"):
+        popup = parameters["popup"]
+        if isinstance(popup, dict):
+            popup["text"] = await formatting_text(popup.get("text"), format_data)
+            if popup.get("blocked") is True:
+                parameters["text"] = ""
+        elif isinstance(popup, str):
+            popup = {"text": await formatting_text(popup, format_data)}
+
     return {
-        "text": await create_text(raw_menu["text"], format_data),
+        "text": raw_menu["text"],
         "keyboard": keyboard,
         "input": menu_input,
         "popup": popup,

@@ -22,7 +22,7 @@ async def markdown(text: str, full: bool = False) -> str:
     Иначе экранирует только основные символы Markdown (#+-={}.!)
     """
     if full is True:
-        special_characters = r"*|~[]()>|_"
+        special_characters = r"*|~[]()>|_#+-={}.!"
     else:
         special_characters = r"#+-={}.!"
     escaped_text = ""
@@ -144,7 +144,7 @@ async def formatting_text(text, format_data):  # форматирование т
             if key_type == "hide":
                 not_found_wrapper = ""
             else:
-                not_found_wrapper = f"`{{{key}}}`"
+                not_found_wrapper = f"{{{key}}}"
             text = text[:start] + not_found_wrapper + text[end + 1 :]
             start = start + len(not_found_wrapper)
 
