@@ -1,21 +1,12 @@
-from aiogram.types import BufferedInputFile
 from aiogram.types import BotCommand
-import aiohttp
 from .utils.logger import setup as logger_setup
+from .utils.utils import updated_json
 
 logger = logger_setup("UPDATE")
 
 
 async def update_bot_info(bot_data, bot):
     data = bot_data["bot"]
-
-    # Вспомогательная функция для скачивания изображений
-    async def download_image(url):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                response.raise_for_status()  # Проверка на ошибки HTTP
-                image_data = await response.read()
-                return BufferedInputFile(image_data, filename="image.jpg")
 
     # Обработка текстовых данных (имя, описания)
     try:
@@ -64,3 +55,7 @@ async def update_bot_info(bot_data, bot):
             logger.info("✅ Команды бота обновлены")
     except Exception as e:
         logger.error(f"⛔ Ошибка обновления команд: {e}")
+
+    update_data = await bot.get_me()
+    new_data = {"username": update_data.username, "id": update_data.id}
+    await updated_json(data=new_data, level="bot")

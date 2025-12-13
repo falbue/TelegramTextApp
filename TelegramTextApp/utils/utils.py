@@ -16,21 +16,38 @@ logger = setup_logger("UTILS")
 Json: TypeAlias = dict[str, str] | dict[str, dict[str, str]]
 
 
-async def markdown(text: str, full: bool = False) -> str:
-    """Экранирует специальные символы Markdown в тексте
-    Если указан full=True, экранирует все специальные символы Markdown
-    Иначе экранирует только основные символы Markdown (#+-={}.!)
+def markdown(text: str, full: bool = False) -> str:
+    """Экранирует специальные символы Markdown в тексте.
+    Если указан full=True, экранирует все специальные символы Markdown.
+    Иначе экранирует только основные символы Markdown (#+-={}.!).
+    Не дублирует обратный слэш, если символ уже экранирован (т.е. уже предварён \).
     """
     if full is True:
         special_characters = r"*|~[]()>|_#+-={}.!"
     else:
         special_characters = r"#+-={}.!"
+
     escaped_text = ""
-    for char in text:
+    i = 0
+    while i < len(text):
+        char = text[i]
+        if char == "\\" and i + 1 < len(text):
+            next_char = text[i + 1]
+            if next_char in special_characters:
+                escaped_text += "\\" + next_char
+                i += 2
+                continue
+            else:
+                escaped_text += char
+                i += 1
+                continue
+
         if char in special_characters:
-            escaped_text += f"\\{char}"
+            escaped_text += "\\" + char
         else:
             escaped_text += char
+        i += 1
+
     return escaped_text
 
 
@@ -44,6 +61,19 @@ async def load_json(
         if level is not None:
             data = data[level]
         return data
+
+
+async def updated_json(data: dict, level: str) -> None:
+    filename = config.JSON
+    json_data = await load_json()
+
+    if level is not None:
+        if level not in json_data or not isinstance(json_data[level], dict):
+            json_data[level] = {}
+        json_data[level].update(data)
+
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(json_data, f, ensure_ascii=False, indent=4)
 
 
 class TelegramTextApp(types.SimpleNamespace):
@@ -150,7 +180,17 @@ async def formatting_text(text, format_data):  # форматирование т
 
         start = text.find("{", start)
 
-    return text
+    def replace_deep_link(match):
+        payload = match.group(1)
+        payload = markdown(payload, full=True)
+        bot_username = markdown(format_data["bot"]["username"], full=True)
+        text = f"(https://t.me/{bot_username}?start={payload})"
+        print(text)
+        return text
+
+    updated_text = re.sub(r"\(deep_link\|([^)]+)\)", replace_deep_link, text)
+
+    return updated_text
 
 
 async def is_template_match(template: str, input_string: str) -> bool:

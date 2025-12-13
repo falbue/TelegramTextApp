@@ -18,6 +18,8 @@ from .utils.logger import setup as logger_setup
 from .utils.database import create_tables
 from .update_bot import update_bot_info
 
+from aiogram.utils.deep_linking import create_start_link
+
 logger = logger_setup("TTA")
 try:
     VERSION = version("TelegramTextApp")
@@ -247,6 +249,8 @@ def start() -> None:
     # Запуск бота
     async def main():
         await update_bot_info(await load_json(), bot)
+        link = await create_start_link(bot, "foo")
+        print(link)
         await dp.start_polling(bot)
 
     logger.info("Бот запущен")

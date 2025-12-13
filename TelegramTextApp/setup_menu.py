@@ -230,7 +230,7 @@ async def create_text(
             text = f"*{text}*"
         text = await formatting_text(text, format_data)
     if use_markdown:
-        text = await markdown(text)
+        text = markdown(text)
     return text
 
 
@@ -288,7 +288,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
 
     if parameters.get("loading") and loading is False:
         if parameters["loading"] is True:
-            raw_menu["text"] = variables.get("loading", "Loading...")
+            raw_menu["text"] = variables.get("tta_loading", "Loading...")
         elif isinstance(parameters["loading"], str):
             raw_menu["text"] = parameters["loading"]
         return {
