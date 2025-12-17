@@ -7,6 +7,7 @@ from .utils.utils import (
     markdown,
     function,
     get_params,
+    decode_base64url,
 )
 from .utils.database import SQL_request_async as SQL, get_user, get_role_id
 from .utils.logger import setup as setup_logger
@@ -38,22 +39,22 @@ async def create_context(callback, user_input=None):
             except Exception:
                 commands = {}
 
-        command_key = command.replace("/", "")
-        command_data = commands.get(command_key)
-        if command_data is None:
-            return None
-
-        if isinstance(command_data, dict):
-            menu_name = command_data.get("menu")
-            delete_command = command_data.get("delete", True)
-            update_message = command_data.get("update", True)
-            context["delete_command"] = delete_command
-            context["update_message"] = update_message
+        if len(command.split()) > 1:
+            menu_name = decode_base64url(command.split()[1])
         else:
-            menu_name = getattr(command_data, "menu", None)
+            command_key = command.replace("/", "")
+            command_data = commands.get(command_key)
+            if command_data is None:
+                menu_name = None
 
-        if menu_name is None:
-            return None
+            if isinstance(command_data, dict):
+                menu_name = command_data.get("menu")
+                delete_command = command_data.get("delete", True)
+                update_message = command_data.get("update", True)
+                context["delete_command"] = delete_command
+                context["update_message"] = update_message
+            else:
+                menu_name = getattr(command_data, "menu", None)
 
     context["menu_name"] = menu_name
     context["user"] = await get_user(callback)
@@ -368,6 +369,8 @@ async def create_menu(context, loading=False, error={}) -> dict:
                     send["send"]["ids"] = [ids]  # type: ignore
                 else:
                     send["send"]["ids"] = await get_role_id(ids)  # type: ignore
+        elif send_menu is True:
+            send["send"] = True
         else:
             raise Exception("send должен быть словарём!")
 
