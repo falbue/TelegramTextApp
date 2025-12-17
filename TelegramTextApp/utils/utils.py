@@ -7,6 +7,7 @@ import sys
 from typing import TypeAlias
 import types
 import copy
+import base64
 
 from .. import config
 from .logger import setup as setup_logger
@@ -16,11 +17,25 @@ logger = setup_logger("UTILS")
 Json: TypeAlias = dict[str, str] | dict[str, dict[str, str]]
 
 
+def encode_base64url(data: str) -> str:
+    """Кодирует строку в base64url"""
+    encoded = base64.urlsafe_b64encode(data.encode("utf-8"))
+    return encoded.rstrip(b"=").decode("utf-8")
+
+
+def decode_base64url(data: str) -> str:
+    """Декодирует строку из base64url обратно в текст"""
+    padding = "=" * (4 - len(data) % 4) if len(data) % 4 else ""
+    padded = data + padding
+    decoded = base64.urlsafe_b64decode(padded.encode("utf-8"))
+    return decoded.decode("utf-8")
+
+
 def markdown(text: str, full: bool = False) -> str:
     """Экранирует специальные символы Markdown в тексте.
     Если указан full=True, экранирует все специальные символы Markdown.
     Иначе экранирует только основные символы Markdown (#+-={}.!).
-    Не дублирует обратный слэш, если символ уже экранирован (т.е. уже предварён \).
+    Не дублирует обратный слэш, если символ уже экранирован (т.е. уже предварён \\).
     """
     if full is True:
         special_characters = r"*|~[]()>|_#+-={}.!"
@@ -174,21 +189,22 @@ async def formatting_text(text, format_data):  # форматирование т
             if key_type == "hide":
                 not_found_wrapper = ""
             else:
-                not_found_wrapper = f"{{{key}}}"
+                not_found_wrapper = markdown(f"{{{key}}}", True)
             text = text[:start] + not_found_wrapper + text[end + 1 :]
             start = start + len(not_found_wrapper)
 
         start = text.find("{", start)
 
     def replace_deep_link(match):
+        print("Найдена deep_link для обработки")
         payload = match.group(1)
-        payload = markdown(payload, full=True)
+        payload = encode_base64url(payload)
         bot_username = markdown(format_data["bot"]["username"], full=True)
         text = f"(https://t.me/{bot_username}?start={payload})"
-        print(text)
+
         return text
 
-    updated_text = re.sub(r"\(deep_link\|([^)]+)\)", replace_deep_link, text)
+    updated_text = re.sub(r"\(deep_link\:([^)]+)\)", replace_deep_link, text)
 
     return updated_text
 
