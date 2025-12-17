@@ -18,39 +18,39 @@ from .utils.logger import setup as logger_setup
 from .utils.database import create_tables
 from .update_bot import update_bot_info
 
-from aiogram.utils.deep_linking import create_start_link
 
 logger = logger_setup("TTA")
-try:
-    VERSION = version("TelegramTextApp")
-except PackageNotFoundError:
-    VERSION = "development"
-logger.info(f"Версия TTA: {VERSION}")
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-template_path = os.path.join(script_dir, "template_config.json")
-
-
-if os.path.exists(config.JSON):
-    pass
-else:
-    with open(template_path, "r", encoding="utf-8") as template_file:
-        template_data = json.load(template_file)
-
-    with open(config.JSON, "w", encoding="utf-8") as target_file:
-        json.dump(template_data, target_file, indent=4, ensure_ascii=False)
-
-    logger.info(f"Файл бота {config.JSON} создан")
-
-
-asyncio.run(create_tables())
-
-
-if config.TOKEN is None or config.TOKEN == "":
-    raise RuntimeError("Укажите TOKEN бота в .env файле")
-
-bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
 dp = Dispatcher()
+
+
+def create_tta_bot():
+    global bot
+    try:
+        VERSION = version("TelegramTextApp")
+    except PackageNotFoundError:
+        VERSION = "development"
+    logger.info(f"Версия TTA: {VERSION}")
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    template_path = os.path.join(script_dir, "template_config.json")
+
+    if os.path.exists(config.JSON):
+        pass
+    else:
+        with open(template_path, "r", encoding="utf-8") as template_file:
+            template_data = json.load(template_file)
+
+        with open(config.JSON, "w", encoding="utf-8") as target_file:
+            json.dump(template_data, target_file, indent=4, ensure_ascii=False)
+
+        logger.info(f"Файл бота {config.JSON} создан")
+
+    asyncio.run(create_tables())
+
+    if config.TOKEN is None or config.TOKEN == "":
+        raise RuntimeError("Укажите TOKEN бота в .env файле")
+
+    bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
 
 
 class Form(StatesGroup):
@@ -86,7 +86,7 @@ async def processing_menu(
         )
         await state.set_state(Form.waiting_for_input)
 
-    if menu.get("send"):
+    if menu.get("send") and isinstance(menu["send"], dict):
         for user in menu["send"]["ids"]:
             try:
                 await bot.send_message(
@@ -247,10 +247,10 @@ async def handle_text_input(message: types.Message, state: FSMContext):
 
 def start() -> None:
     # Запуск бота
+    create_tta_bot()
+
     async def main():
         await update_bot_info(await load_json(), bot)
-        link = await create_start_link(bot, "foo")
-        print(link)
         await dp.start_polling(bot)
 
     logger.info("Бот запущен")
