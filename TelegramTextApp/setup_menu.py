@@ -69,6 +69,15 @@ async def create_keyboard(
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
 
+    async def check_function(keyboard):
+        if keyboard.get("function"):
+            func_data = await function(keyboard["function"], format_data)
+            del keyboard["function"]
+            keyboard.update(func_data)
+            if keyboard.get("function"):
+                keyboard = await check_function(keyboard)
+        return keyboard
+
     if menu_data.get("keyboard"):
         if isinstance(menu_data["keyboard"], str):
             func_data = await function(menu_data["keyboard"], format_data)
@@ -76,6 +85,7 @@ async def create_keyboard(
                 menu_data["keyboard"] = func_data
             else:
                 menu_data["keyboard"] = {"error": "Ошибка функции генерации клавиатуры"}
+        await check_function(menu_data["keyboard"])
 
     if "keyboard" in menu_data and not (
         isinstance(menu_data["keyboard"], dict) and len(menu_data["keyboard"]) == 0
@@ -99,6 +109,7 @@ async def create_keyboard(
             return None
 
         for callback_data, button_text in page_items:
+            callback_data = str(callback_data)
             if len(callback_data) > 64:
                 logger.error(
                     f"Не удалось добавить кнопку '{button_text}'. Название меню слишком длинное: {callback_data}"
@@ -127,7 +138,11 @@ async def create_keyboard(
 
             if callback_data.startswith("url:"):
                 url = callback_data[4:]
-                button = InlineKeyboardButton(text=button_text, url=url)
+                if url:
+                    button = InlineKeyboardButton(text=button_text, url=url)
+                else:
+                    logger.warning(f"Пустой URL в кнопке: {button_text}")
+                    continue
             elif callback_data.startswith("app:"):
                 url = callback_data[4:]
                 button = InlineKeyboardButton(
@@ -313,9 +328,15 @@ async def create_menu(context, loading=False, error={}) -> dict:
     async def call_function(func_name: str, format_data: dict):
         func_data = await function(func_name, format_data)
         if isinstance(func_data, dict):
+            if func_data.get("keyboard"):
+                parameters["keyboard"] = func_data["keyboard"]
+                del func_data["keyboard"]
             if func_data.get("error"):
                 error = func_data.get("error")
-                format_data["error"].update(error)
+                if error is dict:
+                    format_data["error"].update(error)
+                elif isinstance(error, str):
+                    format_data["error"] = error
                 return False
             else:
                 format_data["params"][func_name] = func_data
