@@ -296,6 +296,7 @@ async def create_menu(context, loading=False, error={}) -> dict:
             "text": await create_text(raw_menu["text"], False),
             "keyboard": None,
             "loading": True,
+            "send": parameters.get("send", None),
         }
 
     format_data = {}
@@ -319,7 +320,8 @@ async def create_menu(context, loading=False, error={}) -> dict:
             else:
                 format_data["params"][func_name] = func_data
                 error = {}
-        format_data["user"] = await get_user(context["callback"])
+        if context.get("callback"):
+            format_data["user"] = await get_user(context["callback"])
 
     if context.get("user_input"):  # обработка ввода пользователя
         input_param = context["user_input"].get("data", "input_text")
