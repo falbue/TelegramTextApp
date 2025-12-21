@@ -11,7 +11,7 @@ from .setup_menu import load_json, get_user, get_menu, create_menu
 from . import config
 
 from .utils.logger import setup as logger_setup
-from .utils.database import create_tables, get_role_id
+from .utils.database import create_tables, get_role_id, update_phone_number
 from .update_bot import update_bot_info
 
 
@@ -289,6 +289,9 @@ async def handle_text_input(message: types.Message, state: FSMContext):
     await state.clear()
     menu = data.get("current_menu")
     callback = data.get("callback")
+
+    if message.contact:
+        await update_phone_number(message.chat.id, message.contact.phone_number)
 
     if isinstance(menu, dict):
         if menu.get("input"):

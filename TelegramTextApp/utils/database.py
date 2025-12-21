@@ -129,6 +129,20 @@ def SQL_request(
     return result
 
 
+async def update_phone_number(telegram_id, phone_number):
+    """Обновляет номер телефона пользователя в базе данных."""
+    print(telegram_id)
+    try:
+        await SQL_request_async(
+            "UPDATE TTA SET phone_number = ? WHERE telegram_id = ?",
+            (phone_number, telegram_id),
+            "None",
+        )
+        print(f"Номер телефона пользователя {telegram_id} обновлен на {phone_number}")
+    except Exception as e:
+        logger.error(f"Не удалось обновить номер телефона пользователя: {e}")
+
+
 async def create_tables():
     # Пользователи
     await SQL_request_async("""
@@ -138,6 +152,7 @@ async def create_tables():
         first_name TEXT,
         last_name TEXT,
         username TEXT,
+        phone_number TEXT,
         message_id INTEGER,
         message_type TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -158,7 +173,7 @@ async def extract_user_data(
         try:
             if update is True:
                 message_id = message.message_id
-                if message.text.startswith("/"):
+                if message.text and message.text.startswith("/"):
                     logger.debug("Обновление сообщения пользователя")
                     message_id = message.message_id + 1
             else:
@@ -167,7 +182,7 @@ async def extract_user_data(
                 )
                 message_id = user.get("message_id") if user else message.message_id
         except Exception as e:
-            logger.error(f"Ошибка при обработке данных пользователя: {e}")
+            logger.warning(f"Ошибка при обработке данных пользователя: {e}")
             message_id = message.message_id
 
     return {
