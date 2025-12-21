@@ -7,60 +7,125 @@ from importlib.metadata import version, PackageNotFoundError
 import os
 import json
 
-from .setup_menu import (
-    load_json,
-    get_user,
-    get_menu,
-)
+from .setup_menu import load_json, get_user, get_menu, create_menu
 from . import config
 
 from .utils.logger import setup as logger_setup
-from .utils.database import create_tables
+from .utils.database import create_tables, get_role_id
 from .update_bot import update_bot_info
 
 
 logger = logger_setup("TTA")
 dp = Dispatcher()
 
+try:
+    VERSION = version("TelegramTextApp")
+except PackageNotFoundError:
+    VERSION = "development"
 
-def create_tta_bot():
-    global bot
-    try:
-        VERSION = version("TelegramTextApp")
-    except PackageNotFoundError:
-        VERSION = "development"
-    logger.info(f"Версия TTA: {VERSION}")
+logger.debug(f"Версия TTA: {VERSION}")
 
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    template_path = os.path.join(script_dir, "template_config.json")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+template_path = os.path.join(script_dir, "template_config.json")
+if os.path.exists(config.JSON):
+    pass
+else:
+    with open(template_path, "r", encoding="utf-8") as template_file:
+        template_data = json.load(template_file)
+    with open(config.JSON, "w", encoding="utf-8") as target_file:
+        json.dump(template_data, target_file, indent=4, ensure_ascii=False)
+    logger.info(f"Файл бота {config.JSON} создан")
+if config.TOKEN is None or config.TOKEN == "":
+    raise RuntimeError("Укажите TOKEN бота в .env файле")
 
-    if os.path.exists(config.JSON):
-        pass
-    else:
-        with open(template_path, "r", encoding="utf-8") as template_file:
-            template_data = json.load(template_file)
-
-        with open(config.JSON, "w", encoding="utf-8") as target_file:
-            json.dump(template_data, target_file, indent=4, ensure_ascii=False)
-
-        logger.info(f"Файл бота {config.JSON} создан")
-
-    asyncio.run(create_tables())
-
-    if config.TOKEN is None or config.TOKEN == "":
-        raise RuntimeError("Укажите TOKEN бота в .env файле")
-
-    bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
+bot = Bot(token=config.TOKEN, default=DefaultBotProperties(parse_mode="MarkdownV2"))
 
 
 class Form(StatesGroup):
     waiting_for_input = State()
 
 
+def send_menu(menu_name, ids):
+    asyncio.run(send_menu_wrapper(menu_name, ids))
+
+
+async def send_menu_wrapper(menu_name: str, ids, menu=None):
+    """Обёртка: собирает все user_id и отправляет массово."""
+    if isinstance(ids, str):
+        users = await get_role_id(ids)
+        user_ids = [user["telegram_id"] for user in users]
+    elif isinstance(ids, list):
+        user_ids = ids
+    else:
+        user_ids = [ids]
+
+    data = {"menu_name": menu_name, "update_message": False}
+    menu = await create_menu(data)
+
+    for user_id in user_ids:
+        try:
+            await send_menu_user(menu_name, user_id, menu)
+        except Exception as e:
+            logger.error(f"Ошибка при отправке пользователю {user_id}: {e}")
+
+
+async def send_menu_user(menu_name: str, user_id: int, menu: dict):
+    try:
+        message = await bot.send_message(
+            text=menu["text"],
+            chat_id=user_id,
+            reply_markup=menu.get("keyboard"),
+        )
+        message_id = message.message_id
+
+        if menu.get("loading"):
+            updated_menu = await create_menu(
+                {"menu_name": menu_name, "update_message": False}, loading=True
+            )
+            try:
+                await bot.edit_message_text(
+                    chat_id=user_id,
+                    message_id=message_id,
+                    text=updated_menu["text"],
+                    reply_markup=updated_menu.get("keyboard"),
+                )
+            except Exception as e:
+                if "message can't be edited" not in str(e):
+                    new_msg = await bot.send_message(
+                        chat_id=user_id,
+                        text=updated_menu["text"],
+                        reply_markup=updated_menu.get("keyboard"),
+                    )
+                    message_id = new_msg.message_id
+
+        if menu.get("send") and isinstance(menu["send"], dict):
+            for target_user in menu["send"]["ids"]:
+                try:
+                    await bot.send_message(
+                        chat_id=target_user["telegram_id"],
+                        text=menu["send"]["text"],
+                        reply_markup=menu["send"].get("keyboard"),
+                    )
+                except Exception as e:
+                    logger.error(f"Ошибка при доп.отправке: {e}")
+
+    except Exception as e:
+        logger.error(
+            f"Не удалось отправить меню {menu_name} пользователю {user_id}: {e}"
+        )
+        raise
+
+
 async def processing_menu(
     menu, callback, state, input_data=None
 ):  # обработчик сообщений
     await get_user(callback.message, update=True)
+    if menu.get("send") and isinstance(menu["send"], bool) and menu["send"] is True:
+        await callback.answer()
+        await send_menu_user(
+            menu_name=callback.data, user_id=callback.message.chat.id, menu=menu
+        )
+        return
     if menu.get("loading"):
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
         if input_data:
@@ -99,6 +164,7 @@ async def processing_menu(
                 logger.error(
                     f"Ошибка при отправке сообщения выбранным пользователям | {user}: {e}"
                 )
+
     try:
         await callback.message.edit_text(menu["text"], reply_markup=menu["keyboard"])
     except Exception as e:
@@ -246,10 +312,8 @@ async def handle_text_input(message: types.Message, state: FSMContext):
 
 
 def start() -> None:
-    # Запуск бота
-    create_tta_bot()
-
     async def main():
+        await create_tables()
         await update_bot_info(await load_json(), bot)
         await dp.start_polling(bot)
 
