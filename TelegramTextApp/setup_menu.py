@@ -267,6 +267,9 @@ async def get_menu(callback, user_input=None, menu_loading=False, error=None):
 
 
 async def create_raw_menu(name) -> dict:
+    """ "создание сырого меню.
+    Возвращает указанное имя меню и номер страницы
+    """
     if "return|" in name:
         name = name.replace("return|", "")
     if name.startswith("pg"):
@@ -278,19 +281,28 @@ async def create_raw_menu(name) -> dict:
     return {"name": name, "page": page}
 
 
-async def get_parameters(name) -> tuple[dict, str]:
+async def get_parameters(name: str) -> tuple[dict, str]:
     menus = await load_json(level="menu")
-    data = menus.get(name.split("|")[0])
-    template = ""
-    if "|" in name:
-        prefix = name.split("|")[0] + "|"
-        for key in menus:
-            if key.startswith(prefix):
-                data = menus.get(key)
-                template = key
-                break
-    if data:
-        return data, template
+    parts = name.split("|")
+    prefix = parts[0]
+
+    best_match_key = None
+    best_match_data = None
+
+    for key in menus:
+        if not key.startswith(prefix + "|") and key != prefix:
+            continue
+
+        key_parts = key.split("|")
+        if len(key_parts) != len(parts):
+            continue
+
+        best_match_key = key
+        best_match_data = menus[key]
+        break
+
+    if best_match_data is not None:
+        return best_match_data, best_match_key
     else:
         return {}, ""
 
