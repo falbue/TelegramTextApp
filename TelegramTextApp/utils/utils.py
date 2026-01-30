@@ -102,7 +102,7 @@ async def dict_to_namespace(d):
     return TelegramTextApp(**d)
 
 
-async def print_json(data):  # удобный вывод json
+def print_json(data):  # удобный вывод json
     try:
         if isinstance(data, (dict, list)):
             text = json.dumps(data, indent=4, ensure_ascii=False)
