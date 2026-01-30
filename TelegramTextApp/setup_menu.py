@@ -17,7 +17,7 @@ logger = setup_logger("MENUS")
 
 
 async def create_context(callback, user_input=None):
-    # создание контекста, для настройки меню
+    """создание контекста, для настройки меню"""
     context = {}
     if user_input:  # обработка ввода пользователя
         menu_name = user_input["menu"]
@@ -63,19 +63,28 @@ async def create_context(callback, user_input=None):
     return context
 
 
-async def create_keyboard(
-    menu_data, format_data, current_page_index=0
-):  # создание клавиатуры
+async def create_keyboard(menu_data, format_data, current_page_index=0):
+    """создание клавиатуры
+    ️:param menu_data: данные меню
+    :param format_data: данные для форматирования"""
     builder = InlineKeyboardBuilder()
     return_builder = InlineKeyboardBuilder()
 
     async def check_function(keyboard):
         if keyboard.get("function"):
-            func_data = await function(keyboard["function"], format_data)
-            del keyboard["function"]
+            func_name = keyboard["function"]
+            placeholder = None
+            if keyboard["function"].startswith("\\"):
+                placeholder = "\\"
+                func_name = keyboard["function"][1:]
+
+            func_data = await function(func_name, format_data)
+
+            if placeholder is not None:
+                first_key = next(iter(func_data))
+                func_data[first_key] = placeholder + str(func_data[first_key])
             keyboard.update(func_data)
-            if keyboard.get("function"):
-                keyboard = await check_function(keyboard)
+            del keyboard["function"]
         return keyboard
 
     if menu_data.get("keyboard"):
@@ -85,7 +94,7 @@ async def create_keyboard(
                 menu_data["keyboard"] = func_data
             else:
                 menu_data["keyboard"] = {"error": "Ошибка функции генерации клавиатуры"}
-        await check_function(menu_data["keyboard"])
+        menu_data["keyboard"] = await check_function(menu_data["keyboard"])
 
     if "keyboard" in menu_data and not (
         isinstance(menu_data["keyboard"], dict) and len(menu_data["keyboard"]) == 0
@@ -111,8 +120,8 @@ async def create_keyboard(
         for callback_data, button_text in page_items:
             callback_data = str(callback_data)
             if len(callback_data) > 64:
-                logger.error(
-                    f"Не удалось добавить кнопку '{button_text}'. Название меню слишком длинное: {callback_data}"
+                logger.warning(
+                    f"Название меню слишком длинное: {callback_data} (макс. 64 символа). Кнопка будет пропущена"
                 )
                 continue
             force_new_line = False
