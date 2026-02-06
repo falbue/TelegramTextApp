@@ -33,7 +33,11 @@ setup(
     long_description_content_type="text/markdown",
     author="falbue",
     author_email="cyansair05@gmail.com",
-    url="https://github.com/falbue/TelegramTextApp",
+    project_urls={
+        "Homepage": "https://github.com/falbue/TelegramTextApp",
+        "Source": "https://github.com/falbue/TelegramTextApp",
+        "Bug Tracker": "https://github.com/falbue/TelegramTextApp/issues",
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
